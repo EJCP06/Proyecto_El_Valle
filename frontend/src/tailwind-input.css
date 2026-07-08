@@ -1,0 +1,226 @@
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Inter', sans-serif;
+
+  /* Brand colors */
+  --color-primary-50:  #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+
+  /* Sidebar dark */
+  --color-sidebar-bg:  #0f172a;
+  --color-sidebar-hover: #1e293b;
+
+  /* Surface tokens */
+  --color-surface-50:  #f8fafc;
+  --color-surface-100: #f1f5f9;
+  --color-surface-800: #1e293b;
+  --color-surface-900: #0f172a;
+}
+
+/* Remove focus outline on mouse click, keep for keyboard navigation */
+button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* No body scroll when modal is open */
+body:has(.fixed.inset-0.z-50),
+body:has(.fixed.inset-0.z-\[100\]) {
+  overflow: hidden;
+}
+
+body {
+  @apply antialiased bg-slate-50 text-slate-900 transition-colors duration-300;
+  font-family: 'Inter', sans-serif;
+}
+
+.dark body {
+  @apply bg-[#0f172a] text-slate-100;
+}
+
+/* Global Dark Mode Overrides */
+.dark .bg-white {
+  @apply bg-slate-900 border-slate-800 text-slate-100;
+}
+
+.dark .bg-slate-50 {
+  @apply bg-[#0f172a];
+}
+
+.dark .border-slate-200, 
+.dark .border-slate-100 {
+  @apply border-slate-800;
+}
+
+.dark .text-slate-900,
+.dark .text-slate-800 {
+  @apply text-white;
+}
+
+.dark .text-slate-600,
+.dark .text-slate-500 {
+  @apply text-slate-400;
+}
+
+.dark aside {
+  @apply bg-slate-950 border-slate-900;
+}
+
+.dark header {
+  @apply bg-slate-900/80 border-slate-800;
+}
+
+.dark input, 
+.dark select, 
+.dark textarea {
+  @apply bg-slate-800 border-slate-700 text-white placeholder-slate-500;
+}
+
+.dark .bg-slate-50\/50 {
+  @apply bg-slate-800/50;
+}
+
+/* Icon Containers Overrides for Dark Mode */
+.dark .bg-blue-50 { @apply bg-blue-500/10 text-blue-400; }
+.dark .bg-rose-50 { @apply bg-rose-500/10 text-rose-400; }
+.dark .bg-emerald-50 { @apply bg-emerald-500/10 text-emerald-400; }
+.dark .bg-amber-50 { @apply bg-amber-500/10 text-amber-400; }
+.dark .bg-teal-50 { @apply bg-teal-500/10 text-teal-400; }
+.dark .bg-indigo-50 { @apply bg-indigo-500/10 text-indigo-400; }
+
+.dark .text-blue-600 { @apply text-blue-400; }
+.dark .text-rose-600 { @apply text-rose-400; }
+.dark .text-emerald-600 { @apply text-emerald-400; }
+.dark .text-amber-600 { @apply text-amber-400; }
+.dark .text-teal-600 { @apply text-teal-400; }
+.dark .text-indigo-600 { @apply text-indigo-400; }
+
+.dark .border-blue-100,
+.dark .border-emerald-100,
+.dark .border-rose-100 {
+  @apply border-transparent;
+}
+
+/* Shadows for Dark Mode */
+.dark .shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(255, 255, 255, 0.05);
+}
+
+.dark .shadow-md,
+.dark .hover\:shadow-md:hover {
+  box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1), 0 2px 4px -1px rgba(255, 255, 255, 0.06);
+}
+
+.dark .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(255, 255, 255, 0.1), 0 4px 6px -2px rgba(255, 255, 255, 0.05);
+}
+
+.dark .shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(255, 255, 255, 0.1), 0 10px 10px -5px rgba(255, 255, 255, 0.04);
+}
+
+/* Scrollbars */
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  -ms-overflow-style: auto;
+}
+
+*:hover {
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.dark *:hover {
+  scrollbar-color: #475569 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+*:hover::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
+*:hover::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.dark *::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+.dark *:hover::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+.dark *:hover::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+@keyframes dropDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-drop-down {
+  animation: dropDown 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: top;
+}
+
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
+aside nav {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+aside nav::-webkit-scrollbar {
+  display: none !important;
+}
+
+@keyframes focus-ring {
+  0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
+  100% { box-shadow: 0 0 0 4px rgba(37, 99, 235, 0); }
+}
