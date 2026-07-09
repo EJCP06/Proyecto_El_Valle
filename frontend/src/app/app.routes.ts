@@ -49,25 +49,11 @@ export const routes: Routes = [
               ).then((m) => m.ConsejoListComponent),
           },
           {
-            path: 'nuevo',
-            loadComponent: () =>
-              import(
-                './features/consejos-comunales/consejo-form.component'
-              ).then((m) => m.ConsejoFormComponent),
-          },
-          {
             path: ':id',
             loadComponent: () =>
               import(
                 './features/consejos-comunales/consejo-detail.component'
               ).then((m) => m.ConsejoDetailComponent),
-          },
-          {
-            path: ':id/editar',
-            loadComponent: () =>
-              import(
-                './features/consejos-comunales/consejo-form.component'
-              ).then((m) => m.ConsejoFormComponent),
           },
         ],
       },
@@ -82,38 +68,10 @@ export const routes: Routes = [
               ),
           },
           {
-            path: 'nueva',
-            loadComponent: () =>
-              import('./features/familias/familia-form.component').then(
-                (m) => m.FamiliaFormComponent
-              ),
-          },
-          {
             path: ':id',
             loadComponent: () =>
               import('./features/familias/familia-detail.component').then(
                 (m) => m.FamiliaDetailComponent
-              ),
-          },
-          {
-            path: ':id/editar',
-            loadComponent: () =>
-              import('./features/familias/familia-form.component').then(
-                (m) => m.FamiliaFormComponent
-              ),
-          },
-          {
-            path: ':familiaId/miembros/nuevo',
-            loadComponent: () =>
-              import('./features/miembros/miembro-form.component').then(
-                (m) => m.MiembroFormComponent
-              ),
-          },
-          {
-            path: ':familiaId/miembros/:id/editar',
-            loadComponent: () =>
-              import('./features/miembros/miembro-form.component').then(
-                (m) => m.MiembroFormComponent
               ),
           },
         ],
@@ -127,27 +85,6 @@ export const routes: Routes = [
               import(
                 './features/formularios/formulario-list.component'
               ).then((m) => m.FormularioListComponent),
-          },
-          {
-            path: 'nuevo',
-            loadComponent: () =>
-              import(
-                './features/formularios/formulario-builder.component'
-              ).then((m) => m.FormularioBuilderComponent),
-          },
-          {
-            path: ':id/editar',
-            loadComponent: () =>
-              import(
-                './features/formularios/formulario-builder.component'
-              ).then((m) => m.FormularioBuilderComponent),
-          },
-          {
-            path: ':id/asignar',
-            loadComponent: () =>
-              import(
-                './features/formularios/formulario-asignar.component'
-              ).then((m) => m.FormularioAsignarComponent),
           },
           {
             path: ':id/responder',
@@ -202,20 +139,6 @@ export const routes: Routes = [
             loadComponent: () =>
               import('./features/usuarios/usuario-list.component').then(
                 (m) => m.UsuarioListComponent
-              ),
-          },
-          {
-            path: 'nuevo',
-            loadComponent: () =>
-              import('./features/usuarios/usuario-form.component').then(
-                (m) => m.UsuarioFormComponent
-              ),
-          },
-          {
-            path: ':id/editar',
-            loadComponent: () =>
-              import('./features/usuarios/usuario-form.component').then(
-                (m) => m.UsuarioFormComponent
               ),
           },
         ],

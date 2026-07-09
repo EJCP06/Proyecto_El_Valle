@@ -1,12 +1,20 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ElementRef, HostListener } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { FamiliasService } from '../../core/services/familias.service';
-import { Familia } from '../../core/models/usuario.model';
+import { MiembrosService } from '../../core/services/miembros.service';
+import { CatalogoService, CatalogoItem } from '../../core/services/catalogo.service';
+import { NotificationService } from '../../core/services/notification.service';
+import { Familia, Miembro } from '../../core/models/usuario.model';
+import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
+import { PaginatePipe } from '../../shared/pipes/paginate.pipe';
+import { FillersPipe } from '../../shared/pipes/fillers.pipe';
+import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 } from 'lucide-angular';
 
 @Component({
   selector: 'app-familia-detail',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, FormsModule, PaginationComponent, PaginatePipe, FillersPipe, LucideAngularModule],
   template: `
     <div class="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300">
       @if (loading()) {
@@ -23,14 +31,12 @@ import { Familia } from '../../core/models/usuario.model';
             <p class="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">{{ familia()!.direccion }}</p>
           </div>
           <div class="flex items-center gap-3">
-            <a [routerLink]="['..', familia()!.id, 'editar']"
-              class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-2xl text-sm transition-all cursor-pointer">
+            <button (click)="openEditFamilia()" class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-2xl text-sm transition-all cursor-pointer">
               Editar
-            </a>
-            <a [routerLink]="['..', familia()!.id, 'miembros', 'nuevo']"
-              class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-2xl shadow-lg shadow-blue-600/10 hover:-translate-y-0.5 transition-all text-sm cursor-pointer">
+            </button>
+            <button (click)="openMiembroModal()" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-2xl shadow-lg shadow-blue-600/10 hover:-translate-y-0.5 transition-all text-sm cursor-pointer">
               <span>+</span><span>Miembro</span>
-            </a>
+            </button>
           </div>
         </div>
 
@@ -44,33 +50,68 @@ import { Familia } from '../../core/models/usuario.model';
               </span>
             </h3>
           </div>
+          <!-- Search/Filter Bar -->
+          <div class="flex justify-center mb-6 md:mb-10 mt-4">
+            <div class="relative w-full max-w-lg">
+              <div class="flex items-center w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-1.5 shadow-lg group focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500 transition-all duration-300">
+                <div class="relative search-filter-container">
+                  <button type="button" (click)="toggleSearchFilterDropdown()" class="bg-slate-50 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 px-5 py-2.5 text-[11px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 focus:outline-none rounded-xl cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-all flex items-center gap-2.5">
+                    <span>{{ getSearchFilterLabel() }}</span>
+                    <lucide-icon [name]="ChevronDown" class="w-3.5 h-3.5 transition-transform duration-200" [class.rotate-180]="showSearchFilterDropdown"></lucide-icon>
+                  </button>
+                  @if (showSearchFilterDropdown) {
+                    <div class="absolute z-[110] w-44 mt-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 border-t-4 border-t-blue-600 left-0">
+                      <div class="p-1.5 max-h-48 overflow-y-auto">
+                        @for (opt of searchFilterOptions; track opt.value) {
+                          <div (click)="selectSearchFilter(opt.value)" class="px-4 py-2.5 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors rounded-xl flex items-center justify-between" [class.bg-blue-50]="searchFilter === opt.value" [class.text-blue-600]="searchFilter === opt.value">
+                            <span>{{ opt.label }}</span>
+                            @if (searchFilter === opt.value) {
+                              <lucide-icon [name]="CheckCircle2" class="w-3.5 h-3.5"></lucide-icon>
+                            }
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+                <div class="relative flex-1">
+                  <lucide-icon [name]="Search" class="w-4 h-4 absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors"></lucide-icon>
+                  <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange($event)" placeholder="Buscar miembro..." class="w-full pl-[72px] pr-4 py-3 text-sm focus:outline-none font-medium bg-transparent rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500" />
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full table-fixed border-collapse">
               <thead>
                 <tr class="bg-slate-50/75 dark:bg-slate-800/40 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                  <th class="px-6 py-4">Nombre</th>
-                  <th class="px-6 py-4">Cédula</th>
-                  <th class="px-6 py-4">Rol</th>
-                  <th class="px-6 py-4 text-right">Acción</th>
+                  <th class="w-[35%] px-6 py-4 text-center">Nombre</th>
+                  <th class="w-[25%] px-4 py-4 text-center">Cédula</th>
+                  <th class="w-[22%] px-4 py-4 text-center">Rol</th>
+                  <th class="w-[18%] px-4 py-4 text-center">Acción</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
-                @for (m of familia()!.miembros; track m.id) {
-                  <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                    <td class="px-6 py-4 font-bold text-slate-800 dark:text-white text-sm">{{ m.nombre }} {{ m.apellido }}</td>
-                    <td class="px-6 py-4 text-xs font-mono text-slate-500 dark:text-slate-400">{{ m.cedula }}</td>
-                    <td class="px-6 py-4">
+                @for (m of miembrosFiltrados | paginate:currentPage:pageSize; track m.id) {
+                  <tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    <td class="px-6 py-4 text-center text-sm text-slate-500 dark:text-slate-400 truncate">{{ m.nombre }} {{ m.apellido }}</td>
+                    <td class="px-4 py-4 text-center text-sm text-slate-500 dark:text-slate-400">{{ m.cedula }}</td>
+                    <td class="px-4 py-4 text-center">
                       @if (m.jefeFamilia) {
                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400">
                           Jefe de familia
                         </span>
                       }
                     </td>
-                    <td class="px-6 py-4 text-right">
-                      <a [routerLink]="['..', familia()!.id, 'miembros', m.id, 'editar']"
-                        class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
-                        Editar
-                      </a>
+                    <td class="px-4 py-4">
+                      <div class="flex justify-center gap-1">
+                        <button (click)="openMiembroModal(m)" aria-label="Editar miembro" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 hover:shadow-[0_2px_10px_-3px_rgba(59,130,246,0.4)] dark:hover:bg-blue-900/30 rounded-xl transition-all cursor-pointer">
+                          <lucide-icon [name]="Edit2" class="w-4 h-4"></lucide-icon>
+                        </button>
+                        <button (click)="deleteMiembro(m)" aria-label="Eliminar miembro" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-100 hover:shadow-[0_2px_10px_-3px_rgba(244,63,94,0.4)] dark:hover:bg-rose-900/30 rounded-xl transition-all cursor-pointer">
+                          <lucide-icon [name]="Trash2" class="w-4 h-4"></lucide-icon>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 } @empty {
@@ -80,9 +121,13 @@ import { Familia } from '../../core/models/usuario.model';
                     </td>
                   </tr>
                 }
+                @for (_ of miembrosFiltrados | fillers:currentPage:pageSize; track $index) {
+                  <tr><td colspan="4" class="px-6 py-4">&nbsp;</td></tr>
+                }
               </tbody>
             </table>
           </div>
+          <app-pagination [currentPage]="currentPage" [totalItems]="miembrosFiltrados.length" [pageSize]="pageSize" (pageChange)="currentPage = $event"></app-pagination>
         </div>
 
         <a routerLink="/app/familias" class="inline-flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
@@ -90,21 +135,366 @@ import { Familia } from '../../core/models/usuario.model';
         </a>
       }
     </div>
+
+    <!-- Miembro Modal -->
+    @if (showMiembroModal()) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeMiembroModal()">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div class="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
+
+          <div class="flex items-center justify-between p-6 bg-blue-600 dark:bg-blue-700">
+            <div>
+              <h3 class="text-lg font-black text-white tracking-tight">{{ miembroEditingId() ? 'Editar Miembro' : 'Nuevo Miembro' }}</h3>
+              <p class="text-xs text-blue-100 font-medium mt-0.5">Datos del integrante del núcleo familiar.</p>
+            </div>
+            <button (click)="closeMiembroModal()" class="w-8 h-8 flex items-center justify-center rounded-xl text-blue-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="p-6 max-h-[70vh] overflow-y-auto">
+            @if (miembroError()) {
+              <div class="flex items-center gap-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 rounded-2xl p-4 mb-6 text-sm font-medium">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <span>{{ miembroError() }}</span>
+              </div>
+            }
+
+            <form (ngSubmit)="saveMiembro()" class="space-y-6">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Nombre <span class="text-red-500">*</span></label>
+                  <input [(ngModel)]="miembroForm.nombre" name="mNombre" required placeholder="Ej: Carlos"
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium"/>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Apellido <span class="text-red-500">*</span></label>
+                  <input [(ngModel)]="miembroForm.apellido" name="mApellido" required placeholder="Ej: Rodríguez"
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium"/>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Cédula <span class="text-red-500">*</span></label>
+                  <input [(ngModel)]="miembroForm.cedula" name="mCedula" required placeholder="Ej: V-12345678"
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium text-sm"/>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Fecha de nacimiento</label>
+                  <input [(ngModel)]="miembroForm.fechaNacimiento" name="mFechaNacimiento" type="date"
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium text-sm"/>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Sexo</label>
+                  <select [(ngModel)]="miembroForm.sexo" name="mSexo"
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium">
+                    <option value="">— Sin especificar —</option>
+                    <option value="M">Masculino</option>
+                    <option value="F">Femenino</option>
+                  </select>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Parentesco</label>
+                  <select [(ngModel)]="miembroForm.parentesco" name="mParentesco"
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium">
+                    <option value="">— Seleccionar —</option>
+                    @for (p of parentescos(); track p.id) {
+                      <option [value]="p.nombre">{{ p.nombre }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Estado civil</label>
+                  <select [(ngModel)]="miembroForm.estadoCivil" name="mEstadoCivil"
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium">
+                    <option value="">— Seleccionar —</option>
+                    @for (e of estadosCiviles(); track e.id) {
+                      <option [value]="e.nombre">{{ e.nombre }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Nivel educativo</label>
+                  <select [(ngModel)]="miembroForm.nivelEducativo" name="mNivelEducativo"
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium">
+                    <option value="">— Seleccionar —</option>
+                    @for (n of nivelesEducativos(); track n.id) {
+                      <option [value]="n.nombre">{{ n.nombre }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Ocupación</label>
+                  <select [(ngModel)]="miembroForm.ocupacion" name="mOcupacion"
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium">
+                    <option value="">— Seleccionar —</option>
+                    @for (o of ocupaciones(); track o.id) {
+                      <option [value]="o.nombre">{{ o.nombre }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Teléfono</label>
+                  <input [(ngModel)]="miembroForm.telefono" name="mTelefono" placeholder="Ej: 0414-5555555"
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium text-sm"/>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Email</label>
+                  <input [(ngModel)]="miembroForm.email" name="mEmail" type="email" placeholder="correo@ejemplo.com"
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium text-sm"/>
+                </div>
+                <div class="sm:col-span-2 flex items-center gap-3 pt-2">
+                  <label class="flex items-center gap-3 cursor-pointer group">
+                    <input [(ngModel)]="miembroForm.jefeFamilia" name="mJefeFamilia" type="checkbox"
+                      class="w-5 h-5 rounded-lg border-2 border-slate-300 dark:border-slate-700 text-blue-600 cursor-pointer"/>
+                    <span class="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Es jefe/a de familia</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800/60">
+                <button type="button" (click)="closeMiembroModal()" class="px-5 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-2xl transition-all text-sm cursor-pointer">Cancelar</button>
+                <button type="submit" [disabled]="miembroSaving()" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/10 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer disabled:cursor-not-allowed text-sm">
+                  {{ miembroSaving() ? 'Guardando...' : 'Guardar Miembro' }}
+                </button>
+              </div>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    }
+
+    <!-- Familia Edit Modal -->
+    @if (showFamiliaModal()) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeFamiliaModal()">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div class="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
+
+          <div class="flex items-center justify-between p-6 bg-blue-600 dark:bg-blue-700">
+            <div>
+              <h3 class="text-lg font-black text-white tracking-tight">Editar Familia</h3>
+              <p class="text-xs text-blue-100 font-medium mt-0.5">Modifica la información del núcleo familiar.</p>
+            </div>
+            <button (click)="closeFamiliaModal()" class="w-8 h-8 flex items-center justify-center rounded-xl text-blue-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="p-6 max-h-[70vh] overflow-y-auto">
+            @if (familiaError()) {
+              <div class="flex items-center gap-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 rounded-2xl p-4 mb-6 text-sm font-medium">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <span>{{ familiaError() }}</span>
+              </div>
+            }
+            <form (ngSubmit)="saveFamilia()" class="space-y-6">
+              <div class="grid grid-cols-1 gap-6">
+                <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Nombre de la familia <span class="text-red-500">*</span></label>
+                  <input [(ngModel)]="familiaForm.nombre" name="fNombre" required placeholder="Ej: Familia García Pérez"
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium"/>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Dirección <span class="text-red-500">*</span></label>
+                  <input [(ngModel)]="familiaForm.direccion" name="fDireccion" required placeholder="Ej: Calle El Carmen, casa 4-B"
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium"/>
+                </div>
+              </div>
+              <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800/60">
+                <button type="button" (click)="closeFamiliaModal()" class="px-5 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-2xl transition-all text-sm cursor-pointer">Cancelar</button>
+                <button type="submit" [disabled]="familiaSaving()" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/10 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer disabled:cursor-not-allowed text-sm">
+                  {{ familiaSaving() ? 'Guardando...' : 'Guardar Familia' }}
+                </button>
+              </div>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    }
   `,
   styles: []
 })
 export class FamiliaDetailComponent implements OnInit {
-  private svc   = inject(FamiliasService);
-  private route = inject(ActivatedRoute);
+  readonly Edit2 = Edit2;
+  readonly Trash2 = Trash2;
+  readonly Search = Search;
+  readonly ChevronDown = ChevronDown;
+  readonly CheckCircle2 = CheckCircle2;
+
+  private svc     = inject(FamiliasService);
+  private miembSvc = inject(MiembrosService);
+  private catSvc  = inject(CatalogoService);
+  private route   = inject(ActivatedRoute);
+  private notify  = inject(NotificationService);
+  private el = inject(ElementRef);
+
+  pageSize = 6;
+  currentPage = 1;
 
   familia = signal<Familia | null>(null);
   loading = signal(true);
+  familiaId = 0;
+
+  parentescos       = signal<CatalogoItem[]>([]);
+  estadosCiviles    = signal<CatalogoItem[]>([]);
+  nivelesEducativos = signal<CatalogoItem[]>([]);
+  ocupaciones       = signal<CatalogoItem[]>([]);
+
+  searchQuery = '';
+  searchFilter = 'todo';
+  showSearchFilterDropdown = false;
+  searchFilterOptions = [
+    { value: 'todo', label: 'TODO' },
+    { value: 'nombre', label: 'NOMBRE' },
+    { value: 'cedula', label: 'CÉDULA' },
+  ];
+
+  get miembrosFiltrados(): Miembro[] {
+    return (this.familia()?.miembros ?? []).filter(m => {
+      const q = (this.searchQuery || '').trim().toLowerCase();
+      if (!q) return true;
+      const matchNombre = (m.nombre + ' ' + (m.apellido || '')).toLowerCase().includes(q);
+      const matchCedula = (m.cedula || '').toLowerCase().includes(q);
+      if (this.searchFilter === 'nombre') return matchNombre;
+      if (this.searchFilter === 'cedula') return matchCedula;
+      return matchNombre || matchCedula;
+    });
+  }
+
+  // Miembro modal
+  showMiembroModal  = signal(false);
+  miembroEditingId  = signal<number | null>(null);
+  miembroSaving     = signal(false);
+  miembroError      = signal('');
+  miembroForm: Partial<Miembro> = { nombre: '', apellido: '', cedula: '', jefeFamilia: false };
+
+  // Familia edit modal
+  showFamiliaModal = signal(false);
+  familiaSaving    = signal(false);
+  familiaError     = signal('');
+  familiaForm: Partial<Familia> = { nombre: '', direccion: '' };
+
+  @HostListener('document:click', ['$event'])
+  onClick(event: MouseEvent) {
+    if (!this.el.nativeElement.contains(event.target)) {
+      this.showSearchFilterDropdown = false;
+    } else {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.search-filter-container')) this.showSearchFilterDropdown = false;
+    }
+  }
+
+  toggleSearchFilterDropdown() {
+    this.showSearchFilterDropdown = !this.showSearchFilterDropdown;
+  }
+
+  selectSearchFilter(filter: string) {
+    this.searchFilter = filter;
+    this.showSearchFilterDropdown = false;
+  }
+
+  getSearchFilterLabel(): string {
+    return this.searchFilterOptions.find(o => o.value === this.searchFilter)?.label ?? 'TODO';
+  }
+
+  onSearchChange(value: string | undefined) {
+    this.searchQuery = value || '';
+    this.currentPage = 1;
+  }
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id')!;
-    this.svc.getById(+id).subscribe({
+    this.familiaId = +id;
+
+    this.catSvc.getActive('parentescos').subscribe((r) => this.parentescos.set(r.data));
+    this.catSvc.getActive('estados-civiles').subscribe((r) => this.estadosCiviles.set(r.data));
+    this.catSvc.getActive('niveles-educativos').subscribe((r) => this.nivelesEducativos.set(r.data));
+    this.catSvc.getActive('ocupaciones').subscribe((r) => this.ocupaciones.set(r.data));
+
+    this.loadFamilia();
+  }
+
+  private loadFamilia() {
+    this.svc.getById(this.familiaId).subscribe({
       next: (r) => { this.familia.set(r.data); this.loading.set(false); },
       error: ()  => this.loading.set(false),
+    });
+  }
+
+  openEditFamilia() {
+    const f = this.familia();
+    if (!f) return;
+    this.familiaForm = { nombre: f.nombre, direccion: f.direccion, consejoId: f.consejoId };
+    this.familiaError.set('');
+    this.showFamiliaModal.set(true);
+  }
+
+  closeFamiliaModal() {
+    this.showFamiliaModal.set(false);
+    this.familiaSaving.set(false);
+    this.familiaError.set('');
+  }
+
+  saveFamilia() {
+    this.familiaSaving.set(true);
+    this.familiaError.set('');
+    this.svc.update(this.familiaId, this.familiaForm).subscribe({
+      next: () => {
+        this.familiaSaving.set(false);
+        this.notify.success('Familia actualizada', 'La familia se ha guardado correctamente.');
+        this.closeFamiliaModal();
+        this.loadFamilia();
+      },
+      error: (e) => { this.familiaError.set(e?.error?.message ?? 'Error.'); this.familiaSaving.set(false); this.notify.error('Error', e?.error?.message ?? 'Error al guardar la familia.'); },
+    });
+  }
+
+  openMiembroModal(m?: Miembro) {
+    if (m) {
+      this.miembroForm = { ...m };
+      this.miembroEditingId.set(m.id!);
+    } else {
+      this.miembroForm = { nombre: '', apellido: '', cedula: '', jefeFamilia: false, familiaId: this.familiaId };
+      this.miembroEditingId.set(null);
+    }
+    this.miembroError.set('');
+    this.showMiembroModal.set(true);
+  }
+
+  closeMiembroModal() {
+    this.showMiembroModal.set(false);
+    this.miembroSaving.set(false);
+    this.miembroError.set('');
+  }
+
+  saveMiembro() {
+    this.miembroSaving.set(true);
+    this.miembroError.set('');
+    const id = this.miembroEditingId();
+    const obs = id ? this.miembSvc.update(id, this.miembroForm) : this.miembSvc.create(this.miembroForm);
+    obs.subscribe({
+      next: () => {
+        this.miembroSaving.set(false);
+        this.notify.success(id ? 'Miembro actualizado' : 'Miembro creado', 'Los datos del miembro se han guardado.');
+        this.closeMiembroModal();
+        this.loadFamilia();
+      },
+      error: (e) => { this.miembroError.set(e?.error?.message ?? 'Error.'); this.miembroSaving.set(false); this.notify.error('Error', e?.error?.message ?? 'Error al guardar el miembro.'); },
+    });
+  }
+
+  async deleteMiembro(m: Miembro) {
+    const confirmed = await this.notify.confirm('¿Eliminar miembro?', `Se eliminará a "${m.nombre} ${m.apellido}" del núcleo familiar.`);
+    if (!confirmed) return;
+    this.miembSvc.delete(m.id!).subscribe({
+      next: () => { this.notify.success('Miembro eliminado'); this.loadFamilia(); },
+      error: (e) => this.notify.error('Error', e?.error?.message ?? 'Error al eliminar.'),
     });
   }
 }

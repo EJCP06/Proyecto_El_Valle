@@ -150,13 +150,14 @@ CREATE TABLE IF NOT EXISTS configuracion (
 );
 
 -- Seed de Datos Iniciales
--- Contraseña de admin por defecto: "admin123" (Bcrypt hash: $2a$10$vUf5DqK2N5qJd7F2O2sLGeR.xL2u2V4Uu7qfL6k3gL2.d.p3v0d8O)
+-- Contraseña para todos los usuarios por defecto: "test123"
+-- Bcrypt hash: $2a$10$dIO2DXIT06uhHOJTDJDeS.zPHdoK1dOe8wIJEyFsREOUmmZP2TDe.
 INSERT INTO usuarios (nombre, email, password, rol, activo)
-VALUES ('Administrador', 'admin@elvalle.com', '$2a$10$OUU53G8pcV6PcTlLMH9HXeGqh9KGkdFgDDSJm/kiZGl3W7iVEiswi', 'admin', true)
+VALUES ('Administrador', 'admin@elvalle.com', '$2a$10$dIO2DXIT06uhHOJTDJDeS.zPHdoK1dOe8wIJEyFsREOUmmZP2TDe.', 'admin', true)
 ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO usuarios (nombre, email, password, rol, activo)
-VALUES ('Vocero', 'vocero@elvalle.com', '$2a$10$OUU53G8pcV6PcTlLMH9HXeGqh9KGkdFgDDSJm/kiZGl3W7iVEiswi', 'vocero', true)
+VALUES ('Vocero General', 'vocero@elvalle.com', '$2a$10$dIO2DXIT06uhHOJTDJDeS.zPHdoK1dOe8wIJEyFsREOUmmZP2TDe.', 'vocero', true)
 ON CONFLICT (email) DO NOTHING;
 
 -- Seed de Catálogos

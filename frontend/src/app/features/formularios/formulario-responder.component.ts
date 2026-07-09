@@ -20,7 +20,7 @@ import { Formulario } from '../../core/models/usuario.model';
         <form (ngSubmit)="submit()" class="form-card">
           @for (campo of formulario()?.campos ?? []; track campo.id) {
             <div class="field">
-              <label>{{ campo.label }}{{ campo.requerido ? ' *' : '' }}</label>
+              <label>{{ campo.label }}@if(campo.requerido) { <span class="text-red-500">*</span> }</label>
               @if (campo.tipo === 'textarea') {
                 <textarea [name]="campo.label" [(ngModel)]="respuestas[campo.label]" [required]="campo.requerido" rows="3"></textarea>
               } @else if (campo.tipo === 'select') {

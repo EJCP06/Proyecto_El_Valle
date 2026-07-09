@@ -24,7 +24,7 @@ import { ReporteParams } from '../../core/models/usuario.model';
           
           <!-- Report Type -->
           <div class="space-y-2">
-            <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Tipo de reporte *</label>
+            <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Tipo de reporte <span class="text-red-500">*</span></label>
             <select 
               [(ngModel)]="params.tipo" 
               name="tipo"

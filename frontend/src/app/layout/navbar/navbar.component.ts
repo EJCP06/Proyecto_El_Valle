@@ -9,26 +9,22 @@ import { LucideAngularModule, Sun, Moon } from 'lucide-angular';
   standalone: true,
   imports: [CommonModule, LucideAngularModule],
   template: `
-    <header class="flex items-center justify-between px-6 h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 transition-colors duration-300">
+    <header class="flex items-center justify-end px-6 h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 transition-colors duration-300">
       
-      <!-- Left Area: Brand or context -->
-      <div class="flex items-center gap-2">
-        <span class="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{{ pageTitle }}</span>
-      </div>
-
-      <!-- Right Area: Actions & Profile -->
+      <!-- Right Area: Theme Toggle + Profile -->
       <div class="flex items-center gap-4">
-        
-        <!-- Theme Toggle -->
-        <button 
-          (click)="theme.toggle()" 
-          class="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
-          title="Cambiar tema"
-        >
-          <lucide-icon [name]="theme.theme() === 'dark' ? Sun : Moon" class="w-4 h-4"></lucide-icon>
-        </button>
 
-        <!-- User Badge dropdown -->
+        <!-- Theme Toggle Switch -->
+        <div class="flex items-center gap-3 px-3 py-2 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800">
+          <lucide-icon [name]="Sun" class="w-4 h-4 text-amber-500 shrink-0"></lucide-icon>
+          <label class="relative inline-flex items-center cursor-pointer group">
+            <input type="checkbox" [checked]="theme.isDark()" (change)="theme.toggle()" class="sr-only peer" />
+            <div class="w-9 h-5 bg-slate-200 dark:bg-slate-700 rounded-full peer-checked:bg-blue-600 peer-focus:outline-none after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 peer-checked:after:translate-x-4 after:transition-all after:duration-300 transition-all duration-300 shadow-inner"></div>
+          </label>
+          <lucide-icon [name]="Moon" class="w-4 h-4 text-slate-400 dark:text-blue-400 shrink-0"></lucide-icon>
+        </div>
+
+        <!-- User Badge -->
         <div class="flex items-center gap-3 pl-3 border-l border-slate-200 dark:border-slate-800">
           <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-xs shadow-lg shadow-blue-600/10">
             {{ initials() }}
@@ -48,7 +44,6 @@ export class NavbarComponent {
   auth  = inject(AuthService);
   theme = inject(ThemeService);
 
-  readonly pageTitle = 'Consejo Comunal El Valle';
   readonly Sun = Sun;
   readonly Moon = Moon;
 

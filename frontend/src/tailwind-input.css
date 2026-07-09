@@ -62,15 +62,26 @@ body {
   @apply border-slate-800;
 }
 
-.dark .text-slate-900,
-.dark .text-slate-800 {
-  @apply text-white;
+/* ─── Textos grises → blanco en modo oscuro ─── */
+.dark :is(
+  .text-slate-900, .text-slate-800, .text-slate-700,
+  .text-slate-600, .text-slate-500, .text-slate-400, .text-slate-300,
+  .text-gray-900,  .text-gray-800,  .text-gray-700,
+  .text-gray-600,  .text-gray-500,  .text-gray-400,  .text-gray-300,
+  .text-zinc-600,  .text-zinc-500,  .text-zinc-400,
+  .text-neutral-600, .text-neutral-500, .text-neutral-400
+) {
+  color: #cbd5e1 !important;
 }
 
-.dark .text-slate-600,
-.dark .text-slate-500 {
-  @apply text-slate-400;
+/* ─── Textos grises → negro suave en modo claro ─── */
+html:not(.dark) :is(
+  .text-slate-300, .text-slate-400, .text-slate-500,
+  .text-gray-300,  .text-gray-400,  .text-gray-500
+) {
+  color: #334155 !important;
 }
+
 
 .dark aside {
   @apply bg-slate-950 border-slate-900;
@@ -144,11 +155,11 @@ body {
   -ms-overflow-style: auto;
 }
 
-*:hover {
+*:hover:not(select):not(input):not(button):not(label):not(span):not(a):not(p):not(td):not(th):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6) {
   scrollbar-color: #cbd5e1 transparent;
 }
 
-.dark *:hover {
+.dark *:hover:not(select):not(input):not(button):not(label):not(span):not(a):not(p):not(td):not(th):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6) {
   scrollbar-color: #475569 transparent;
 }
 
@@ -171,11 +182,11 @@ body {
   background: transparent;
 }
 
-*:hover::-webkit-scrollbar-thumb {
+*:hover:not(select):not(input):not(button):not(label):not(span):not(a):not(p):not(td):not(th):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6)::-webkit-scrollbar-thumb {
   background: #cbd5e1;
 }
 
-*:hover::-webkit-scrollbar-thumb:hover {
+*:hover:not(select):not(input):not(button):not(label):not(span):not(a):not(p):not(td):not(th):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6)::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 
@@ -183,11 +194,11 @@ body {
   background: transparent;
 }
 
-.dark *:hover::-webkit-scrollbar-thumb {
+.dark *:hover:not(select):not(input):not(button):not(label):not(span):not(a):not(p):not(td):not(th):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6)::-webkit-scrollbar-thumb {
   background: #475569;
 }
 
-.dark *:hover::-webkit-scrollbar-thumb:hover {
+.dark *:hover:not(select):not(input):not(button):not(label):not(span):not(a):not(p):not(td):not(th):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6)::-webkit-scrollbar-thumb:hover {
   background: #64748b;
 }
 
@@ -223,4 +234,196 @@ aside nav::-webkit-scrollbar {
 @keyframes focus-ring {
   0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
   100% { box-shadow: 0 0 0 4px rgba(37, 99, 235, 0); }
+}
+
+/* ─── Animaciones de carga estilo sistema clinica ─── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInFromBottom {
+  from { transform: translateY(8px); }
+  to { transform: translateY(0); }
+}
+
+.animate-in {
+  animation-duration: 300ms;
+  animation-fill-mode: forwards;
+}
+
+.fade-in {
+  animation-name: fadeIn;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.slide-in-from-bottom-2 {
+  animation-name: slideInFromBottom;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.duration-\[800ms\] {
+  animation-duration: 800ms !important;
+}
+
+.animate-in.fade-in.slide-in-from-bottom-2 {
+  animation: fadeIn 800ms cubic-bezier(0.16, 1, 0.3, 1) forwards,
+             slideInFromBottom 800ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+
+/* Fixed height for table rows to prevent pagination layout jumps */
+table tbody tr {
+  height: 64px;
+}
+
+/* Soft light gray text for table data */
+table tbody td, 
+table tbody td *,
+table tbody td span,
+table tbody td div {
+  color: #64748b !important;
+}
+
+.dark table tbody td,
+.dark table tbody td *,
+.dark table tbody td span,
+.dark table tbody td div,
+.dark tr td,
+.dark tr td span {
+  color: #94a3b8 !important;
+}
+
+/* Hide number input spinners (arrows) */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* SweetAlert2 Dark Mode */
+.dark .swal2-popup {
+  @apply bg-slate-800 text-slate-100;
+}
+
+.dark .swal2-title {
+  @apply text-white;
+}
+
+.dark .swal2-html-container {
+  @apply text-slate-300;
+}
+
+.dark .swal2-toast {
+  @apply bg-slate-800;
+}
+
+.dark .swal2-timer-progress-bar {
+  @apply bg-slate-600;
+}
+
+.dark .swal2-close {
+  @apply text-slate-400;
+}
+
+.dark .swal2-close:hover {
+  @apply text-white;
+}
+
+.dark .swal2-confirm,
+.dark .swal2-deny {
+  @apply bg-slate-700 text-white hover:bg-slate-600 focus:ring-slate-500;
+}
+
+.dark .swal2-cancel {
+  @apply bg-slate-700 text-white hover:bg-slate-600 focus:ring-slate-500;
+}
+
+.dark .swal2-styled:focus {
+  @apply ring-2 ring-slate-500 ring-offset-2 ring-offset-slate-800;
+}
+
+.dark .swal2-input,
+.dark .swal2-textarea,
+.dark .swal2-select {
+  @apply bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-slate-400 focus:ring-slate-500;
+}
+
+.dark .swal2-radio,
+.dark .swal2-checkbox {
+  @apply text-slate-500 border-slate-600;
+}
+
+.dark .swal2-validation-message {
+  @apply text-rose-400;
+}
+
+.dark .swal2-icon {
+  @apply border-slate-600;
+}
+
+.dark .swal2-icon.swal2-success {
+  @apply border-emerald-500;
+}
+
+.dark .swal2-icon.swal2-success .swal2-success-ring {
+  @apply border-emerald-500;
+}
+
+.dark .swal2-icon.swal2-success .swal2-success-line-tip,
+.dark .swal2-icon.swal2-success .swal2-success-line-long {
+  @apply bg-emerald-500;
+}
+
+.dark .swal2-icon.swal2-error {
+  @apply border-rose-500;
+}
+
+.dark .swal2-icon.swal2-error .swal2-x-mark {
+  @apply text-rose-500;
+}
+
+.dark .swal2-icon.swal2-warning {
+  @apply border-amber-500;
+}
+
+.dark .swal2-icon.swal2-warning .swal2-icon-content {
+  @apply text-amber-500;
+}
+
+.dark .swal2-icon.swal2-info {
+  @apply border-blue-500;
+}
+
+.dark .swal2-icon.swal2-info .swal2-icon-content {
+  @apply text-blue-500;
+}
+
+.dark .swal2-icon.swal2-question {
+  @apply border-indigo-500;
+}
+
+.dark .swal2-icon.swal2-question .swal2-icon-content {
+  @apply text-indigo-500;
+}
+
+.dark .swal2-footer {
+  @apply border-slate-700 text-slate-300;
+}
+
+.dark .swal2-container {
+  @apply bg-slate-900/70;
+}
+
+.dark .swal2-popup:focus {
+  @apply ring-2 ring-slate-500 ring-offset-2 ring-offset-slate-800;
+}
+
+@keyframes ticker {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
 }

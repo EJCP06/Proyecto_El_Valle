@@ -1,5 +1,4 @@
 import { Component, inject, OnInit, OnDestroy, signal, AfterViewInit, ElementRef, ViewChildren, QueryList } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { ReportesService } from '../../core/services/reportes.service';
@@ -13,8 +12,7 @@ import {
   Venus,
   Mars,
   Heart,
-  Baby,
-  Activity
+  Baby
 } from 'lucide-angular';
 
 interface StatsData {
@@ -27,18 +25,17 @@ interface StatsData {
   adultosMayoresCount: number;
   ninosCount: number;
   familiasPorConsejo: { id: number; nombre: string; total: number }[];
-  actividadesRecientes: { accion: string; entidad: string; createdAt: string; usuario: string }[];
 }
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule],
   template: `
-    <div class="space-y-6 animate-in fade-in duration-300">
+    <div class="flex flex-col h-full">
 
       <!-- Banner -->
-      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-700 via-indigo-700 to-indigo-800 p-6 text-white shadow-lg">
+      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-700 via-indigo-700 to-indigo-800 p-6 text-white shadow-lg shrink-0">
         <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 24px 24px;"></div>
         <div class="relative z-10">
           <h2 class="text-2xl font-black tracking-tight">Bienvenido, {{ (auth.currentUser()?.nombre ?? '').split(' ')[0] }}</h2>
@@ -47,7 +44,7 @@ interface StatsData {
       </div>
 
       <!-- Stats Cards -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 shrink-0 mt-4">
         @for (s of statCards; track s.label) {
           <div class="bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
             <div class="flex items-center gap-3">
@@ -63,34 +60,15 @@ interface StatsData {
         }
       </div>
 
-      <!-- Three cards side by side -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm flex flex-col h-[500px]">
-          <h3 class="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] mb-4 shrink-0">Familias por Consejo Comunal</h3>
+      <!-- Two charts filling remaining space -->
+      <div style="display:flex; gap:16px; width:100%; flex:1; min-height:0;" class="mt-4">
+        <div style="flex:1; min-width:0; min-height:0;" class="bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex flex-col">
+          <h3 class="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] mb-3 shrink-0">Familias por Consejo Comunal</h3>
           <div class="relative flex-1 min-h-0">
             <canvas #barCanvas></canvas>
           </div>
         </div>
-        <div class="bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm flex flex-col h-[500px]">
-          <h3 class="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] mb-3 shrink-0">Actividad Reciente</h3>
-          <div class="space-y-2 flex-1 overflow-y-auto">
-            @if (actividades().length === 0) {
-              <p class="text-sm text-slate-400 dark:text-slate-500 font-medium text-center py-16">Sin actividad reciente.</p>
-            }
-            @for (a of actividades(); track a.createdAt) {
-              <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/30 rounded-xl">
-                <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                  <lucide-icon [name]="Activity" class="w-4 h-4"></lucide-icon>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-bold text-slate-700 dark:text-slate-300 truncate">{{ a.usuario }} — {{ a.accion }}</p>
-                  <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{{ a.entidad }} · {{ a.createdAt | slice:0:16 }}</p>
-                </div>
-              </div>
-            }
-          </div>
-        </div>
-        <div class="bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm flex flex-col h-[500px]">
+        <div style="flex:1; min-width:0; min-height:0;" class="bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex flex-col">
           <h3 class="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] mb-4 shrink-0">Distribución por Sexo</h3>
           <div class="relative flex-1 min-h-0 flex items-center justify-center">
             <canvas #doughnutCanvas></canvas>
@@ -100,18 +78,23 @@ interface StatsData {
 
     </div>
   `,
-  styles: []
+  styles: [`
+    :host {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+  `]
 })
 export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   auth     = inject(AuthService);
   reportes = inject(ReportesService);
-  Activity = Activity;
 
   @ViewChildren('barCanvas') barCanvas!: QueryList<ElementRef<HTMLCanvasElement>>;
   @ViewChildren('doughnutCanvas') doughnutCanvas!: QueryList<ElementRef<HTMLCanvasElement>>;
 
   data = signal<StatsData | null>(null);
-  actividades = signal<{ usuario: string; accion: string; entidad: string; createdAt: string }[]>([]);
 
   statCards = [
     { icon: Building2,     label: 'Consejos',    value: '—', color: '#2563eb' },
@@ -132,7 +115,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
         if (r.success) {
           const d = r.data as StatsData;
           this.data.set(d);
-          this.actividades.set(d.actividadesRecientes ?? []);
           this.updateStats(d);
           setTimeout(() => this.renderCharts(), 50);
         }

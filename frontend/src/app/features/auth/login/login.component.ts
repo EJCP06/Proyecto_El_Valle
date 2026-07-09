@@ -33,8 +33,8 @@ import {
         <lucide-icon [name]="Sun" class="w-4 h-4 text-amber-500"></lucide-icon>
         
         <label class="relative inline-flex items-center cursor-pointer group">
-          <input id="theme-toggle" type="checkbox" [checked]="themeService.theme() === 'dark'" (change)="toggleDarkMode()" class="sr-only peer" />
-          <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full dark:bg-slate-700 peer-checked:after:translate-x-4 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 peer-checked:bg-blue-600 shadow-inner transition-all duration-300"></div>
+          <input id="theme-toggle" type="checkbox" [checked]="themeService.isDark()" (change)="toggleDarkMode()" class="sr-only peer" />
+          <div class="w-9 h-5 bg-slate-200 dark:bg-slate-700 rounded-full peer-checked:bg-blue-600 peer-focus:outline-none after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 peer-checked:after:translate-x-4 after:transition-all after:duration-300 transition-all duration-300 shadow-inner"></div>
         </label>
 
         <lucide-icon [name]="Moon" class="w-4 h-4 text-slate-400 dark:text-blue-400"></lucide-icon>
@@ -169,7 +169,7 @@ import {
                       <lucide-icon [name]="LogIn" class="w-5 h-5"></lucide-icon>
                     </span>
                   } @else {
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-[800ms]">
                       <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                       <span class="animate-pulse">Ingresando...</span>
                     </div>
@@ -228,11 +228,15 @@ export class LoginComponent {
 
     this.auth.login({ email: this.email, password: this.password }).subscribe({
       next: (res) => {
-        this.loading.set(false);
         if (res.success) {
-          this.notify.success(`¡Bienvenido, ${res.data.user.nombre}!`);
-          this.router.navigate(['/app/dashboard']);
+          // Wait 2000ms to show the loading animation
+          setTimeout(() => {
+            this.loading.set(false);
+            this.notify.success(`¡Bienvenido, ${res.data.user.nombre}!`);
+            this.router.navigate(['/app/dashboard']);
+          }, 2000);
         } else {
+          this.loading.set(false);
           this.notify.error('Error de inicio de sesión', res.message ?? 'Credenciales inválidas.');
         }
       },
