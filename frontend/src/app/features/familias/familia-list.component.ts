@@ -168,7 +168,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                 </div>
                 <div class="space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Consejo Comunal <span class="text-red-500">*</span></label>
-                  <select [(ngModel)]="form.consejoId" name="consejoId" required
+                  <select [(ngModel)]="form.consejoId" name="consejoId"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium">
                     <option value="">Seleccionar consejo...</option>
                     @for (c of consejos(); track c.id) {
@@ -741,6 +741,11 @@ export class FamiliaListComponent implements OnInit {
   save() {
     this.saving.set(true);
     this.modalError.set('');
+    if (!this.form.nombre?.trim() || !this.form.direccion?.trim() || !this.form.consejoId) {
+      this.modalError.set('Completa todos los campos obligatorios.');
+      this.saving.set(false);
+      return;
+    }
     const id = this.editingId();
     const obs = id ? this.famSvc.update(id, this.form) : this.famSvc.create(this.form);
     obs.subscribe({
@@ -749,47 +754,55 @@ export class FamiliaListComponent implements OnInit {
         if (id) {
           this.notify.success('Familia actualizada', 'La familia se ha guardado correctamente.');
           this.closeModal();
+          this.famSvc.getAll().subscribe((r) => { this.familias.set(r.data); this.currentPage = 1; });
         } else {
           const newId = r.data.id!;
-          this.editingId.set(newId);
           const pending = this.pendingMiembros();
           if (pending.length > 0) {
-            this.createPendingMiembros(newId, pending);
+            this.createPendingMiembros(newId, pending, true);
           } else {
-            this.notify.success('Familia creada', 'La familia se ha creado. Ahora puedes agregar miembros.');
-            this.loadEditingMiembros(newId);
+            this.notify.success('Familia creada', 'La familia se ha creado.');
+            this.closeModal();
+            this.famSvc.getAll().subscribe((r) => { this.familias.set(r.data); this.currentPage = 1; });
           }
         }
-        this.famSvc.getAll().subscribe((r) => { this.familias.set(r.data); this.currentPage = 1; });
       },
       error: (e) => { this.modalError.set(e?.error?.message ?? 'Error.'); this.saving.set(false); this.notify.error('Error', e?.error?.message ?? 'Error al guardar la familia.'); },
     });
   }
 
-  private createPendingMiembros(familiaId: number, pending: Partial<Miembro>[]) {
+  private createPendingMiembros(familiaId: number, pending: Partial<Miembro>[], closeAfter = false) {
     let created = 0;
     let errors = 0;
     const total = pending.length;
+    const refreshAndClose = () => {
+      this.famSvc.getAll().subscribe((r) => { this.familias.set(r.data); this.currentPage = 1; });
+      if (closeAfter) {
+        this.closeModal();
+      } else {
+        this.loadEditingMiembros(familiaId);
+      }
+    };
     pending.forEach((m) => {
       this.miembSvc.create({ ...m, familiaId }).subscribe({
         next: () => {
           created++;
           if (created + errors === total) {
             this.pendingMiembros.set([]);
-            this.loadEditingMiembros(familiaId);
             if (errors > 0) {
               this.notify.success('Familia creada', `Se crearon ${created} de ${total} miembros.`);
             } else {
               this.notify.success('Familia y miembros creados', 'La familia y todos sus miembros se han registrado.');
             }
+            refreshAndClose();
           }
         },
         error: () => {
           errors++;
           if (created + errors === total) {
             this.pendingMiembros.set([]);
-            this.loadEditingMiembros(familiaId);
             this.notify.success('Familia creada', `Se crearon ${created} de ${total} miembros.`);
+            refreshAndClose();
           }
         },
       });

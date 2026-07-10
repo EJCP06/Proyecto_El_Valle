@@ -40,19 +40,18 @@ interface NavItem {
         class="relative pb-4 overflow-hidden shrink-0"
         style="padding-top: 2rem;"
       >
-        <div class="flex items-center">
+        <div class="flex items-center gap-3 pl-3">
           <div
             class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shrink-0"
-            style="margin-left: 0.75rem;"
           >
             <lucide-icon
               [name]="Building2"
               class="w-5 h-5 text-white"
             ></lucide-icon>
           </div>
-          <div class="flex-1 flex justify-center pr-9">
+          <div class="min-w-0">
             <div
-              class="flex flex-col leading-none animate-in fade-in duration-200 text-center mt-2"
+              class="flex flex-col leading-none animate-in fade-in duration-200 text-center mt-2 whitespace-nowrap"
             >
               <span
                 class="text-lg font-black text-slate-800 dark:text-white uppercase tracking-wider"

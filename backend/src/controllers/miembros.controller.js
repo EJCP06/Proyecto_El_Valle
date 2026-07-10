@@ -51,6 +51,9 @@ exports.create = async (req, res, next) => {
       data
     });
   } catch (error) {
+    if (error.code === '23505' && error.constraint === 'miembros_cedula_key') {
+      return res.status(409).json({ success: false, message: 'Ya existe un miembro registrado con esa cédula.' });
+    }
     next(error);
   }
 };
