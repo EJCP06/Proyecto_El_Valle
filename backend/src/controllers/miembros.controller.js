@@ -1,6 +1,19 @@
 const miembroRepo = require('../repositories/miembro.repository');
 const { registrarAuditoria } = require('../utils/audit');
 
+exports.getAll = async (req, res, next) => {
+  try {
+    const { familiaId } = req.query;
+    if (!familiaId) {
+      return res.status(400).json({ success: false, message: 'familiaId es requerido' });
+    }
+    const data = await miembroRepo.findAllByFamilia(parseInt(familiaId));
+    return res.json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.getById = async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);

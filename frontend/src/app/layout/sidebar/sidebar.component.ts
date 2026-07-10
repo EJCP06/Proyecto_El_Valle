@@ -35,29 +35,37 @@ interface NavItem {
       [class.w-20]="isCollapsed()"
       class="h-[100dvh] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0 transition-all duration-300 relative select-none z-50"
     >
-<!-- Logo Header -->
-       <div
-         class="px-6 pt-16 pb-8 flex items-center justify-center overflow-hidden shrink-0"
-       >
-        <div
-          class="flex items-center justify-center gap-3.5 min-w-0 text-center"
-        >
-          @if (!isCollapsed()) {
+      <!-- Logo Header -->
+      <div
+        class="relative pb-4 overflow-hidden shrink-0"
+        style="padding-top: 2rem;"
+      >
+        <div class="flex items-center">
+          <div
+            class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shrink-0"
+            style="margin-left: 0.75rem;"
+          >
+            <lucide-icon
+              [name]="Building2"
+              class="w-5 h-5 text-white"
+            ></lucide-icon>
+          </div>
+          <div class="flex-1 flex justify-center pr-9">
             <div
-              class="flex flex-col min-w-0 animate-in fade-in duration-200 text-center mt-2"
+              class="flex flex-col leading-none animate-in fade-in duration-200 text-center mt-2"
             >
               <span
-                class="text-lg font-black text-slate-800 dark:text-white uppercase tracking-wider leading-none"
-                >Sistema de Gestión Comunal</span
+                class="text-lg font-black text-slate-800 dark:text-white uppercase tracking-wider"
+                >Sistema Comunal</span
               >
             </div>
-          }
+          </div>
         </div>
 
         @if (!isDesktop() && !isCollapsed()) {
           <button
             (click)="collapsed.set(true)"
-            class="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            class="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer absolute left-3 bottom-0"
             title="Contraer menú"
           >
             <lucide-icon [name]="ChevronLeft" class="w-4 h-4"></lucide-icon>
@@ -73,10 +81,11 @@ interface NavItem {
         }
       </div>
 
-<!-- Navigation List -->
-       <nav
-         class="flex-1 overflow-y-auto pt-16 pb-4 px-4 space-y-1.5 touch-scroll hide-scrollbar"
-       >
+      <!-- Navigation List -->
+      <nav
+        class="flex-1 overflow-y-auto pb-4 px-4 space-y-1.5 touch-scroll hide-scrollbar"
+        style="padding-top: 3rem;"
+      >
         @for (item of visibleItems(); track item.route) {
           <a
             [routerLink]="item.route"
@@ -147,6 +156,7 @@ export class SidebarComponent implements OnInit {
   readonly ChevronLeft = ChevronLeft;
   readonly ChevronRight = ChevronRight;
   readonly LogOut = LogOut;
+  readonly Building2 = Building2;
 
   private readonly navItems: NavItem[] = [
     { label: "Dashboard", icon: LayoutDashboard, route: "/app/dashboard" },
