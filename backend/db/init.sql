@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS formularios (
   titulo VARCHAR(255) NOT NULL,
   descripcion TEXT,
   activo BOOLEAN DEFAULT TRUE,
+  alcance VARCHAR(20) DEFAULT 'familiar' CHECK (alcance IN ('familiar', 'individual')),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -69,7 +70,7 @@ CREATE TABLE IF NOT EXISTS preguntas (
   id VARCHAR(100) PRIMARY KEY, -- UUID/Text
   formulario_id INTEGER REFERENCES formularios(id) ON DELETE CASCADE,
   label VARCHAR(255) NOT NULL,
-  tipo VARCHAR(50) NOT NULL CHECK (tipo IN ('text', 'textarea', 'number', 'date', 'select', 'radio', 'checkbox', 'file')),
+  tipo VARCHAR(50) NOT NULL CHECK (tipo IN ('text', 'textarea', 'number', 'date', 'time', 'select', 'radio', 'checkbox', 'file', 'yes_no')),
   requerido BOOLEAN DEFAULT FALSE,
   opciones TEXT[], -- Para select, radio, checkbox
   orden INTEGER NOT NULL
@@ -88,9 +89,11 @@ CREATE TABLE IF NOT EXISTS asignaciones (
 -- Tabla de Respuestas
 CREATE TABLE IF NOT EXISTS respuestas (
   id SERIAL PRIMARY KEY,
-  asignacion_id INTEGER UNIQUE REFERENCES asignaciones(id) ON DELETE CASCADE,
+  asignacion_id INTEGER REFERENCES asignaciones(id) ON DELETE CASCADE,
+  miembro_id INTEGER REFERENCES miembros(id) ON DELETE CASCADE,
   respuestas JSONB NOT NULL,
-  completado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  completado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (asignacion_id, miembro_id)
 );
 
 -- Tabla de Auditoría

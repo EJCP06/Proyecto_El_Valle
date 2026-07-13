@@ -19,7 +19,7 @@ interface Tab {
 
       <div>
         <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Configuración del Sistema</h2>
-        <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Ajusta parámetros del sistema y administra los catálogos.</p>
+        <p class="text-sm text-slate-500 dark:text-slate-400 font-normal">Ajusta parámetros del sistema y administra los catálogos.</p>
       </div>
 
       <!-- Tabs -->
@@ -49,13 +49,13 @@ interface Tab {
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 py-6 first:pt-0 last:pb-0">
                   <div class="flex-1 space-y-1">
                     <div class="font-mono text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider">{{ cfg.clave }}</div>
-                    <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ cfg.descripcion }}</div>
+                    <div class="text-xs text-slate-500 dark:text-slate-400 font-normal">{{ cfg.descripcion }}</div>
                   </div>
                   <div class="flex items-center gap-3">
                     <input
                       [(ngModel)]="cfg.valor"
                       [name]="cfg.clave"
-                      class="px-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium w-full sm:w-64"
+                      class="px-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal w-full sm:w-64"
                     />
                     <button
                       (click)="saveConfig(cfg)"
@@ -66,7 +66,7 @@ interface Tab {
                   </div>
                 </div>
               } @empty {
-                <div class="text-center py-8 text-sm text-slate-400 dark:text-slate-500 font-medium">
+                <div class="text-center py-8 text-sm text-slate-400 dark:text-slate-500 font-normal">
                   No hay configuraciones disponibles.
                 </div>
               }
@@ -102,7 +102,7 @@ interface Tab {
                   [(ngModel)]="newNombre"
                   name="newNombre"
                   placeholder="Nombre del nuevo elemento"
-                  class="flex-1 px-4 py-2.5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 transition-all font-medium text-sm"
+                  class="flex-1 px-4 py-2.5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 transition-all font-normal text-sm"
                   (keyup.enter)="saveNew()"
                 />
                 <button (click)="saveNew()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all text-xs cursor-pointer">Guardar</button>
@@ -153,7 +153,7 @@ interface Tab {
                     </tr>
                   } @empty {
                     <tr>
-                      <td colspan="4" class="px-4 py-10 text-center text-sm text-slate-400 dark:text-slate-500 font-medium">
+                      <td colspan="4" class="px-4 py-10 text-center text-sm text-slate-400 dark:text-slate-500 font-normal">
                         No hay elementos en este catálogo.
                       </td>
                     </tr>
@@ -274,3 +274,4 @@ export class ConfiguracionComponent implements OnInit {
     });
   }
 }
+

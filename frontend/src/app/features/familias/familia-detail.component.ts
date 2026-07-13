@@ -1,11 +1,13 @@
 import { Component, inject, OnInit, signal, ElementRef, HostListener } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { FamiliasService } from '../../core/services/familias.service';
 import { MiembrosService } from '../../core/services/miembros.service';
 import { CatalogoService, CatalogoItem } from '../../core/services/catalogo.service';
+import { FormulariosService } from '../../core/services/formularios.service';
+import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { Familia, Miembro } from '../../core/models/usuario.model';
+import { Familia, Miembro, FormularioAsignacionFamilia } from '../../core/models/usuario.model';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { PaginatePipe } from '../../shared/pipes/paginate.pipe';
 import { FillersPipe } from '../../shared/pipes/fillers.pipe';
@@ -28,7 +30,7 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
         <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
             <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">{{ familia()!.nombre }}</h2>
-            <p class="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">{{ familia()!.direccion }}</p>
+            <p class="text-sm text-slate-500 dark:text-slate-400 font-normal mt-1">{{ familia()!.direccion }}</p>
           </div>
           <div class="flex items-center gap-3">
             <button (click)="openEditFamilia()" class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-2xl text-sm transition-all cursor-pointer">
@@ -76,7 +78,7 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
                 </div>
                 <div class="relative flex-1">
                   <lucide-icon [name]="Search" class="w-4 h-4 absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors"></lucide-icon>
-                  <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange($event)" placeholder="Buscar miembro..." class="w-full pl-[72px] pr-4 py-3 text-sm focus:outline-none font-medium bg-transparent rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500" />
+                  <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange($event)" placeholder="Buscar miembro..." class="w-full pl-[72px] pr-4 py-3 text-sm focus:outline-none font-normal bg-transparent rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500" />
                 </div>
               </div>
             </div>
@@ -116,7 +118,7 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
                   </tr>
                 } @empty {
                   <tr>
-                    <td colspan="4" class="px-6 py-12 text-center text-sm text-slate-400 dark:text-slate-500 font-medium">
+                    <td colspan="4" class="px-6 py-12 text-center text-sm text-slate-400 dark:text-slate-500 font-normal">
                       Sin miembros registrados en esta familia.
                     </td>
                   </tr>
@@ -130,6 +132,43 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
           <app-pagination [currentPage]="currentPage" [totalItems]="miembrosFiltrados.length" [pageSize]="pageSize" (pageChange)="currentPage = $event"></app-pagination>
         </div>
 
+        <!-- Formularios Asignados -->
+        @if (formulariosAsignados().length > 0) {
+          <div class="bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl overflow-hidden shadow-sm">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800/60">
+              <h3 class="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+                Formularios Asignados
+                <span class="ml-2 inline-flex items-center justify-center w-6 h-6 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-xs font-black rounded-full">
+                  {{ formulariosAsignados().length }}
+                </span>
+              </h3>
+            </div>
+            <div class="p-6 space-y-4">
+              @for (fa of formulariosAsignados(); track fa.formulario.id) {
+                <div class="border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <div>
+                      <h4 class="text-sm font-bold text-slate-800 dark:text-white">{{ fa.formulario.titulo }}</h4>
+                      <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                        {{ fa.formulario.alcance === 'individual' ? 'Individual' : 'Familiar' }}
+                      </p>
+                    </div>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold"
+                      [class]="fa.respondidos === fa.totalMiembros && fa.totalMiembros > 0 ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400'">
+                      {{ fa.respondidos }}/{{ fa.totalMiembros }} respondidos
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-3 mt-3">
+                    <button (click)="responderFormulario(fa)" class="text-xs font-bold bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 px-3 py-1.5 rounded-xl hover:bg-blue-200 dark:hover:bg-blue-500/30 transition-all cursor-pointer">
+                      Responder
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
         <a routerLink="/app/familias" class="inline-flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
           ← Volver a familias
         </a>
@@ -140,12 +179,12 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
     @if (showMiembroModal()) {
       <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeMiembroModal()">
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-        <div class="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
+        <div class="relative z-10 w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
 
           <div class="flex items-center justify-between p-6 bg-blue-600 dark:bg-blue-700">
             <div>
               <h3 class="text-lg font-black text-white tracking-tight">{{ miembroEditingId() ? 'Editar Miembro' : 'Nuevo Miembro' }}</h3>
-              <p class="text-xs text-blue-100 font-medium mt-0.5">Datos del integrante del núcleo familiar.</p>
+              <p class="text-xs text-blue-100 font-normal mt-0.5">Datos del integrante del núcleo familiar.</p>
             </div>
             <button (click)="closeMiembroModal()" class="w-8 h-8 flex items-center justify-center rounded-xl text-blue-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -156,7 +195,7 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
 
           <div class="p-6 max-h-[70vh] overflow-y-auto">
             @if (miembroError()) {
-              <div class="flex items-center gap-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 rounded-2xl p-4 mb-6 text-sm font-medium">
+              <div class="flex items-center gap-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 rounded-2xl p-4 mb-6 text-sm font-normal">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                 </svg>
@@ -169,27 +208,27 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
                 <div class="space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Nombre <span class="text-red-500">*</span></label>
                   <input [(ngModel)]="miembroForm.nombre" name="mNombre" required placeholder="Ej: Carlos"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium"/>
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"/>
                 </div>
                 <div class="space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Apellido <span class="text-red-500">*</span></label>
                   <input [(ngModel)]="miembroForm.apellido" name="mApellido" required placeholder="Ej: Rodríguez"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium"/>
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"/>
                 </div>
                 <div class="space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Cédula <span class="text-red-500">*</span></label>
                   <input [(ngModel)]="miembroForm.cedula" name="mCedula" required placeholder="Ej: V-12345678"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium text-sm"/>
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"/>
                 </div>
                 <div class="space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Fecha de nacimiento</label>
                   <input [(ngModel)]="miembroForm.fechaNacimiento" name="mFechaNacimiento" type="date"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium text-sm"/>
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"/>
                 </div>
                 <div class="space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Sexo</label>
                   <select [(ngModel)]="miembroForm.sexo" name="mSexo"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium">
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
                     <option value="">— Sin especificar —</option>
                     <option value="M">Masculino</option>
                     <option value="F">Femenino</option>
@@ -198,7 +237,7 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
                 <div class="space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Parentesco</label>
                   <select [(ngModel)]="miembroForm.parentesco" name="mParentesco"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium">
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
                     <option value="">— Seleccionar —</option>
                     @for (p of parentescos(); track p.id) {
                       <option [value]="p.nombre">{{ p.nombre }}</option>
@@ -208,7 +247,7 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
                 <div class="space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Estado civil</label>
                   <select [(ngModel)]="miembroForm.estadoCivil" name="mEstadoCivil"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium">
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
                     <option value="">— Seleccionar —</option>
                     @for (e of estadosCiviles(); track e.id) {
                       <option [value]="e.nombre">{{ e.nombre }}</option>
@@ -218,7 +257,7 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
                 <div class="space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Nivel educativo</label>
                   <select [(ngModel)]="miembroForm.nivelEducativo" name="mNivelEducativo"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium">
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
                     <option value="">— Seleccionar —</option>
                     @for (n of nivelesEducativos(); track n.id) {
                       <option [value]="n.nombre">{{ n.nombre }}</option>
@@ -228,7 +267,7 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
                 <div class="space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Ocupación</label>
                   <select [(ngModel)]="miembroForm.ocupacion" name="mOcupacion"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium">
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
                     <option value="">— Seleccionar —</option>
                     @for (o of ocupaciones(); track o.id) {
                       <option [value]="o.nombre">{{ o.nombre }}</option>
@@ -238,12 +277,12 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
                 <div class="space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Teléfono</label>
                   <input [(ngModel)]="miembroForm.telefono" name="mTelefono" placeholder="Ej: 0414-5555555"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium text-sm"/>
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"/>
                 </div>
                 <div class="space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Email</label>
                   <input [(ngModel)]="miembroForm.email" name="mEmail" type="email" placeholder="correo@ejemplo.com"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium text-sm"/>
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"/>
                 </div>
                 <div class="sm:col-span-2 flex items-center gap-3 pt-2">
                   <label class="flex items-center gap-3 cursor-pointer group">
@@ -271,12 +310,12 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
     @if (showFamiliaModal()) {
       <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeFamiliaModal()">
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-        <div class="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
+        <div class="relative z-10 w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
 
           <div class="flex items-center justify-between p-6 bg-blue-600 dark:bg-blue-700">
             <div>
               <h3 class="text-lg font-black text-white tracking-tight">Editar Familia</h3>
-              <p class="text-xs text-blue-100 font-medium mt-0.5">Modifica la información del núcleo familiar.</p>
+              <p class="text-xs text-blue-100 font-normal mt-0.5">Modifica la información del núcleo familiar.</p>
             </div>
             <button (click)="closeFamiliaModal()" class="w-8 h-8 flex items-center justify-center rounded-xl text-blue-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -287,7 +326,7 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
 
           <div class="p-6 max-h-[70vh] overflow-y-auto">
             @if (familiaError()) {
-              <div class="flex items-center gap-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 rounded-2xl p-4 mb-6 text-sm font-medium">
+              <div class="flex items-center gap-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 rounded-2xl p-4 mb-6 text-sm font-normal">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                 <span>{{ familiaError() }}</span>
               </div>
@@ -297,12 +336,12 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
                 <div class="space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Nombre de la familia <span class="text-red-500">*</span></label>
                   <input [(ngModel)]="familiaForm.nombre" name="fNombre" required placeholder="Ej: Familia García Pérez"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium"/>
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"/>
                 </div>
                 <div class="space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Dirección <span class="text-red-500">*</span></label>
                   <input [(ngModel)]="familiaForm.direccion" name="fDireccion" required placeholder="Ej: Calle El Carmen, casa 4-B"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium"/>
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"/>
                 </div>
               </div>
               <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800/60">
@@ -330,9 +369,14 @@ export class FamiliaDetailComponent implements OnInit {
   private svc     = inject(FamiliasService);
   private miembSvc = inject(MiembrosService);
   private catSvc  = inject(CatalogoService);
+  private formSvc = inject(FormulariosService);
+  private auth    = inject(AuthService);
   private route   = inject(ActivatedRoute);
+  private router  = inject(Router);
   private notify  = inject(NotificationService);
   private el = inject(ElementRef);
+
+  readonly isAdmin = this.auth.isAdmin;
 
   pageSize = 6;
   currentPage = 1;
@@ -380,6 +424,9 @@ export class FamiliaDetailComponent implements OnInit {
   familiaError     = signal('');
   familiaForm: Partial<Familia> = { nombre: '', direccion: '' };
 
+  // Formularios asignados
+  formulariosAsignados = signal<FormularioAsignacionFamilia[]>([]);
+
   @HostListener('document:click', ['$event'])
   onClick(event: MouseEvent) {
     if (!this.el.nativeElement.contains(event.target)) {
@@ -418,12 +465,20 @@ export class FamiliaDetailComponent implements OnInit {
     this.catSvc.getActive('ocupaciones').subscribe((r) => this.ocupaciones.set(r.data));
 
     this.loadFamilia();
+    this.loadFormularios();
   }
 
   private loadFamilia() {
     this.svc.getById(this.familiaId).subscribe({
       next: (r) => { this.familia.set(r.data); this.loading.set(false); },
       error: ()  => this.loading.set(false),
+    });
+  }
+
+  private loadFormularios() {
+    this.formSvc.getByFamilia(this.familiaId).subscribe({
+      next: (r) => this.formulariosAsignados.set(r.data),
+      error: () => {},
     });
   }
 
@@ -497,4 +552,12 @@ export class FamiliaDetailComponent implements OnInit {
       error: (e) => this.notify.error('Error', e?.error?.message ?? 'Error al eliminar.'),
     });
   }
+
+  responderFormulario(fa: FormularioAsignacionFamilia) {
+    if (fa.asignaciones.length > 0) {
+      const a = fa.asignaciones[0];
+      this.router.navigate(['/app/formularios', a.id, 'responder'], { queryParams: { familia: this.familiaId } });
+    }
+  }
 }
+

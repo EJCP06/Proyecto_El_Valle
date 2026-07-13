@@ -40,12 +40,12 @@ exports.getById = async (req, res, next) => {
 
 exports.create = async (req, res, next) => {
   try {
-    const { titulo, descripcion, campos } = req.body;
+    const { titulo, descripcion, alcance, campos } = req.body;
     if (!titulo) {
       return res.status(400).json({ success: false, message: 'El título es obligatorio' });
     }
 
-    const data = await formularioRepo.create({ titulo, descripcion, campos });
+    const data = await formularioRepo.create({ titulo, descripcion, alcance, campos });
     await registrarAuditoria(req, 'CREATE', 'Formulario', data.id, { titulo });
 
     return res.status(201).json({
@@ -60,9 +60,9 @@ exports.create = async (req, res, next) => {
 exports.update = async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
-    const { titulo, descripcion, activo, campos } = req.body;
+    const { titulo, descripcion, activo, alcance, campos } = req.body;
 
-    const data = await formularioRepo.update(id, { titulo, descripcion, activo, campos });
+    const data = await formularioRepo.update(id, { titulo, descripcion, activo, alcance, campos });
     if (!data) {
       return res.status(404).json({ success: false, message: 'Formulario no encontrado' });
     }
@@ -118,7 +118,7 @@ exports.asignar = async (req, res, next) => {
 exports.responder = async (req, res, next) => {
   try {
     const asignacionId = parseInt(req.params.id);
-    const { respuestas } = req.body;
+    const { respuestas, miembroId } = req.body;
 
     if (!respuestas) {
       return res.status(400).json({ success: false, message: 'Respuestas son requeridas' });
@@ -129,8 +129,8 @@ exports.responder = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Asignación no encontrada' });
     }
 
-    const data = await respuestaRepo.save(asignacionId, respuestas);
-    await registrarAuditoria(req, 'SUBMIT_RESPONSES', 'Formulario', asignacion.formularioId, { asignacionId });
+    const data = await respuestaRepo.save(asignacionId, respuestas, miembroId || null);
+    await registrarAuditoria(req, 'SUBMIT_RESPONSES', 'Formulario', asignacion.formularioId, { asignacionId, miembroId });
 
     return res.json({
       success: true,
@@ -148,6 +148,23 @@ exports.getAsignaciones = async (req, res, next) => {
     const offset = (page - 1) * limit;
 
     const data = await asignacionRepo.findAll(limit, offset);
+    return res.json({
+      success: true,
+      data
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getByFamilia = async (req, res, next) => {
+  try {
+    const familiaId = parseInt(req.params.familiaId);
+    if (!familiaId) {
+      return res.status(400).json({ success: false, message: 'familiaId es requerido' });
+    }
+
+    const data = await asignacionRepo.findByFamiliaId(familiaId);
     return res.json({
       success: true,
       data

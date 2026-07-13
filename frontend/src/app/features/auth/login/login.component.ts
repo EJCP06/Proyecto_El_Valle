@@ -65,7 +65,7 @@ import {
                 Gestión Comunal <br/>
                 <span class="text-blue-300">Digital</span>
               </h1>
-              <p class="text-blue-100 text-sm leading-relaxed font-medium opacity-90 max-w-sm">
+              <p class="text-blue-100 text-sm leading-relaxed font-normal opacity-90 max-w-sm">
                 Controla censos, asocia familias, gestiona miembros y responde formularios comunales de forma ágil y centralizada.
               </p>
             </div>
@@ -97,12 +97,12 @@ import {
               </div>
 
               <h2 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Bienvenido</h2>
-              <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium">Ingresa tus credenciales para acceder al sistema</p>
+              <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 font-normal">Ingresa tus credenciales para acceder al sistema</p>
             </div>
 
             <!-- Error message banner -->
             @if (error()) {
-              <div class="flex items-center gap-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 rounded-2xl p-4 mb-6 text-sm font-medium animate-in fade-in duration-300">
+              <div class="flex items-center gap-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 rounded-2xl p-4 mb-6 text-sm font-normal animate-in fade-in duration-300">
                 <lucide-icon [name]="AlertCircle" class="w-5 h-5 shrink-0"></lucide-icon>
                 <span>{{ error() }}</span>
               </div>
@@ -126,7 +126,7 @@ import {
                     placeholder="admin@elvalle.com"
                     required
                     autocomplete="email"
-                    class="w-full pl-12 pr-5 py-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium"
+                    class="w-full pl-12 pr-5 py-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"
                   />
                 </div>
               </div>
@@ -146,7 +146,7 @@ import {
                     placeholder="••••••••"
                     required
                     autocomplete="current-password"
-                    class="w-full pl-12 pr-12 py-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium"
+                    class="w-full pl-12 pr-12 py-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"
                   />
                   <!-- Toggle password button -->
                   <button type="button" (click)="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
@@ -247,3 +247,4 @@ export class LoginComponent {
     });
   }
 }
+

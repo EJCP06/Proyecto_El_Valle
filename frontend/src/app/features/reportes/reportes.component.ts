@@ -15,7 +15,7 @@ import { ReporteParams } from '../../core/models/usuario.model';
       <!-- Page Title -->
       <div>
         <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Reportes y Estadísticas</h2>
-        <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Extrae datos consolidados del sistema en múltiples formatos.</p>
+        <p class="text-sm text-slate-500 dark:text-slate-400 font-normal">Extrae datos consolidados del sistema en múltiples formatos.</p>
       </div>
 
       <!-- Settings Card -->
@@ -28,7 +28,7 @@ import { ReporteParams } from '../../core/models/usuario.model';
             <select 
               [(ngModel)]="params.tipo" 
               name="tipo"
-              class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium"
+              class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"
             >
               <option value="familias">Familias</option>
               <option value="miembros">Miembros</option>
@@ -43,7 +43,7 @@ import { ReporteParams } from '../../core/models/usuario.model';
             <select 
               [(ngModel)]="params.formato" 
               name="formato"
-              class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium"
+              class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"
             >
               <option value="json">JSON</option>
               <option value="csv">CSV</option>
@@ -58,7 +58,7 @@ import { ReporteParams } from '../../core/models/usuario.model';
               [(ngModel)]="params.desde" 
               name="desde" 
               type="date"
-              class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium text-sm"
+              class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"
             />
           </div>
 
@@ -69,7 +69,7 @@ import { ReporteParams } from '../../core/models/usuario.model';
               [(ngModel)]="params.hasta" 
               name="hasta" 
               type="date"
-              class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium text-sm"
+              class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"
             />
           </div>
 
@@ -138,3 +138,4 @@ export class ReportesComponent {
     });
   }
 }
+

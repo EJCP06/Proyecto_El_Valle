@@ -14,7 +14,7 @@ import { RegistroAuditoria } from '../../core/models/usuario.model';
       <!-- Page Title -->
       <div>
         <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Bitácora de Auditoría</h2>
-        <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Inspecciona los logs históricos de acciones tomadas por los usuarios dentro del sistema.</p>
+        <p class="text-sm text-slate-500 dark:text-slate-400 font-normal">Inspecciona los logs históricos de acciones tomadas por los usuarios dentro del sistema.</p>
       </div>
 
       <!-- Filters Section -->
@@ -27,7 +27,7 @@ import { RegistroAuditoria } from '../../core/models/usuario.model';
               [(ngModel)]="filters.entidad" 
               name="entidad" 
               placeholder="Ej: Familia" 
-              class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium text-sm"
+              class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"
             />
           </div>
 
@@ -37,7 +37,7 @@ import { RegistroAuditoria } from '../../core/models/usuario.model';
               [(ngModel)]="filters.desde" 
               name="desde" 
               type="date" 
-              class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium text-sm"
+              class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"
             />
           </div>
 
@@ -47,7 +47,7 @@ import { RegistroAuditoria } from '../../core/models/usuario.model';
               [(ngModel)]="filters.hasta" 
               name="hasta" 
               type="date" 
-              class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-medium text-sm"
+              class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"
             />
           </div>
 
@@ -99,7 +99,7 @@ import { RegistroAuditoria } from '../../core/models/usuario.model';
                   </tr>
                 } @empty {
                   <tr>
-                    <td colspan="5" class="px-6 py-12 text-center text-sm text-slate-400 dark:text-slate-500 font-medium">
+                    <td colspan="5" class="px-6 py-12 text-center text-sm text-slate-400 dark:text-slate-500 font-normal">
                       No se encontraron registros de auditoría.
                     </td>
                   </tr>
@@ -129,3 +129,4 @@ export class AuditoriaComponent implements OnInit {
     });
   }
 }
+

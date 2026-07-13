@@ -21,6 +21,12 @@
   --color-sidebar-bg:  #0f172a;
   --color-sidebar-hover: #1e293b;
 
+  /* Indigo extended */
+  --color-indigo-100: #e0e7ff;
+
+  /* Amber extended */
+  --color-amber-100: #fef3c7;
+
   /* Surface tokens */
   --color-surface-50:  #f8fafc;
   --color-surface-100: #f1f5f9;

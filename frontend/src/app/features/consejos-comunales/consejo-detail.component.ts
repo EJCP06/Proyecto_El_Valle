@@ -47,32 +47,32 @@ import { ConsejoComunal } from '../../core/models/usuario.model';
 
             <div class="space-y-1">
               <dt class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px]">Teléfono</dt>
-              <dd class="text-sm font-medium text-slate-700 dark:text-slate-300">{{ consejo()!.telefono || '—' }}</dd>
+              <dd class="text-sm font-normal text-slate-700 dark:text-slate-300">{{ consejo()!.telefono || '—' }}</dd>
             </div>
 
             <div class="sm:col-span-2 space-y-1">
               <dt class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px]">Dirección</dt>
-              <dd class="text-sm font-medium text-slate-700 dark:text-slate-300">{{ consejo()!.direccion }}</dd>
+              <dd class="text-sm font-normal text-slate-700 dark:text-slate-300">{{ consejo()!.direccion }}</dd>
             </div>
 
             <div class="space-y-1">
               <dt class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px]">Parroquia</dt>
-              <dd class="text-sm font-medium text-slate-700 dark:text-slate-300">{{ consejo()!.parroquia }}</dd>
+              <dd class="text-sm font-normal text-slate-700 dark:text-slate-300">{{ consejo()!.parroquia }}</dd>
             </div>
 
             <div class="space-y-1">
               <dt class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px]">Municipio</dt>
-              <dd class="text-sm font-medium text-slate-700 dark:text-slate-300">{{ consejo()!.municipio }}</dd>
+              <dd class="text-sm font-normal text-slate-700 dark:text-slate-300">{{ consejo()!.municipio }}</dd>
             </div>
 
             <div class="space-y-1">
               <dt class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px]">Estado</dt>
-              <dd class="text-sm font-medium text-slate-700 dark:text-slate-300">{{ consejo()!.estado }}</dd>
+              <dd class="text-sm font-normal text-slate-700 dark:text-slate-300">{{ consejo()!.estado }}</dd>
             </div>
 
             <div class="space-y-1">
               <dt class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px]">Email institucional</dt>
-              <dd class="text-sm font-medium text-slate-700 dark:text-slate-300">{{ consejo()!.email || '—' }}</dd>
+              <dd class="text-sm font-normal text-slate-700 dark:text-slate-300">{{ consejo()!.email || '—' }}</dd>
             </div>
 
           </div>
@@ -105,3 +105,4 @@ export class ConsejoDetailComponent implements OnInit {
     });
   }
 }
+

@@ -4,7 +4,7 @@ const preguntaRepo = require('./pregunta.repository');
 class FormularioRepository {
   async findAll(limit = 10, offset = 0) {
     const res = await db.query(
-      'SELECT id, titulo, descripcion, activo, created_at FROM formularios ORDER BY id DESC LIMIT $1 OFFSET $2',
+      'SELECT id, titulo, descripcion, activo, alcance, created_at FROM formularios ORDER BY id DESC LIMIT $1 OFFSET $2',
       [limit, offset]
     );
     return res.rows;
@@ -17,7 +17,7 @@ class FormularioRepository {
 
   async findById(id) {
     const res = await db.query(
-      'SELECT id, titulo, descripcion, activo, created_at FROM formularios WHERE id = $1',
+      'SELECT id, titulo, descripcion, activo, alcance, created_at FROM formularios WHERE id = $1',
       [id]
     );
     if (res.rows.length === 0) return null;
@@ -28,18 +28,19 @@ class FormularioRepository {
       titulo: form.titulo,
       descripcion: form.descripcion,
       activo: form.activo,
+      alcance: form.alcance,
       campos,
       created_at: form.created_at
     };
   }
 
-  async create({ titulo, descripcion, campos = [] }) {
+  async create({ titulo, descripcion, alcance, campos = [] }) {
     const client = await db.pool.connect();
     try {
       await client.query('BEGIN');
       const resForm = await client.query(
-        'INSERT INTO formularios (titulo, descripcion) VALUES ($1, $2) RETURNING *',
-        [titulo, descripcion]
+        'INSERT INTO formularios (titulo, descripcion, alcance) VALUES ($1, $2, $3) RETURNING *',
+        [titulo, descripcion, alcance || 'familiar']
       );
       const newForm = resForm.rows[0];
 
@@ -64,6 +65,7 @@ class FormularioRepository {
         titulo: newForm.titulo,
         descripcion: newForm.descripcion,
         activo: newForm.activo,
+        alcance: newForm.alcance,
         campos: insertedCampos,
         created_at: newForm.created_at
       };
@@ -75,7 +77,7 @@ class FormularioRepository {
     }
   }
 
-  async update(id, { titulo, descripcion, activo, campos }) {
+  async update(id, { titulo, descripcion, activo, alcance, campos }) {
     const client = await db.pool.connect();
     try {
       await client.query('BEGIN');
@@ -84,15 +86,15 @@ class FormularioRepository {
         `UPDATE formularios 
          SET titulo = COALESCE($1, titulo), 
              descripcion = COALESCE($2, descripcion), 
-             activo = COALESCE($3, activo)
-         WHERE id = $4 
+             activo = COALESCE($3, activo),
+             alcance = COALESCE($4, alcance)
+         WHERE id = $5 
          RETURNING *`,
-        [titulo, descripcion, activo !== undefined ? activo : null, id]
+        [titulo, descripcion, activo !== undefined ? activo : null, alcance || null, id]
       );
       const updatedForm = resForm.rows[0];
 
       if (campos) {
-        // Delete existing questions and replace them
         await client.query('DELETE FROM preguntas WHERE formulario_id = $1', [id]);
         
         const insertedCampos = [];
@@ -111,7 +113,6 @@ class FormularioRepository {
         }
         updatedForm.campos = insertedCampos;
       } else {
-        // Load existing questions
         const existing = await preguntaRepo.findByFormulario(id);
         updatedForm.campos = existing;
       }
@@ -122,6 +123,7 @@ class FormularioRepository {
         titulo: updatedForm.titulo,
         descripcion: updatedForm.descripcion,
         activo: updatedForm.activo,
+        alcance: updatedForm.alcance,
         campos: updatedForm.campos,
         created_at: updatedForm.created_at
       };

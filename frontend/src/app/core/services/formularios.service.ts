@@ -6,6 +6,7 @@ import {
   Formulario,
   FormularioAsignacion,
   FormularioRespuesta,
+  FormularioAsignacionFamilia,
 } from '../models/usuario.model';
 import { ApiResponse, PaginatedResponse } from '../interfaces/api-response.interface';
 
@@ -45,19 +46,26 @@ export class FormulariosService {
 
   asignar(formularioId: number, familiaId: number): Observable<ApiResponse<FormularioAsignacion>> {
     return this.http.post<ApiResponse<FormularioAsignacion>>(
-      `${this.url}/${formularioId}/asignaciones`,
-      { familiaId }
+      `${this.url}/asignar`,
+      { formularioId, familiaId }
+    );
+  }
+
+  getByFamilia(familiaId: number): Observable<ApiResponse<FormularioAsignacionFamilia[]>> {
+    return this.http.get<ApiResponse<FormularioAsignacionFamilia[]>>(
+      `${this.url}/familia/${familiaId}`
     );
   }
 
   // Respuestas
   responder(
     asignacionId: number,
-    respuestas: Record<string, unknown>
+    respuestas: Record<string, unknown>,
+    miembroId?: number
   ): Observable<ApiResponse<FormularioRespuesta>> {
     return this.http.post<ApiResponse<FormularioRespuesta>>(
       `${environment.apiUrl}/asignaciones/${asignacionId}/respuestas`,
-      { respuestas }
+      { respuestas, miembroId }
     );
   }
 }

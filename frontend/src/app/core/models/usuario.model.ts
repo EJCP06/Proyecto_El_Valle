@@ -60,10 +60,12 @@ export type TipoCampo =
   | 'textarea'
   | 'number'
   | 'date'
+  | 'time'
   | 'select'
   | 'radio'
   | 'checkbox'
-  | 'file';
+  | 'file'
+  | 'yes_no';
 
 export interface CampoFormulario {
   id?: string;
@@ -78,8 +80,9 @@ export interface Formulario {
   id: number;
   titulo: string;
   descripcion?: string;
-  campos: CampoFormulario[];
+  campos?: CampoFormulario[];
   activo: boolean;
+  alcance?: 'familiar' | 'individual';
   createdAt?: string;
 }
 
@@ -87,17 +90,27 @@ export interface FormularioAsignacion {
   id: number;
   formularioId: number;
   familiaId: number;
+  miembroId?: number | null;
   estado: 'pendiente' | 'en_progreso' | 'completado';
-  formulario?: Pick<Formulario, 'id' | 'titulo'>;
+  formulario?: Pick<Formulario, 'id' | 'titulo' | 'alcance'>;
   familia?: Pick<Familia, 'id' | 'nombre'>;
+  miembro?: Pick<Miembro, 'id' | 'nombre' | 'apellido'>;
   createdAt?: string;
 }
 
 export interface FormularioRespuesta {
   id: number;
   asignacionId: number;
+  miembroId?: number | null;
   respuestas: Record<string, unknown>;
   completadoEn?: string;
+}
+
+export interface FormularioAsignacionFamilia {
+  formulario: Pick<Formulario, 'id' | 'titulo' | 'alcance' | 'descripcion'>;
+  asignaciones: FormularioAsignacion[];
+  totalMiembros: number;
+  respondidos: number;
 }
 
 // ── Auditoría ─────────────────────────────────────────────────────────────────

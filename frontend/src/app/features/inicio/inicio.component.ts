@@ -24,7 +24,7 @@ import { RouterLink } from '@angular/router';
           <span class="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">El Valle</span>
         </h1>
 
-        <p class="text-lg text-slate-400 leading-relaxed font-medium max-w-lg mx-auto">
+        <p class="text-lg text-slate-400 leading-relaxed font-normal max-w-lg mx-auto">
           Plataforma digital para la gestión integral de familias, formularios y reportes del consejo comunal.
         </p>
 
@@ -63,3 +63,4 @@ export class InicioComponent {
     { icon: '🔍',    title: 'Auditoría',        desc: 'Rastrea cada acción realizada en el sistema.' },
   ];
 }
+

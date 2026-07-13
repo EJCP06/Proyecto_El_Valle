@@ -13,9 +13,9 @@ const USER_KEY  = 'ev_user';
 export class AuthService {
   private readonly api = environment.apiUrl;
 
-  private _token = signal<string | null>(localStorage.getItem(TOKEN_KEY));
+  private _token = signal<string | null>(sessionStorage.getItem(TOKEN_KEY));
   private _user  = signal<AuthUser | null>(
-    JSON.parse(localStorage.getItem(USER_KEY) ?? 'null')
+    JSON.parse(sessionStorage.getItem(USER_KEY) ?? 'null')
   );
 
   /** Publicly readable signals */
@@ -33,8 +33,8 @@ export class AuthService {
           if (res.success) {
             this._token.set(res.data.token);
             this._user.set(res.data.user);
-            localStorage.setItem(TOKEN_KEY, res.data.token);
-            localStorage.setItem(USER_KEY, JSON.stringify(res.data.user));
+            sessionStorage.setItem(TOKEN_KEY, res.data.token);
+            sessionStorage.setItem(USER_KEY, JSON.stringify(res.data.user));
           }
         })
       );
@@ -43,8 +43,8 @@ export class AuthService {
   logout(): void {
     this._token.set(null);
     this._user.set(null);
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(USER_KEY);
   }
 
   isAuthenticated(): boolean {
