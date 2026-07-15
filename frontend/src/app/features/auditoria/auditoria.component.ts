@@ -67,7 +67,7 @@ import { RegistroAuditoria } from '../../core/models/usuario.model';
           <span class="text-sm text-slate-500 dark:text-slate-400 mt-4 font-semibold animate-pulse">Cargando registros...</span>
         </div>
       } @else {
-        <div class="bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl overflow-hidden shadow-sm">
+        <div class="bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl overflow-hidden shadow-sm mt-4">
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
               <thead>

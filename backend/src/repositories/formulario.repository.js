@@ -4,7 +4,7 @@ const preguntaRepo = require('./pregunta.repository');
 class FormularioRepository {
   async findAll(limit = 10, offset = 0) {
     const res = await db.query(
-      'SELECT id, titulo, descripcion, activo, alcance, created_at FROM formularios ORDER BY id DESC LIMIT $1 OFFSET $2',
+      'SELECT f.id, f.titulo, f.descripcion, f.activo, f.alcance, f.created_at, (SELECT COUNT(*)::int FROM preguntas p WHERE p.formulario_id = f.id) as num_campos FROM formularios f ORDER BY f.id DESC LIMIT $1 OFFSET $2',
       [limit, offset]
     );
     return res.rows;

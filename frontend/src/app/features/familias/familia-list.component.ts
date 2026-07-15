@@ -67,7 +67,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
             </div>
           </div>
         </div>
-        <div class="bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl overflow-hidden shadow-sm">
+        <div class="bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl overflow-hidden shadow-sm mt-4">
           <div class="overflow-x-auto">
             <table class="w-full table-fixed border-collapse">
               <thead>
@@ -471,7 +471,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                 </div>
                 <div class="space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Es jefe/a de familia</label>
-                  <div class="flex items-center gap-2 bg-white dark:bg-transparent border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 w-fit">
+                  <div class="flex items-center gap-2 bg-white border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 w-fit mt-1">
                     <label class="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" [(ngModel)]="miembroForm.jefeFamilia" name="mJefeFamilia" class="sr-only peer" />
                       <div
@@ -484,7 +484,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                         ></div>
                       </div>
                     </label>
-                    <span class="text-[10px] font-bold uppercase tracking-wider" [class.text-emerald-600]="miembroForm.jefeFamilia" [class.text-slate-400]="!miembroForm.jefeFamilia">{{ miembroForm.jefeFamilia ? 'Sí' : 'No' }}</span>
+                    <span class="text-[10px] font-bold uppercase tracking-wider" [class.text-emerald-600]="miembroForm.jefeFamilia" [class.text-slate-400]="!miembroForm.jefeFamilia">{{ miembroForm.jefeFamilia ? 'Activo' : 'Inactivo' }}</span>
                   </div>
                 </div>
               </div>

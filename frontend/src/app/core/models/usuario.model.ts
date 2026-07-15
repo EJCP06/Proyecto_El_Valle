@@ -83,6 +83,7 @@ export interface Formulario {
   campos?: CampoFormulario[];
   activo: boolean;
   alcance?: 'familiar' | 'individual';
+  num_campos?: number;
   createdAt?: string;
 }
 

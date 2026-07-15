@@ -18,7 +18,7 @@ import { NavbarComponent } from '../navbar/navbar.component';
         <app-navbar />
 
         <!-- Router Outlet Container -->
-        <main class="flex-1 flex flex-col p-4 lg:p-6 overflow-y-auto bg-slate-100 dark:bg-slate-900/40 transition-colors duration-300">
+        <main class="flex-1 flex flex-col p-4 lg:p-6 overflow-y-auto bg-slate-100 dark:bg-slate-900/40 transition-colors duration-300 min-h-[calc(100vh-4rem)]">
           <div class="flex-1 flex flex-col min-h-0">
             <router-outlet />
           </div>
