@@ -131,7 +131,7 @@ import { LucideAngularModule, Edit2, Trash2, Plus, Search, ChevronDown, CheckCir
     <!-- Modal -->
     @if (showModal()) {
       <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeModal()">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div class="absolute inset-0 bg-black/50 "></div>
         <div class="relative z-10 w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
 
           <div class="flex items-center justify-between p-6 bg-blue-600 dark:bg-blue-700">

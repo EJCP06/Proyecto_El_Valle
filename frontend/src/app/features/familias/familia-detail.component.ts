@@ -178,7 +178,7 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
     <!-- Miembro Modal -->
     @if (showMiembroModal()) {
       <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeMiembroModal()">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div class="absolute inset-0 bg-black/50 "></div>
         <div class="relative z-10 w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
 
           <div class="flex items-center justify-between p-6 bg-blue-600 dark:bg-blue-700">
@@ -221,8 +221,8 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"/>
                 </div>
                 <div class="space-y-2">
-                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Fecha de nacimiento</label>
-                  <input [(ngModel)]="miembroForm.fechaNacimiento" name="mFechaNacimiento" type="date"
+                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Fecha de nacimiento <span class="text-red-500">*</span></label>
+                  <input [(ngModel)]="miembroForm.fechaNacimiento" name="mFechaNacimiento" type="date" required
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"/>
                 </div>
                 <div class="space-y-2">
@@ -309,7 +309,7 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
     <!-- Familia Edit Modal -->
     @if (showFamiliaModal()) {
       <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeFamiliaModal()">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div class="absolute inset-0 bg-black/50 "></div>
         <div class="relative z-10 w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
 
           <div class="flex items-center justify-between p-6 bg-blue-600 dark:bg-blue-700">
@@ -497,6 +497,15 @@ export class FamiliaDetailComponent implements OnInit {
   }
 
   saveFamilia() {
+    const campos = [
+      { label: 'Nombre', value: this.familiaForm.nombre },
+      { label: 'Dirección', value: this.familiaForm.direccion },
+    ];
+    const faltantes = campos.filter(c => !c.value?.trim?.()).map(c => c.label);
+    if (faltantes.length > 0) {
+      this.notify.warning('Campos obligatorios', 'Faltan algunos campos obligatorios');
+      return;
+    }
     this.familiaSaving.set(true);
     this.familiaError.set('');
     this.svc.update(this.familiaId, this.familiaForm).subscribe({
@@ -529,6 +538,17 @@ export class FamiliaDetailComponent implements OnInit {
   }
 
   saveMiembro() {
+    const campos = [
+      { label: 'Nombre', value: this.miembroForm.nombre },
+      { label: 'Apellido', value: this.miembroForm.apellido },
+      { label: 'Cédula', value: this.miembroForm.cedula },
+      { label: 'Fecha de nacimiento', value: this.miembroForm.fechaNacimiento },
+    ];
+    const faltantes = campos.filter(c => !c.value?.trim?.()).map(c => c.label);
+    if (faltantes.length > 0) {
+      this.notify.warning('Campos obligatorios', 'Faltan algunos campos obligatorios');
+      return;
+    }
     this.miembroSaving.set(true);
     this.miembroError.set('');
     const id = this.miembroEditingId();

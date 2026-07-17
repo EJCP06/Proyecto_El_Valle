@@ -38,7 +38,7 @@ interface StatsData {
       <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-700 via-indigo-700 to-indigo-800 p-6 text-white shadow-lg shrink-0">
         <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 24px 24px;"></div>
         <div class="relative z-10">
-          <h2 class="text-2xl font-black tracking-tight">Bienvenido, {{ (auth.currentUser()?.nombre ?? '').split(' ')[0] }}</h2>
+          <h2 class="text-2xl font-black tracking-tight">Panel de Control</h2>
           <p class="text-sm text-blue-100/80 font-normal mt-1">Resumen general de la Comuna Venezuela Patria Mía</p>
         </div>
       </div>

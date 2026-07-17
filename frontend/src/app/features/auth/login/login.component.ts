@@ -232,7 +232,6 @@ export class LoginComponent {
           // Wait 2000ms to show the loading animation
           setTimeout(() => {
             this.loading.set(false);
-            this.notify.success(`¡Bienvenido, ${res.data.user.nombre}!`);
             this.router.navigate(['/app/dashboard']);
           }, 2000);
         } else {

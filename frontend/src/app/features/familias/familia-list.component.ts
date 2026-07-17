@@ -67,11 +67,11 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
             </div>
           </div>
         </div>
-        <div class="bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl overflow-hidden shadow-sm mt-4">
+        <div class="bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl shadow-sm mt-4">
           <div class="overflow-x-auto">
             <table class="w-full table-fixed border-collapse">
               <thead>
-                <tr class="bg-slate-50/75 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                <tr class="bg-slate-50/75 dark:bg-slate-800/40 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider" [class.border-b]="familiasFiltradas.length > 0" [class.border-slate-200]="familiasFiltradas.length > 0" [class.dark:border-slate-800]="familiasFiltradas.length > 0">
                   <th class="w-[28%] px-6 py-4 text-center">Nombre</th>
                   <th class="w-[22%] px-4 py-4 text-center">Dirección</th>
                   <th class="w-[20%] px-4 py-4 text-center">Consejo</th>
@@ -79,9 +79,9 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                   <th class="w-[18%] px-4 py-4 text-center">Acciones</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+              <tbody class="text-slate-750 dark:text-slate-300">
                 @for (f of familiasFiltradas | paginate:currentPage:pageSize; track f.id) {
-                  <tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                  <tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-slate-100 dark:border-slate-800/60">
                     <td class="px-6 py-4 text-center">
                       <span class="text-sm text-slate-500 dark:text-slate-400 truncate block">{{ f.nombre }}</span>
                     </td>
@@ -106,15 +106,13 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                       </div>
                     </td>
                   </tr>
-                } @empty {
-                  <tr>
-                    <td colspan="5" class="px-6 py-12 text-center text-sm text-slate-400 dark:text-slate-500 font-normal">
-                      No se encontraron familias registradas.
+                } @empty {}
+                @for (_ of familiasFiltradas | fillers:currentPage:pageSize; track $index) {
+                  <tr class="hover:bg-transparent">
+                    <td colspan="5" class="px-6 py-4 text-center text-sm text-slate-400 dark:text-slate-500 font-normal">
+                      @if (familiasFiltradas.length === 0 && $index === 3) { No se encontraron datos. }
                     </td>
                   </tr>
-                }
-                @for (_ of familiasFiltradas | fillers:currentPage:pageSize; track $index) {
-                  <tr><td colspan="5" class="px-6 py-4">&nbsp;</td></tr>
                 }
               </tbody>
             </table>
@@ -127,7 +125,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
     <!-- Modal -->
     @if (showModal()) {
       <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeModal()">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div class="absolute inset-0 bg-black/50 "></div>
         <div class="relative z-10 w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
 
           <div class="flex items-center justify-between p-6 bg-blue-600 dark:bg-blue-700">
@@ -182,7 +180,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
               <div class="pt-6 border-t border-slate-100 dark:border-slate-800/60">
                 <div class="flex items-center justify-between mb-4">
                   <h4 class="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-wider">
-                    Miembros
+                    Miembros <span class="text-red-500">*</span>
                     <span class="ml-2 inline-flex items-center justify-center w-6 h-6 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-black rounded-full">
                       {{ editingId() ? editingFamiliaMiembros().length : pendingMiembros().length }}
                     </span>
@@ -280,7 +278,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
     <!-- View Modal -->
     @if (showViewModal()) {
       <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeViewModal()">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div class="absolute inset-0 bg-black/50 "></div>
         <div class="relative z-10 w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
 
           <div class="flex items-center justify-between p-6 bg-emerald-600 dark:bg-emerald-700">
@@ -363,7 +361,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
     <!-- Miembro Modal -->
     @if (showMiembroModal()) {
       <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeMiembroModal()">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div class="absolute inset-0 bg-black/50 "></div>
         <div class="relative z-10 w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
 
           <div class="flex items-center justify-between p-6 bg-blue-600 dark:bg-blue-700">
@@ -406,8 +404,8 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"/>
                 </div>
                 <div class="space-y-2">
-                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Fecha de nacimiento</label>
-                  <input [(ngModel)]="miembroForm.fechaNacimiento" name="mFechaNacimiento" type="date"
+                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Fecha de nacimiento <span class="text-red-500">*</span></label>
+                  <input [(ngModel)]="miembroForm.fechaNacimiento" name="mFechaNacimiento" type="date" required
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"/>
                 </div>
                 <div class="space-y-2">
@@ -739,13 +737,26 @@ export class FamiliaListComponent implements OnInit {
   }
 
   save() {
-    this.saving.set(true);
-    this.modalError.set('');
-    if (!this.form.nombre?.trim() || !this.form.direccion?.trim() || !this.form.consejoId) {
-      this.modalError.set('Completa todos los campos obligatorios.');
-      this.saving.set(false);
+    const campos = [
+      { label: 'Nombre', value: this.miembroForm.nombre },
+      { label: 'Apellido', value: this.miembroForm.apellido },
+      { label: 'Cédula', value: this.miembroForm.cedula },
+      { label: 'Fecha de nacimiento', value: this.miembroForm.fechaNacimiento },
+    ];
+    if (!this.form.consejoId) {
+      campos.push({ label: 'Consejo Comunal', value: '' });
+    }
+    const miembros = this.editingId() ? this.editingFamiliaMiembros() : this.pendingMiembros();
+    if (miembros.length === 0) {
+      campos.push({ label: 'Miembros', value: '' });
+    }
+    const faltantes = campos.filter(c => !c.value?.trim?.() && !c.value).map(c => c.label);
+    if (faltantes.length > 0) {
+      this.notify.warning('Campos obligatorios', 'Faltan algunos campos obligatorios');
       return;
     }
+    this.saving.set(true);
+    this.modalError.set('');
     const id = this.editingId();
     const obs = id ? this.famSvc.update(id, this.form) : this.famSvc.create(this.form);
     obs.subscribe({

@@ -1,18 +1,28 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
-import { LucideAngularModule, Sun, Moon } from 'lucide-angular';
+import { SidebarService } from '../../core/services/sidebar.service';
+import { LucideAngularModule, Sun, Moon, Menu } from 'lucide-angular';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
   imports: [CommonModule, LucideAngularModule],
   template: `
-    <header class="flex items-center justify-end px-6 h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 transition-colors duration-300">
+    <header class="flex items-center justify-between px-6 h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 transition-colors duration-300">
       
+      <!-- Hamburger Menu Button (Mobile only) -->
+      <button 
+        (click)="sidebarService.toggle()"
+        class="mobile-menu-btn p-2 -ml-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+        title="Abrir menú"
+      >
+        <lucide-icon [name]="Menu" class="w-6 h-6"></lucide-icon>
+      </button>
+
       <!-- Right Area: Theme Toggle + Profile -->
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-4 navbar-right-area">
 
         <!-- Theme Toggle Switch -->
         <div class="flex items-center gap-3 px-3 py-2 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800">
@@ -38,14 +48,40 @@ import { LucideAngularModule, Sun, Moon } from 'lucide-angular';
       </div>
     </header>
   `,
-  styles: []
+  styles: [`
+    .navbar-right-area {
+      margin-left: auto;
+    }
+    @media (min-width: 1024px) {
+      .mobile-menu-btn {
+        display: none !important;
+      }
+    }
+  `]
 })
-export class NavbarComponent {
+export class NavbarComponent implements OnInit {
   auth  = inject(AuthService);
   theme = inject(ThemeService);
+  sidebarService = inject(SidebarService);
+
+  isDesktop = signal(true);
 
   readonly Sun = Sun;
   readonly Moon = Moon;
+  readonly Menu = Menu;
+
+  ngOnInit() {
+    this.syncResponsiveState();
+  }
+
+  @HostListener("window:resize")
+  onWindowResize() {
+    this.syncResponsiveState();
+  }
+
+  private syncResponsiveState() {
+    this.isDesktop.set(window.innerWidth >= 1024);
+  }
 
   initials(): string {
     const name = this.auth.currentUser()?.nombre ?? '';

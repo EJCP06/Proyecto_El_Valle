@@ -14,7 +14,7 @@ import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Use
   standalone: true,
   imports: [FormsModule, PaginationComponent, PaginatePipe, LucideAngularModule],
   template: `
-    <div class="space-y-6 animate-in fade-in duration-300 min-h-[calc(100vh-14rem)]">
+    <div class="space-y-6 animate-in fade-in duration-300">
 
       <!-- Page Header -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -67,8 +67,8 @@ import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Use
             </div>
           </div>
         </div>
-        <div class="bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl overflow-hidden shadow-sm mt-8">
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 p-5 pb-8">
+        <div class="bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl shadow-sm mt-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 p-5 pb-2">
               @for (f of formulariosFiltrados | paginate:currentPage:pageSize; track f.id) {
                 <div class="flex flex-col gap-4 bg-slate-50 dark:bg-slate-800/30 border border-slate-200/80 dark:border-slate-800/80 p-6 rounded-3xl hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
                   
@@ -127,7 +127,7 @@ import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Use
                 </div>
               }
             </div>
-          <app-pagination class="mt-16" [currentPage]="currentPage" [totalItems]="formulariosFiltrados.length" [pageSize]="pageSize" (pageChange)="currentPage = $event"></app-pagination>
+          <app-pagination [currentPage]="currentPage" [totalItems]="formulariosFiltrados.length" [pageSize]="pageSize" (pageChange)="currentPage = $event"></app-pagination>
         </div>
       }
     </div>
@@ -182,8 +182,8 @@ import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Use
                     </select>
                   </div>
                   <div class="space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Estado del formulario</label>
-<div class="flex items-center gap-2 bg-white border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 w-fit mt-1">
+                    <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Estado</label>
+                    <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl px-5 py-3.5 w-full">
                       <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" [checked]="builderActivo()" (change)="builderActivo.set(!builderActivo())" name="bActivo" class="sr-only peer" />
                         <div class="relative w-9 h-5 rounded-full transition-all duration-300 shadow-inner cursor-pointer"
@@ -348,7 +348,7 @@ import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Use
                   <div class="px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-800">{{ viewFormulario()!.descripcion || 'Sin descripción.' }}</div>
                 </div>
 
-<!-- Alcance + Estado -->
+                <!-- Alcance + Estado -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div class="space-y-2">
                     <label class="text-[10px] font-black text-slate-400 uppercase tracking-[2px] ml-1">Alcance</label>
@@ -356,7 +356,7 @@ import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Use
                   </div>
                   <div class="space-y-2">
                     <label class="text-[10px] font-black text-slate-400 uppercase tracking-[2px] ml-1">Estado del formulario</label>
-                    <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2.5 w-fit mt-1">
+                    <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2.5 w-fit">
                       <div class="relative w-9 h-5 rounded-full transition-all duration-300 shadow-inner"
                            [style.background]="viewFormulario()!.activo ? '#10b981' : '#cbd5e1'">
                         <div class="absolute top-[2px] left-[2px] w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300"
@@ -379,7 +379,7 @@ import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Use
                       <div class="flex items-start gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
                         <div class="w-7 h-7 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">{{ i + 1 }}</div>
                         <div class="flex-1 space-y-1">
-<div class="flex items-center gap-2 bg-white border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 w-fit">
+                          <div class="flex items-center gap-2">
                             <span class="text-sm font-bold text-slate-800">{{ campo.label }}</span>
                             @if (campo.requerido) {
                               <span class="text-[10px] font-bold text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded">Requerido</span>

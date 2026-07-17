@@ -2,6 +2,7 @@ import { Component, HostListener, inject, signal, OnInit } from "@angular/core";
 import { Router, RouterLink } from "@angular/router";
 import { CommonModule } from "@angular/common";
 import { AuthService } from "../../core/services/auth.service";
+import { SidebarService } from "../../core/services/sidebar.service";
 import {
   LucideAngularModule,
   LayoutDashboard,
@@ -14,8 +15,7 @@ import {
   UserCog,
   UserCheck,
   LogOut,
-  ChevronLeft,
-  ChevronRight,
+  X,
 } from "lucide-angular";
 
 interface NavItem {
@@ -31,53 +31,44 @@ interface NavItem {
   imports: [CommonModule, RouterLink, LucideAngularModule],
   template: `
     <aside
-      [class.w-72]="!isCollapsed()"
-      [class.w-20]="isCollapsed()"
-      class="h-[100dvh] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0 transition-all duration-300 relative select-none z-50"
+      class="sidebar-responsive h-[100dvh] w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0 transform transition-transform duration-300 ease-in-out select-none z-50 top-0 bottom-0 left-0"
+      [ngClass]="{'-translate-x-full': !sidebarService.isOpen()}"
     >
       <!-- Logo Header -->
       <div
         class="relative pb-4 overflow-hidden shrink-0"
         style="padding-top: 2rem;"
       >
-        <div class="flex items-center gap-3 pl-3">
-          <div
-            class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shrink-0"
-          >
-            <lucide-icon
-              [name]="Building2"
-              class="w-5 h-5 text-white"
-            ></lucide-icon>
-          </div>
-          <div class="min-w-0">
+        <div class="flex items-center justify-between gap-3 pl-3 pr-3">
+          <div class="flex items-center gap-3">
             <div
-              class="flex flex-col leading-none animate-in fade-in duration-200 text-center mt-2 whitespace-nowrap"
+              class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shrink-0"
             >
-              <span
-                class="text-lg font-black text-slate-800 dark:text-white uppercase tracking-wider"
-                >Sistema Comunal</span
+              <lucide-icon
+                [name]="Building2"
+                class="w-5 h-5 text-white"
+              ></lucide-icon>
+            </div>
+            <div class="min-w-0">
+              <div
+                class="flex flex-col leading-none animate-in fade-in duration-200 text-center mt-2 whitespace-nowrap"
               >
+                <span
+                  class="text-lg font-black text-slate-800 dark:text-white uppercase tracking-wider"
+                  >Sistema Comunal</span
+                >
+              </div>
             </div>
           </div>
-        </div>
 
-        @if (!isDesktop() && !isCollapsed()) {
           <button
-            (click)="collapsed.set(true)"
-            class="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer absolute left-3 bottom-0"
-            title="Contraer menú"
+            (click)="sidebarService.close()"
+            class="mobile-close-btn p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            title="Cerrar menú"
           >
-            <lucide-icon [name]="ChevronLeft" class="w-4 h-4"></lucide-icon>
+            <lucide-icon [name]="X" class="w-5 h-5"></lucide-icon>
           </button>
-        } @else if (!isDesktop()) {
-          <button
-            (click)="collapsed.set(false)"
-            class="absolute right-[-16px] top-7 w-8 h-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md rounded-full flex items-center justify-center text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer z-50"
-            title="Expandir menú"
-          >
-            <lucide-icon [name]="ChevronRight" class="w-4 h-4"></lucide-icon>
-          </button>
-        }
+        </div>
       </div>
 
       <!-- Navigation List -->
@@ -88,6 +79,7 @@ interface NavItem {
         @for (item of visibleItems(); track item.route) {
           <a
             [routerLink]="item.route"
+            (click)="onLinkClick()"
             class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white transition-all duration-200 group text-sm font-semibold cursor-pointer"
             [title]="item.label"
           >
@@ -95,12 +87,10 @@ interface NavItem {
               [name]="item.icon"
               class="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform text-slate-500 dark:text-slate-400"
             ></lucide-icon>
-            @if (!isCollapsed()) {
-              <span
-                class="truncate animate-in fade-in duration-200 uppercase text-[11px] tracking-wider font-bold"
-                >{{ item.label }}</span
-              >
-            }
+            <span
+              class="truncate animate-in fade-in duration-200 uppercase text-[11px] tracking-wider font-bold"
+              >{{ item.label }}</span
+            >
           </a>
         }
       </nav>
@@ -118,12 +108,10 @@ interface NavItem {
               [name]="LogOut"
               class="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform"
             ></lucide-icon>
-            @if (!isCollapsed()) {
-              <span
-                class="truncate font-bold uppercase text-[11px] tracking-wider"
-                >Cerrar Sesión</span
-              >
-            }
+            <span
+              class="truncate font-bold uppercase text-[11px] tracking-wider"
+              >Cerrar Sesión</span
+            >
           } @else {
             <div
               class="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-[800ms] w-full"
@@ -141,21 +129,32 @@ interface NavItem {
       </div>
     </aside>
   `,
-  styles: [],
+  styles: [`
+    .sidebar-responsive {
+      position: fixed;
+    }
+    @media (min-width: 1024px) {
+      .sidebar-responsive {
+        position: static !important;
+        transform: translateX(0) !important;
+      }
+      .mobile-close-btn {
+        display: none !important;
+      }
+    }
+  `],
 })
 export class SidebarComponent implements OnInit {
   auth = inject(AuthService);
   router = inject(Router);
+  sidebarService = inject(SidebarService);
 
-  collapsed = signal(false);
-  isDesktop = signal(true);
+  isDesktop = signal(true); // Se mantiene temporalmente si se usa, pero la lógica ahora es CSS
   logoutLoading = signal(false);
 
-  // Expose icons to template
-  readonly ChevronLeft = ChevronLeft;
-  readonly ChevronRight = ChevronRight;
   readonly LogOut = LogOut;
   readonly Building2 = Building2;
+  readonly X = X;
 
   private readonly navItems: NavItem[] = [
     { label: "Dashboard", icon: LayoutDashboard, route: "/app/dashboard" },
@@ -198,14 +197,18 @@ export class SidebarComponent implements OnInit {
     this.syncResponsiveState();
   }
 
-  isCollapsed() {
-    return !this.isDesktop() && this.collapsed();
+  private syncResponsiveState() {
+    if (typeof window !== 'undefined') {
+      if (window.innerWidth >= 1024) {
+        // En desktop la visibilidad se maneja por CSS
+        // Cerramos el estado interno para no mostrar el overlay oscuro (backdrop).
+        this.sidebarService.close();
+      }
+    }
   }
 
-  private syncResponsiveState() {
-    const desktop = window.innerWidth >= 1024;
-    this.isDesktop.set(desktop);
-    this.collapsed.set(!desktop);
+  onLinkClick() {
+    this.sidebarService.close();
   }
 
   visibleItems() {
@@ -227,6 +230,7 @@ export class SidebarComponent implements OnInit {
 
   logout() {
     this.logoutLoading.set(true);
+    this.sidebarService.close();
     const MIN_CARGANDO = 2000;
     setTimeout(() => {
       this.auth.logout();

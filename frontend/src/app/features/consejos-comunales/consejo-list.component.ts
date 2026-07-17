@@ -69,11 +69,11 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
             </div>
           </div>
         </div>
-        <div class="bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl overflow-hidden shadow-sm mt-4">
+        <div class="bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl shadow-sm mt-4">
           <div class="overflow-x-auto">
             <table class="w-full table-fixed border-collapse">
               <thead>
-                    <tr class="bg-slate-50/75 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                    <tr class="bg-slate-50/75 dark:bg-slate-800/40 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider" [class.border-b]="consejosFiltrados.length > 0" [class.border-slate-200]="consejosFiltrados.length > 0" [class.dark:border-slate-800]="consejosFiltrados.length > 0">
                       <th class="w-[24%] px-6 py-4 text-center">Nombre</th>
                       <th class="w-[14%] px-4 py-4 text-center">RIF</th>
                       <th class="w-[22%] px-4 py-4 text-center">Dirección</th>
@@ -82,9 +82,9 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                       <th class="w-[14%] px-4 py-4 text-center">Acciones</th>
                     </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-750 dark:text-slate-300">
+              <tbody class="text-slate-750 dark:text-slate-300">
                 @for (c of consejosFiltrados | paginate:currentPage:pageSize; track c.id) {
-                  <tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                  <tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-slate-100 dark:border-slate-800/60">
                     <td class="px-6 py-4 text-center">
                       <span class="text-sm text-slate-500 dark:text-slate-400 truncate block">{{ c.nombre }}</span>
                     </td>
@@ -113,15 +113,13 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                       </div>
                     </td>
                   </tr>
-                } @empty {
-                  <tr>
-                    <td colspan="6" class="px-6 py-12 text-center text-sm text-slate-400 dark:text-slate-500 font-normal">
-                      No se encontraron consejos comunales.
+                } @empty {}
+                @for (_ of consejosFiltrados | fillers:currentPage:pageSize; track $index) {
+                  <tr class="hover:bg-transparent">
+                    <td colspan="6" class="px-6 py-4 text-center text-sm text-slate-400 dark:text-slate-500 font-normal">
+                      @if (consejosFiltrados.length === 0 && $index === 3) { No se encontraron datos. }
                     </td>
                   </tr>
-                }
-                @for (_ of consejosFiltrados | fillers:currentPage:pageSize; track $index) {
-                  <tr><td colspan="6" class="px-6 py-4">&nbsp;</td></tr>
                 }
               </tbody>
             </table>
@@ -135,7 +133,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
     @if (showModal()) {
       <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeModal()">
         <!-- Backdrop -->
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div class="absolute inset-0 bg-black/50 "></div>
         
         <!-- Modal Content -->
         <div class="relative z-10 w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
@@ -268,7 +266,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
     <!-- View Modal -->
     @if (showViewModal()) {
       <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeViewModal()">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div class="absolute inset-0 bg-black/50 "></div>
         <div class="relative z-10 w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
 
           <div class="flex items-center justify-between p-6 bg-emerald-600 dark:bg-emerald-700">
@@ -489,6 +487,19 @@ export class ConsejoListComponent implements OnInit {
   }
 
   save() {
+    const campos = [
+      { label: 'Nombre', value: this.form.nombre },
+      { label: 'RIF', value: this.form.rif },
+      { label: 'Dirección', value: this.form.direccion },
+      { label: 'Parroquia', value: this.form.parroquia },
+      { label: 'Estado', value: this.form.estado },
+    ];
+    const faltantes = campos.filter(c => !c.value?.trim()).map(c => c.label);
+    if (faltantes.length > 0) {
+      this.notify.warning('Campos obligatorios', 'Faltan algunos campos obligatorios por llenar');
+      return;
+    }
+
     this.saving.set(true);
     this.modalError.set('');
     const id = this.editingId();

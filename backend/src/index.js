@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
 const env = require('./config/env');
 const logger = require('./config/logger');
 const { pool } = require('./config/db');
@@ -56,6 +58,12 @@ const authLimiter = rateLimit({
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', env: env.NODE_ENV, timestamp: new Date().toISOString() });
 });
+
+// Swagger Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'API El Valle - Documentación',
+}));
 
 // API Routes
 app.use('/api/auth/login', authLimiter);

@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { NavbarComponent } from '../navbar/navbar.component';
+import { SidebarService } from '../../core/services/sidebar.service';
 
 @Component({
   selector: 'app-dashboard-layout',
@@ -9,8 +10,16 @@ import { NavbarComponent } from '../navbar/navbar.component';
   imports: [RouterOutlet, SidebarComponent, NavbarComponent],
   template: `
     <div class="flex min-h-screen w-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
+      <!-- Backdrop Overlay for Mobile Drawer -->
+      @if (sidebarService.isOpen()) {
+        <div
+          (click)="sidebarService.close()"
+          class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-40 transition-opacity duration-300 lg:hidden"
+        ></div>
+      }
+
       <!-- Sidebar -->
-      <app-sidebar />
+      <app-sidebar class="contents" />
 
       <!-- Main Content Area -->
       <div class="flex-1 flex flex-col min-w-0">
@@ -18,7 +27,7 @@ import { NavbarComponent } from '../navbar/navbar.component';
         <app-navbar />
 
         <!-- Router Outlet Container -->
-        <main class="flex-1 flex flex-col p-4 lg:p-6 overflow-y-auto bg-slate-100 dark:bg-slate-900/40 transition-colors duration-300 min-h-[calc(100vh-4rem)]">
+        <main class="flex-1 flex flex-col p-4 lg:p-6 overflow-y-auto bg-slate-100 dark:bg-slate-900/40 transition-colors duration-300">
           <div class="flex-1 flex flex-col min-h-0">
             <router-outlet />
           </div>
@@ -28,4 +37,6 @@ import { NavbarComponent } from '../navbar/navbar.component';
   `,
   styles: []
 })
-export class DashboardLayoutComponent {}
+export class DashboardLayoutComponent {
+  sidebarService = inject(SidebarService);
+}

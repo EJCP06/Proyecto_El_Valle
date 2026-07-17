@@ -421,8 +421,13 @@ input[type=number] {
   @apply border-slate-700 text-slate-300;
 }
 
-.dark .swal2-container {
-  @apply bg-slate-900/70;
+.dark .swal2-container:not(.swal2-toast-container) {
+  background-color: #0f172bb3;
+}
+
+.dark .swal2-toast-container {
+  background-color: transparent !important;
+  box-shadow: none !important;
 }
 
 .dark .swal2-popup:focus {
