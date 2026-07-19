@@ -3,27 +3,13 @@ import { Router, RouterLink } from "@angular/router";
 import { CommonModule } from "@angular/common";
 import { AuthService } from "../../core/services/auth.service";
 import { SidebarService } from "../../core/services/sidebar.service";
+import { NAV_ITEMS, NavItem } from "../../core/constants/navigation";
 import {
   LucideAngularModule,
-  LayoutDashboard,
   Building2,
-  Users,
-  ClipboardList,
-  BarChart3,
-  ShieldCheck,
-  Settings,
-  UserCog,
-  UserCheck,
   LogOut,
   X,
 } from "lucide-angular";
-
-interface NavItem {
-  label: string;
-  icon: any;
-  route: string;
-  roles?: string[];
-}
 
 @Component({
   selector: "app-sidebar",
@@ -31,7 +17,7 @@ interface NavItem {
   imports: [CommonModule, RouterLink, LucideAngularModule],
   template: `
     <aside
-      class="sidebar-responsive h-[100dvh] w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0 transform transition-transform duration-300 ease-in-out select-none z-50 top-0 bottom-0 left-0"
+      class="sidebar-responsive max-lg:hidden h-[100dvh] w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0 transform transition-transform duration-300 ease-in-out select-none z-50 top-0 bottom-0 left-0"
       [ngClass]="{'-translate-x-full': !sidebarService.isOpen()}"
     >
       <!-- Logo Header -->
@@ -149,44 +135,12 @@ export class SidebarComponent implements OnInit {
   router = inject(Router);
   sidebarService = inject(SidebarService);
 
-  isDesktop = signal(true); // Se mantiene temporalmente si se usa, pero la lógica ahora es CSS
+  isDesktop = signal(true);
   logoutLoading = signal(false);
 
   readonly LogOut = LogOut;
   readonly Building2 = Building2;
   readonly X = X;
-
-  private readonly navItems: NavItem[] = [
-    { label: "Dashboard", icon: LayoutDashboard, route: "/app/dashboard" },
-    { label: "Consejos", icon: Building2, route: "/app/consejos" },
-    { label: "Familias", icon: Users, route: "/app/familias" },
-    { label: "Formularios", icon: ClipboardList, route: "/app/formularios" },
-    { label: "Reportes", icon: BarChart3, route: "/app/reportes" },
-    {
-      label: "Auditoría",
-      icon: ShieldCheck,
-      route: "/app/auditoria",
-      roles: ["admin"],
-    },
-    {
-      label: "Voceros",
-      icon: UserCheck,
-      route: "/app/voceros",
-      roles: ["admin"],
-    },
-    {
-      label: "Configuración",
-      icon: Settings,
-      route: "/app/configuracion",
-      roles: ["admin"],
-    },
-    {
-      label: "Usuarios",
-      icon: UserCog,
-      route: "/app/usuarios",
-      roles: ["admin"],
-    },
-  ];
 
   ngOnInit() {
     this.syncResponsiveState();
@@ -200,8 +154,6 @@ export class SidebarComponent implements OnInit {
   private syncResponsiveState() {
     if (typeof window !== 'undefined') {
       if (window.innerWidth >= 1024) {
-        // En desktop la visibilidad se maneja por CSS
-        // Cerramos el estado interno para no mostrar el overlay oscuro (backdrop).
         this.sidebarService.close();
       }
     }
@@ -213,7 +165,7 @@ export class SidebarComponent implements OnInit {
 
   visibleItems() {
     const user = this.auth.currentUser();
-    return this.navItems.filter(
+    return NAV_ITEMS.filter(
       (item) => !item.roles || (user && item.roles.includes(user.rol)),
     );
   }
