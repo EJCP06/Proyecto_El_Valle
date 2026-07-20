@@ -61,16 +61,16 @@ interface StatsData {
       </div>
 
       <!-- Two charts filling remaining space -->
-      <div style="display:flex; gap:16px; width:100%; flex:1; min-height:0;" class="mt-4">
-        <div style="flex:1; min-width:0; min-height:0;" class="bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex flex-col">
+      <div class="charts-container mt-4">
+        <div class="chart-card bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex flex-col">
           <h3 class="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] mb-3 shrink-0">Familias por Consejo Comunal</h3>
-          <div class="relative flex-1 min-h-0">
+          <div class="chart-body">
             <canvas #barCanvas></canvas>
           </div>
         </div>
-        <div style="flex:1; min-width:0; min-height:0;" class="bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex flex-col">
+        <div class="chart-card bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex flex-col">
           <h3 class="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] mb-4 shrink-0">Distribución por Sexo</h3>
-          <div class="relative flex-1 min-h-0 flex items-center justify-center">
+          <div class="chart-body flex items-center justify-center">
             <canvas #doughnutCanvas></canvas>
           </div>
         </div>
@@ -84,6 +84,41 @@ interface StatsData {
       flex-direction: column;
       flex: 1;
       min-height: 0;
+    }
+    .charts-container {
+      display: flex;
+      gap: 16px;
+      width: 100%;
+      flex: 1;
+      min-height: 0;
+    }
+    .chart-card {
+      flex: 1;
+      min-width: 0;
+      min-height: 0;
+    }
+    .chart-body {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+    }
+    @media (max-width: 1023px) {
+      .charts-container {
+        flex-direction: column;
+        flex: none;
+        height: auto;
+      }
+      .chart-card {
+        width: 100%;
+        height: 350px;
+        min-height: 350px;
+      }
+      .chart-body {
+        height: 260px;
+        min-height: 260px;
+        flex: none;
+        width: 100%;
+      }
     }
   `]
 })

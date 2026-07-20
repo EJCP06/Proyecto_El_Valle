@@ -103,24 +103,6 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'auditoria',
-        loadComponent: () =>
-          import('./features/auditoria/auditoria.component').then(
-            (m) => m.AuditoriaComponent
-          ),
-        canActivate: [roleGuard],
-        data: { roles: ['admin'] },
-      },
-      {
-        path: 'voceros',
-        loadComponent: () =>
-          import('./features/usuarios/usuario-list.component').then(
-            (m) => m.UsuarioListComponent
-          ),
-        canActivate: [roleGuard],
-        data: { roles: ['admin'] },
-      },
-      {
         path: 'configuracion',
         loadComponent: () =>
           import('./features/configuracion/configuracion.component').then(

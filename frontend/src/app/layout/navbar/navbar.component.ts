@@ -1,16 +1,14 @@
-import { Component, inject, signal, OnInit, HostListener } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { SidebarService } from '../../core/services/sidebar.service';
-import { NAV_ITEMS } from '../../core/constants/navigation';
 import { LucideAngularModule, Sun, Moon, Menu, X } from 'lucide-angular';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, RouterLink],
+  imports: [CommonModule, LucideAngularModule],
   template: `
     <header class="flex items-center justify-between px-6 h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 transition-colors duration-300">
       <!-- Hamburger / Close button -->
@@ -47,32 +45,7 @@ import { LucideAngularModule, Sun, Moon, Menu, X } from 'lucide-angular';
       </div>
     </header>
 
-    <!-- Mobile overlay menu -->
-    @if (sidebarService.isOpen() && !isDesktop()) {
-      <div class="fixed inset-0 z-40 flex flex-col bg-white dark:bg-slate-900 overflow-y-auto" style="top: 4rem;">
-        <nav class="flex-1 px-4 py-6 space-y-1">
-          @for (item of visibleItems(); track item.route) {
-            <a [routerLink]="item.route" (click)="sidebarService.close()" class="flex items-center gap-4 px-4 py-4 rounded-2xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-200 text-base font-semibold cursor-pointer active:scale-[0.98]" [title]="item.label">
-              <lucide-icon [name]="item.icon" class="w-5 h-5 shrink-0 text-slate-400 dark:text-slate-500"></lucide-icon>
-              <span>{{ item.label }}</span>
-            </a>
-          }
-        </nav>
 
-        <!-- User info at bottom -->
-        <div class="px-4 py-6 border-t border-slate-100 dark:border-slate-800">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-sm shadow-lg shrink-0">
-              {{ initials() }}
-            </div>
-            <div class="flex flex-col text-left">
-              <span class="text-sm font-bold text-slate-800 dark:text-white">{{ auth.currentUser()?.nombre }}</span>
-              <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{{ auth.currentUser()?.rol }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    }
   `,
   styles: [`
     .navbar-right-area {
@@ -85,37 +58,15 @@ import { LucideAngularModule, Sun, Moon, Menu, X } from 'lucide-angular';
     }
   `]
 })
-export class NavbarComponent implements OnInit {
+export class NavbarComponent {
   auth  = inject(AuthService);
   theme = inject(ThemeService);
   sidebarService = inject(SidebarService);
-
-  isDesktop = signal(true);
 
   readonly Sun = Sun;
   readonly Moon = Moon;
   readonly Menu = Menu;
   readonly X = X;
-
-  ngOnInit() {
-    this.syncResponsiveState();
-  }
-
-  @HostListener("window:resize")
-  onWindowResize() {
-    this.syncResponsiveState();
-  }
-
-  private syncResponsiveState() {
-    this.isDesktop.set(window.innerWidth >= 1024);
-  }
-
-  visibleItems() {
-    const user = this.auth.currentUser();
-    return NAV_ITEMS.filter(
-      (item) => !item.roles || (user && item.roles.includes(user.rol)),
-    );
-  }
 
   initials(): string {
     const name = this.auth.currentUser()?.nombre ?? '';

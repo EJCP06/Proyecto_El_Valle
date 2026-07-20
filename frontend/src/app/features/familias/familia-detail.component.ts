@@ -84,19 +84,19 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
             </div>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full table-fixed border-collapse">
+            <table class="w-full min-w-[700px] border-collapse">
               <thead>
                 <tr class="bg-slate-50/75 dark:bg-slate-800/40 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                  <th class="w-[35%] px-6 py-4 text-center">Nombre</th>
-                  <th class="w-[25%] px-4 py-4 text-center">Cédula</th>
-                  <th class="w-[22%] px-4 py-4 text-center">Rol</th>
-                  <th class="w-[18%] px-4 py-4 text-center">Acción</th>
+                  <th class="px-6 py-4 text-center">Nombre</th>
+                  <th class="px-4 py-4 text-center">Cédula</th>
+                  <th class="px-4 py-4 text-center">Rol</th>
+                  <th class="px-4 py-4 text-center">Acción</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
                 @for (m of miembrosFiltrados | paginate:currentPage:pageSize; track m.id) {
                   <tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                    <td class="px-6 py-4 text-center text-sm text-slate-500 dark:text-slate-400 truncate">{{ m.nombre }} {{ m.apellido }}</td>
+                    <td class="px-6 py-4 text-center text-sm text-slate-500 dark:text-slate-400">{{ m.nombre }} {{ m.apellido }}</td>
                     <td class="px-4 py-4 text-center text-sm text-slate-500 dark:text-slate-400">{{ m.cedula }}</td>
                     <td class="px-4 py-4 text-center">
                       @if (m.jefeFamilia) {
@@ -175,16 +175,15 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
       }
     </div>
 
-    <!-- Miembro Modal -->
     @if (showMiembroModal()) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeMiembroModal()">
+      <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" (click)="closeMiembroModal()">
         <div class="absolute inset-0 bg-black/50 "></div>
-        <div class="relative z-10 w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
+        <div class="relative z-10 w-full sm:max-w-4xl h-[95vh] sm:h-auto sm:max-h-[calc(100vh-2rem)] flex flex-col bg-white dark:bg-slate-900 sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
 
-          <div class="flex items-center justify-between p-6 bg-blue-600 dark:bg-blue-700">
-            <div>
-              <h3 class="text-lg font-black text-white tracking-tight">{{ miembroEditingId() ? 'Editar Miembro' : 'Nuevo Miembro' }}</h3>
-              <p class="text-xs text-blue-100 font-normal mt-0.5">Datos del integrante del núcleo familiar.</p>
+          <div class="flex items-center justify-between p-4 sm:p-6 bg-blue-600 dark:bg-blue-700 shrink-0">
+            <div class="min-w-0">
+              <h3 class="text-base sm:text-lg font-black text-white tracking-tight truncate">{{ miembroEditingId() ? 'Editar Miembro' : 'Nuevo Miembro' }}</h3>
+              <p class="text-[10px] sm:text-xs text-blue-100 font-normal mt-0.5 truncate">Datos del integrante del núcleo familiar.</p>
             </div>
             <button (click)="closeMiembroModal()" class="w-8 h-8 flex items-center justify-center rounded-xl text-blue-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -193,7 +192,7 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
             </button>
           </div>
 
-          <div class="p-6 max-h-[70vh] overflow-y-auto">
+          <div class="p-4 sm:p-6 overflow-y-auto flex-1">
             @if (miembroError()) {
               <div class="flex items-center gap-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 rounded-2xl p-4 mb-6 text-sm font-normal">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -204,28 +203,28 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
             }
 
             <form (ngSubmit)="saveMiembro()" class="space-y-6">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div class="space-y-2">
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="md:col-span-2 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Nombre <span class="text-red-500">*</span></label>
                   <input [(ngModel)]="miembroForm.nombre" name="mNombre" required placeholder="Ej: Carlos"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"/>
                 </div>
-                <div class="space-y-2">
+                <div class="md:col-span-2 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Apellido <span class="text-red-500">*</span></label>
                   <input [(ngModel)]="miembroForm.apellido" name="mApellido" required placeholder="Ej: Rodríguez"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"/>
                 </div>
-                <div class="space-y-2">
+                <div class="md:col-span-2 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Cédula <span class="text-red-500">*</span></label>
                   <input [(ngModel)]="miembroForm.cedula" name="mCedula" required placeholder="Ej: V-12345678"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"/>
                 </div>
-                <div class="space-y-2">
+                <div class="md:col-span-2 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Fecha de nacimiento <span class="text-red-500">*</span></label>
                   <input [(ngModel)]="miembroForm.fechaNacimiento" name="mFechaNacimiento" type="date" required
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"/>
                 </div>
-                <div class="space-y-2">
+                <div class="md:col-span-1 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Sexo</label>
                   <select [(ngModel)]="miembroForm.sexo" name="mSexo"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
@@ -234,7 +233,7 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
                     <option value="F">Femenino</option>
                   </select>
                 </div>
-                <div class="space-y-2">
+                <div class="md:col-span-1 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Parentesco</label>
                   <select [(ngModel)]="miembroForm.parentesco" name="mParentesco"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
@@ -244,7 +243,7 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
                     }
                   </select>
                 </div>
-                <div class="space-y-2">
+                <div class="md:col-span-1 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Estado civil</label>
                   <select [(ngModel)]="miembroForm.estadoCivil" name="mEstadoCivil"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
@@ -254,7 +253,7 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
                     }
                   </select>
                 </div>
-                <div class="space-y-2">
+                <div class="md:col-span-1 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Nivel educativo</label>
                   <select [(ngModel)]="miembroForm.nivelEducativo" name="mNivelEducativo"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
@@ -264,7 +263,7 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
                     }
                   </select>
                 </div>
-                <div class="space-y-2">
+                <div class="md:col-span-2 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Ocupación</label>
                   <select [(ngModel)]="miembroForm.ocupacion" name="mOcupacion"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
@@ -274,22 +273,33 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
                     }
                   </select>
                 </div>
-                <div class="space-y-2">
+                <div class="md:col-span-2 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Teléfono</label>
                   <input [(ngModel)]="miembroForm.telefono" name="mTelefono" placeholder="Ej: 0414-5555555"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"/>
                 </div>
-                <div class="space-y-2">
+                <div class="md:col-span-2 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Email</label>
                   <input [(ngModel)]="miembroForm.email" name="mEmail" type="email" placeholder="correo@ejemplo.com"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"/>
                 </div>
-                <div class="sm:col-span-2 flex items-center gap-3 pt-2">
-                  <label class="flex items-center gap-3 cursor-pointer group">
-                    <input [(ngModel)]="miembroForm.jefeFamilia" name="mJefeFamilia" type="checkbox"
-                      class="w-5 h-5 rounded-lg border-2 border-slate-300 dark:border-slate-700 text-blue-600 cursor-pointer"/>
-                    <span class="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Es jefe/a de familia</span>
-                  </label>
+                <div class="md:col-span-2 space-y-2">
+                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Es jefe/a de familia</label>
+                  <div class="flex items-center gap-2 bg-white border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 w-fit mt-1">
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" [(ngModel)]="miembroForm.jefeFamilia" name="mJefeFamilia" class="sr-only peer" />
+                      <div
+                        class="relative w-9 h-5 rounded-full transition-all duration-300 shadow-inner cursor-pointer"
+                        [style.background]="miembroForm.jefeFamilia ? '#10b981' : '#cbd5e1'"
+                      >
+                        <div
+                          class="absolute top-[2px] left-[2px] w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300"
+                          [style.transform]="miembroForm.jefeFamilia ? 'translateX(16px)' : 'translateX(0)'"
+                        ></div>
+                      </div>
+                    </label>
+                    <span class="text-[10px] font-bold uppercase tracking-wider" [class.text-emerald-600]="miembroForm.jefeFamilia" [class.text-slate-400]="!miembroForm.jefeFamilia">{{ miembroForm.jefeFamilia ? 'Activo' : 'Inactivo' }}</span>
+                  </div>
                 </div>
               </div>
 
@@ -308,14 +318,14 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
 
     <!-- Familia Edit Modal -->
     @if (showFamiliaModal()) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeFamiliaModal()">
+      <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" (click)="closeFamiliaModal()">
         <div class="absolute inset-0 bg-black/50 "></div>
-        <div class="relative z-10 w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
+        <div class="relative z-10 w-full sm:max-w-lg h-[95vh] sm:h-auto sm:max-h-[calc(100vh-2rem)] flex flex-col bg-white dark:bg-slate-900 sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
 
-          <div class="flex items-center justify-between p-6 bg-blue-600 dark:bg-blue-700">
-            <div>
-              <h3 class="text-lg font-black text-white tracking-tight">Editar Familia</h3>
-              <p class="text-xs text-blue-100 font-normal mt-0.5">Modifica la información del núcleo familiar.</p>
+          <div class="flex items-center justify-between p-4 sm:p-6 bg-blue-600 dark:bg-blue-700 shrink-0">
+            <div class="min-w-0">
+              <h3 class="text-base sm:text-lg font-black text-white tracking-tight truncate">Editar Familia</h3>
+              <p class="text-[10px] sm:text-xs text-blue-100 font-normal mt-0.5 truncate">Modifica la información del núcleo familiar.</p>
             </div>
             <button (click)="closeFamiliaModal()" class="w-8 h-8 flex items-center justify-center rounded-xl text-blue-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -324,7 +334,7 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
             </button>
           </div>
 
-          <div class="p-6 max-h-[70vh] overflow-y-auto">
+          <div class="p-4 sm:p-6 overflow-y-auto flex-1">
             @if (familiaError()) {
               <div class="flex items-center gap-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 rounded-2xl p-4 mb-6 text-sm font-normal">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>

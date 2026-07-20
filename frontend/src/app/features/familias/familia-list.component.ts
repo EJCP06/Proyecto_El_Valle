@@ -69,24 +69,24 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
         </div>
         <div class="bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl shadow-sm mt-4">
           <div class="overflow-x-auto">
-            <table class="w-full table-fixed border-collapse">
+            <table class="w-full min-w-[800px] border-collapse">
               <thead>
                 <tr class="bg-slate-50/75 dark:bg-slate-800/40 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider" [class.border-b]="familiasFiltradas.length > 0" [class.border-slate-200]="familiasFiltradas.length > 0" [class.dark:border-slate-800]="familiasFiltradas.length > 0">
-                  <th class="w-[28%] px-6 py-4 text-center">Nombre</th>
-                  <th class="w-[22%] px-4 py-4 text-center">Dirección</th>
-                  <th class="w-[20%] px-4 py-4 text-center">Consejo</th>
-                  <th class="w-[12%] px-4 py-4 text-center">Miembros</th>
-                  <th class="w-[18%] px-4 py-4 text-center">Acciones</th>
+                  <th class="px-6 py-4 text-center">Nombre</th>
+                  <th class="px-4 py-4 text-center">Dirección</th>
+                  <th class="px-4 py-4 text-center">Consejo</th>
+                  <th class="px-4 py-4 text-center">Miembros</th>
+                  <th class="px-4 py-4 text-center">Acciones</th>
                 </tr>
               </thead>
               <tbody class="text-slate-750 dark:text-slate-300">
                 @for (f of familiasFiltradas | paginate:currentPage:pageSize; track f.id) {
                   <tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-slate-100 dark:border-slate-800/60">
                     <td class="px-6 py-4 text-center">
-                      <span class="text-sm text-slate-500 dark:text-slate-400 truncate block">{{ f.nombre }}</span>
+                      <span class="text-sm text-slate-500 dark:text-slate-400">{{ f.nombre }}</span>
                     </td>
-                    <td class="px-4 py-4 text-center text-sm text-slate-500 dark:text-slate-400 truncate">{{ f.direccion }}</td>
-                    <td class="px-4 py-4 text-center text-sm text-slate-500 dark:text-slate-400 truncate">{{ f.consejo?.nombre ?? '—' }}</td>
+                    <td class="px-4 py-4 text-center text-sm text-slate-500 dark:text-slate-400">{{ f.direccion }}</td>
+                    <td class="px-4 py-4 text-center text-sm text-slate-500 dark:text-slate-400">{{ f.consejo?.nombre ?? '—' }}</td>
                     <td class="px-4 py-4 text-center">
                       <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 text-xs font-black">
                         {{ f.miembros?.length ?? 0 }}
@@ -124,14 +124,14 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
 
     <!-- Modal -->
     @if (showModal()) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeModal()">
+      <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" (click)="closeModal()">
         <div class="absolute inset-0 bg-black/50 "></div>
-        <div class="relative z-10 w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
+        <div class="relative z-10 w-full sm:max-w-2xl h-[95vh] sm:h-auto sm:max-h-[calc(100vh-2rem)] flex flex-col bg-white dark:bg-slate-900 sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
 
-          <div class="flex items-center justify-between p-6 bg-blue-600 dark:bg-blue-700">
-            <div>
-              <h3 class="text-lg font-black text-white tracking-tight">{{ editingId() ? 'Editar Familia' : 'Nueva Familia' }}</h3>
-              <p class="text-xs text-blue-100 font-normal mt-0.5">Registra la información del núcleo familiar.</p>
+          <div class="flex items-center justify-between p-4 sm:p-6 bg-blue-600 dark:bg-blue-700 shrink-0">
+            <div class="min-w-0">
+              <h3 class="text-base sm:text-lg font-black text-white tracking-tight truncate">{{ editingId() ? 'Editar Familia' : 'Nueva Familia' }}</h3>
+              <p class="text-[10px] sm:text-xs text-blue-100 font-normal mt-0.5 truncate">Registra la información del núcleo familiar.</p>
             </div>
             <button (click)="closeModal()" class="w-8 h-8 flex items-center justify-center rounded-xl text-blue-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -140,9 +140,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
             </button>
           </div>
 
-          <div class="p-6"
-               [class.max-h-[70vh]]="editingId() ? editingFamiliaMiembros().length > 2 : pendingMiembros().length > 2"
-               [class.overflow-y-auto]="editingId() ? editingFamiliaMiembros().length > 2 : pendingMiembros().length > 2">
+          <div class="p-4 sm:p-6 overflow-y-auto flex-1">
             @if (modalError()) {
               <div class="flex items-center gap-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 rounded-2xl p-4 mb-6 text-sm font-normal">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -262,7 +260,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                 </div>
               </div>
 
-              <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800/60">
+              <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800/60 shrink-0">
                 <button type="button" (click)="closeModal()" class="px-5 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-2xl transition-all text-sm cursor-pointer">Cancelar</button>
                 <button type="submit" [disabled]="saving()" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/10 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer disabled:cursor-not-allowed text-sm">
                   {{ saving() ? 'Guardando...' : (editingId() ? 'Guardar Cambios' : 'Crear Familia') }}
@@ -277,14 +275,14 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
 
     <!-- View Modal -->
     @if (showViewModal()) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeViewModal()">
+      <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" (click)="closeViewModal()">
         <div class="absolute inset-0 bg-black/50 "></div>
-        <div class="relative z-10 w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
+        <div class="relative z-10 w-full sm:max-w-2xl h-[95vh] sm:h-auto sm:max-h-[calc(100vh-2rem)] flex flex-col bg-white dark:bg-slate-900 sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
 
-          <div class="flex items-center justify-between p-6 bg-emerald-600 dark:bg-emerald-700">
-            <div>
-              <h3 class="text-lg font-black text-white tracking-tight">Familia</h3>
-              <p class="text-xs text-white font-normal mt-0.5">Información registrada del núcleo familiar.</p>
+          <div class="flex items-center justify-between p-4 sm:p-6 bg-emerald-600 dark:bg-emerald-700 shrink-0">
+            <div class="min-w-0">
+              <h3 class="text-base sm:text-lg font-black text-white tracking-tight">Familia</h3>
+              <p class="text-[10px] sm:text-xs text-white font-normal mt-0.5 truncate">Información registrada del núcleo familiar.</p>
             </div>
             <button (click)="closeViewModal()" class="w-8 h-8 flex items-center justify-center rounded-xl text-white hover:bg-white/10 transition-all cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -293,9 +291,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
             </button>
           </div>
 
-          <div class="p-6"
-               [class.max-h-[70vh]]="viewFamilia()!.miembros && viewFamilia()!.miembros!.length > 2"
-               [class.overflow-y-auto]="viewFamilia()!.miembros && viewFamilia()!.miembros!.length > 2">
+          <div class="p-4 sm:p-6 overflow-y-auto flex-1">
             @if (viewFamilia()) {
               <div class="space-y-6">
 
@@ -360,14 +356,14 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
 
     <!-- Miembro Modal -->
     @if (showMiembroModal()) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeMiembroModal()">
+      <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" (click)="closeMiembroModal()">
         <div class="absolute inset-0 bg-black/50 "></div>
-        <div class="relative z-10 w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
+        <div class="relative z-10 w-full sm:max-w-4xl h-[95vh] sm:h-auto sm:max-h-[calc(100vh-2rem)] flex flex-col bg-white dark:bg-slate-900 sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
 
-          <div class="flex items-center justify-between p-6 bg-blue-600 dark:bg-blue-700">
-            <div>
-              <h3 class="text-lg font-black text-white tracking-tight">{{ miembroEditingId() ? 'Editar Miembro' : 'Nuevo Miembro' }}</h3>
-              <p class="text-xs text-blue-100 font-normal mt-0.5">Datos del integrante del núcleo familiar.</p>
+          <div class="flex items-center justify-between p-4 sm:p-6 bg-blue-600 dark:bg-blue-700 shrink-0">
+            <div class="min-w-0">
+              <h3 class="text-base sm:text-lg font-black text-white tracking-tight truncate">{{ miembroEditingId() ? 'Editar Miembro' : 'Nuevo Miembro' }}</h3>
+              <p class="text-[10px] sm:text-xs text-blue-100 font-normal mt-0.5 truncate">Datos del integrante del núcleo familiar.</p>
             </div>
             <button (click)="closeMiembroModal()" class="w-8 h-8 flex items-center justify-center rounded-xl text-blue-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -376,7 +372,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
             </button>
           </div>
 
-          <div class="p-6 max-h-[85vh] overflow-y-auto">
+          <div class="p-4 sm:p-6 overflow-y-auto flex-1">
             @if (miembroError()) {
               <div class="flex items-center gap-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 rounded-2xl p-4 mb-6 text-sm font-normal">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -387,28 +383,28 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
             }
 
             <form (ngSubmit)="saveMiembro()" class="space-y-6">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div class="space-y-2">
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="md:col-span-2 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Nombre <span class="text-red-500">*</span></label>
                   <input [(ngModel)]="miembroForm.nombre" name="mNombre" required placeholder="Ej: Carlos"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"/>
                 </div>
-                <div class="space-y-2">
+                <div class="md:col-span-2 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Apellido <span class="text-red-500">*</span></label>
                   <input [(ngModel)]="miembroForm.apellido" name="mApellido" required placeholder="Ej: Rodríguez"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"/>
                 </div>
-                <div class="space-y-2">
+                <div class="md:col-span-2 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Cédula <span class="text-red-500">*</span></label>
                   <input [(ngModel)]="miembroForm.cedula" name="mCedula" required placeholder="Ej: V-12345678"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"/>
                 </div>
-                <div class="space-y-2">
+                <div class="md:col-span-2 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Fecha de nacimiento <span class="text-red-500">*</span></label>
                   <input [(ngModel)]="miembroForm.fechaNacimiento" name="mFechaNacimiento" type="date" required
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"/>
                 </div>
-                <div class="space-y-2">
+                <div class="md:col-span-1 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Sexo</label>
                   <select [(ngModel)]="miembroForm.sexo" name="mSexo"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
@@ -417,7 +413,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                     <option value="F">Femenino</option>
                   </select>
                 </div>
-                <div class="space-y-2">
+                <div class="md:col-span-1 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Parentesco</label>
                   <select [(ngModel)]="miembroForm.parentesco" name="mParentesco"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
@@ -427,7 +423,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                     }
                   </select>
                 </div>
-                <div class="space-y-2">
+                <div class="md:col-span-1 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Estado civil</label>
                   <select [(ngModel)]="miembroForm.estadoCivil" name="mEstadoCivil"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
@@ -437,7 +433,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                     }
                   </select>
                 </div>
-                <div class="space-y-2">
+                <div class="md:col-span-1 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Nivel educativo</label>
                   <select [(ngModel)]="miembroForm.nivelEducativo" name="mNivelEducativo"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
@@ -447,7 +443,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                     }
                   </select>
                 </div>
-                <div class="space-y-2">
+                <div class="md:col-span-2 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Ocupación</label>
                   <select [(ngModel)]="miembroForm.ocupacion" name="mOcupacion"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
@@ -457,17 +453,17 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                     }
                   </select>
                 </div>
-                <div class="space-y-2">
+                <div class="md:col-span-2 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Teléfono</label>
                   <input [(ngModel)]="miembroForm.telefono" name="mTelefono" placeholder="Ej: 0414-5555555"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"/>
                 </div>
-                <div class="space-y-2">
+                <div class="md:col-span-2 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Email</label>
                   <input [(ngModel)]="miembroForm.email" name="mEmail" type="email" placeholder="correo@ejemplo.com"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"/>
                 </div>
-                <div class="space-y-2">
+                <div class="md:col-span-2 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Es jefe/a de familia</label>
                   <div class="flex items-center gap-2 bg-white border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 w-fit mt-1">
                     <label class="relative inline-flex items-center cursor-pointer">

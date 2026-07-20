@@ -1,5 +1,4 @@
 const consejoRepo = require('../repositories/consejo.repository');
-const { registrarAuditoria } = require('../utils/audit');
 
 exports.getAll = async (req, res, next) => {
   try {
@@ -44,7 +43,6 @@ exports.create = async (req, res, next) => {
     }
 
     const data = await consejoRepo.create({ nombre, rif, direccion, parroquia, municipio, estado, telefono, email });
-    await registrarAuditoria(req, 'CREATE', 'ConsejoComunal', data.id, { nombre, rif });
 
     return res.status(201).json({
       success: true,
@@ -65,8 +63,6 @@ exports.update = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Consejo comunal no encontrado' });
     }
 
-    await registrarAuditoria(req, 'UPDATE', 'ConsejoComunal', id, { nombre, rif, activo });
-
     return res.json({
       success: true,
       data
@@ -80,7 +76,6 @@ exports.delete = async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
     await consejoRepo.delete(id);
-    await registrarAuditoria(req, 'DELETE', 'ConsejoComunal', id);
     return res.json({
       success: true,
       message: 'Consejo comunal eliminado'

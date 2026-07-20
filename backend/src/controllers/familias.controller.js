@@ -1,5 +1,4 @@
 const familiaRepo = require('../repositories/familia.repository');
-const { registrarAuditoria } = require('../utils/audit');
 
 exports.getAll = async (req, res, next) => {
   try {
@@ -45,7 +44,6 @@ exports.create = async (req, res, next) => {
     }
 
     const data = await familiaRepo.create({ nombre, direccion, consejoId: consejoId ? parseInt(consejoId) : null });
-    await registrarAuditoria(req, 'CREATE', 'Familia', data.id, { nombre });
 
     return res.status(201).json({
       success: true,
@@ -70,8 +68,6 @@ exports.update = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Familia no encontrada' });
     }
 
-    await registrarAuditoria(req, 'UPDATE', 'Familia', id, { nombre });
-
     return res.json({
       success: true,
       data
@@ -85,7 +81,6 @@ exports.delete = async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
     await familiaRepo.delete(id);
-    await registrarAuditoria(req, 'DELETE', 'Familia', id);
     return res.json({
       success: true,
       message: 'Familia eliminada'

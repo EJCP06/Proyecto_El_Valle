@@ -1,5 +1,4 @@
 const miembroRepo = require('../repositories/miembro.repository');
-const { registrarAuditoria } = require('../utils/audit');
 
 exports.getAll = async (req, res, next) => {
   try {
@@ -44,8 +43,6 @@ exports.create = async (req, res, next) => {
       parentesco, estadoCivil, nivelEducativo, ocupacion
     });
 
-    await registrarAuditoria(req, 'CREATE', 'Miembro', data.id, { nombre, apellido, cedula });
-
     return res.status(201).json({
       success: true,
       data
@@ -74,8 +71,6 @@ exports.update = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Miembro no encontrado' });
     }
 
-    await registrarAuditoria(req, 'UPDATE', 'Miembro', id, { nombre, apellido, cedula });
-
     return res.json({
       success: true,
       data
@@ -89,7 +84,6 @@ exports.delete = async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
     await miembroRepo.delete(id);
-    await registrarAuditoria(req, 'DELETE', 'Miembro', id);
     return res.json({
       success: true,
       message: 'Miembro de familia eliminado'

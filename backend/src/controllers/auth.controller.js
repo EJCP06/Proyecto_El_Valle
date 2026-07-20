@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const usuarioRepo = require('../repositories/usuario.repository');
 const env = require('../config/env');
-const { registrarAuditoria } = require('../utils/audit');
 
 exports.login = async (req, res, next) => {
   try {
@@ -26,10 +25,6 @@ exports.login = async (req, res, next) => {
       env.JWT_SECRET,
       { expiresIn: '8h' }
     );
-
-    // Context for auditoria
-    req.user = { id: usuario.id, email: usuario.email, rol: usuario.rol };
-    await registrarAuditoria(req, 'LOGIN', 'Usuario', usuario.id);
 
     return res.json({
       success: true,
@@ -68,8 +63,6 @@ exports.register = async (req, res, next) => {
       password: passwordHash,
       rol: rol || 'vocero'
     });
-
-    await registrarAuditoria(req, 'CREATE', 'Usuario', newUsuario.id);
 
     return res.status(201).json({
       success: true,
@@ -141,8 +134,6 @@ exports.updateUser = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Usuario no encontrado o no actualizado' });
     }
 
-    await registrarAuditoria(req, 'UPDATE', 'Usuario', id, { nombre, email, rol, activo });
-
     return res.json({
       success: true,
       data: updated
@@ -156,7 +147,6 @@ exports.deactivateUser = async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
     await usuarioRepo.deactivate(id);
-    await registrarAuditoria(req, 'DEACTIVATE', 'Usuario', id);
     return res.json({
       success: true,
       message: 'Usuario desactivado'

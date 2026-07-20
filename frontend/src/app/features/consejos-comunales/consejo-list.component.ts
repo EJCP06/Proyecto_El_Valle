@@ -71,25 +71,25 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
         </div>
         <div class="bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl shadow-sm mt-4">
           <div class="overflow-x-auto">
-            <table class="w-full table-fixed border-collapse">
+            <table class="w-full min-w-[800px] border-collapse">
               <thead>
                     <tr class="bg-slate-50/75 dark:bg-slate-800/40 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider" [class.border-b]="consejosFiltrados.length > 0" [class.border-slate-200]="consejosFiltrados.length > 0" [class.dark:border-slate-800]="consejosFiltrados.length > 0">
-                      <th class="w-[24%] px-6 py-4 text-center">Nombre</th>
-                      <th class="w-[14%] px-4 py-4 text-center">RIF</th>
-                      <th class="w-[22%] px-4 py-4 text-center">Dirección</th>
-                      <th class="w-[14%] px-4 py-4 text-center">Parroquia</th>
-                      <th class="w-[12%] px-4 py-4 text-center">Estado</th>
-                      <th class="w-[14%] px-4 py-4 text-center">Acciones</th>
+                      <th class="px-6 py-4 text-center">Nombre</th>
+                      <th class="px-4 py-4 text-center">RIF</th>
+                      <th class="px-4 py-4 text-center">Dirección</th>
+                      <th class="px-4 py-4 text-center">Parroquia</th>
+                      <th class="px-4 py-4 text-center">Estado</th>
+                      <th class="px-4 py-4 text-center">Acciones</th>
                     </tr>
               </thead>
               <tbody class="text-slate-750 dark:text-slate-300">
                 @for (c of consejosFiltrados | paginate:currentPage:pageSize; track c.id) {
                   <tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-slate-100 dark:border-slate-800/60">
                     <td class="px-6 py-4 text-center">
-                      <span class="text-sm text-slate-500 dark:text-slate-400 truncate block">{{ c.nombre }}</span>
+                      <span class="text-sm text-slate-500 dark:text-slate-400">{{ c.nombre }}</span>
                     </td>
                     <td class="px-4 py-4 text-center text-sm text-slate-500 dark:text-slate-400">{{ c.rif }}</td>
-                    <td class="px-4 py-4 text-center text-sm text-slate-500 dark:text-slate-400 truncate">{{ c.direccion }}</td>
+                    <td class="px-4 py-4 text-center text-sm text-slate-500 dark:text-slate-400">{{ c.direccion }}</td>
                     <td class="px-4 py-4 text-center text-sm text-slate-500 dark:text-slate-400">{{ c.parroquia }}</td>
                     <td class="px-4 py-4 text-center">
                       <span 
@@ -131,18 +131,18 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
 
     <!-- Modal -->
     @if (showModal()) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeModal()">
+      <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" (click)="closeModal()">
         <!-- Backdrop -->
         <div class="absolute inset-0 bg-black/50 "></div>
         
         <!-- Modal Content -->
-        <div class="relative z-10 w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
+        <div class="relative z-10 w-full max-w-3xl flex flex-col bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
           
           <!-- Modal Header -->
-          <div class="flex items-center justify-between p-6 bg-blue-600 dark:bg-blue-700">
-            <div>
-              <h3 class="text-lg font-black text-white tracking-tight">{{ editingId() ? 'Editar Consejo' : 'Nuevo Consejo Comunal' }}</h3>
-              <p class="text-xs text-blue-100 font-normal mt-0.5">Completa la información formal del consejo comunal.</p>
+          <div class="flex items-center justify-between p-4 sm:p-6 bg-blue-600 dark:bg-blue-700 shrink-0">
+            <div class="min-w-0">
+              <h3 class="text-base sm:text-lg font-black text-white tracking-tight truncate">{{ editingId() ? 'Editar Consejo' : 'Nuevo Consejo Comunal' }}</h3>
+              <p class="text-[10px] sm:text-xs text-blue-100 font-normal mt-0.5 truncate">Completa la información formal del consejo comunal.</p>
             </div>
             <button (click)="closeModal()" class="w-8 h-8 flex items-center justify-center rounded-xl text-blue-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -152,7 +152,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
           </div>
 
           <!-- Modal Body -->
-          <div class="p-6">
+          <div class="p-3 sm:p-6 overflow-y-auto flex-1">
             @if (modalError()) {
               <div class="flex items-center gap-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 rounded-2xl p-4 mb-6 text-sm font-normal">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -162,70 +162,70 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
               </div>
             }
 
-            <form (ngSubmit)="save()" class="space-y-6">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <form (ngSubmit)="save()" class="space-y-3 sm:space-y-6">
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 
                 <!-- Name -->
-                <div class="sm:col-span-2 space-y-2">
-                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Nombre del consejo <span class="text-red-500">*</span></label>
+                <div class="md:col-span-4 space-y-1 sm:space-y-2">
+                  <label class="text-[9px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Nombre del consejo <span class="text-red-500">*</span></label>
                   <input [(ngModel)]="form.nombre" name="nombre" required placeholder="Ej: Consejo Comunal Patria Querida"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"
                   />
                 </div>
 
                 <!-- RIF + Telefono -->
-                <div class="space-y-2">
-                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">RIF <span class="text-red-500">*</span></label>
+                <div class="md:col-span-2 space-y-1 sm:space-y-2">
+                  <label class="text-[9px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">RIF <span class="text-red-500">*</span></label>
                   <input [(ngModel)]="form.rif" name="rif" placeholder="J-12345678-9" required
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"
                   />
                 </div>
-                <div class="space-y-2">
-                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Teléfono</label>
+                <div class="md:col-span-2 space-y-1 sm:space-y-2">
+                  <label class="text-[9px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Teléfono</label>
                   <input [(ngModel)]="form.telefono" name="telefono" placeholder="Ej: 0212-5555555"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"
                   />
                 </div>
 
                 <!-- Direccion -->
-                <div class="sm:col-span-2 space-y-2">
-                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Dirección detallada <span class="text-red-500">*</span></label>
+                <div class="md:col-span-4 space-y-1 sm:space-y-2">
+                  <label class="text-[9px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Dirección detallada <span class="text-red-500">*</span></label>
                   <input [(ngModel)]="form.direccion" name="direccion" required placeholder="Ej: Calle Principal Sector 3, casa N-12"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"
                   />
                 </div>
 
                 <!-- Parroquia + Municipio -->
-                <div class="space-y-2">
-                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Parroquia <span class="text-red-500">*</span></label>
+                <div class="md:col-span-2 space-y-1 sm:space-y-2">
+                  <label class="text-[9px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Parroquia <span class="text-red-500">*</span></label>
                   <input [(ngModel)]="form.parroquia" name="parroquia" required placeholder="Ej: El Valle"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"
                   />
                 </div>
-                <div class="space-y-2">
-                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Municipio <span class="text-red-500">*</span></label>
+                <div class="md:col-span-2 space-y-1 sm:space-y-2">
+                  <label class="text-[9px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Municipio <span class="text-red-500">*</span></label>
                   <input [(ngModel)]="form.municipio" name="municipio" required placeholder="Ej: Libertador"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"
                   />
                 </div>
 
                 <!-- Estado + Email -->
-                <div class="space-y-2">
-                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Estado <span class="text-red-500">*</span></label>
-                  <input [(ngModel)]="form.estado" name="estado" required placeholder="Ej: Distrito Capital"
+                <div class="md:col-span-2 space-y-1 sm:space-y-2">
+                  <label class="text-[9px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Estado <span class="text-red-500">*</span></label>
+                  <input [(ngModel)]="form.estado" name="estado" [value]="form.estado" (input)="form.estado = $any($event.target).value" required placeholder="Ej: Distrito Capital"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"
                   />
                 </div>
-                <div class="space-y-2">
-                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Email institucional</label>
+                <div class="md:col-span-2 space-y-1 sm:space-y-2">
+                  <label class="text-[9px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Email institucional</label>
                   <input [(ngModel)]="form.email" name="email" type="email" placeholder="ejemplo@consejo.com"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"
                   />
                 </div>
 
                 <!-- Activo -->
-                <div class="sm:col-span-2 space-y-1.5">
-                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Estado del consejo</label>
+                <div class="md:col-span-4 space-y-1">
+                  <label class="text-[9px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Estado del consejo</label>
                   <div class="flex items-center gap-2 bg-white dark:bg-transparent border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 w-fit">
                     <label class="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" [(ngModel)]="form.activo" name="activo" class="sr-only peer" />
@@ -269,7 +269,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
         <div class="absolute inset-0 bg-black/50 "></div>
         <div class="relative z-10 w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
 
-          <div class="flex items-center justify-between p-6 bg-emerald-600 dark:bg-emerald-700">
+          <div class="flex items-center justify-between p-4 sm:p-6 bg-emerald-600 dark:bg-emerald-700">
             <div>
               <h3 class="text-lg font-black text-white tracking-tight">Consejo Comunal</h3>
               <p class="text-xs text-white font-normal mt-0.5">Información registrada del consejo comunal.</p>
@@ -281,7 +281,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
             </button>
           </div>
 
-          <div class="p-6 max-h-[70vh] overflow-y-auto">
+          <div class="p-4 sm:p-6 max-h-[70vh] overflow-y-auto">
             @if (viewConsejo()) {
               <div class="space-y-6">
 

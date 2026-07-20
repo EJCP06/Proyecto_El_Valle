@@ -4,10 +4,8 @@ import {
   Users,
   ClipboardList,
   BarChart3,
-  ShieldCheck,
   Settings,
   UserCog,
-  UserCheck,
 } from 'lucide-angular';
 
 export interface NavItem {
@@ -23,8 +21,6 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Familias', icon: Users, route: '/app/familias' },
   { label: 'Formularios', icon: ClipboardList, route: '/app/formularios' },
   { label: 'Reportes', icon: BarChart3, route: '/app/reportes' },
-  { label: 'Auditoría', icon: ShieldCheck, route: '/app/auditoria', roles: ['admin'] },
-  { label: 'Voceros', icon: UserCheck, route: '/app/voceros', roles: ['admin'] },
   { label: 'Configuración', icon: Settings, route: '/app/configuracion', roles: ['admin'] },
   { label: 'Usuarios', icon: UserCog, route: '/app/usuarios', roles: ['admin'] },
 ];

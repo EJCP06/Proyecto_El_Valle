@@ -5,7 +5,6 @@ const familiasRoutes = require('./familias.routes');
 const miembrosRoutes = require('./miembros.routes');
 const formulariosRoutes = require('./formularios.routes');
 const reportesRoutes = require('./reportes.routes');
-const auditoriaRoutes = require('./auditoria.routes');
 const configuracionRoutes = require('./configuracion.routes');
 const catalogoRoutes = require('./catalogo.routes');
 
@@ -15,7 +14,6 @@ router.use('/familias', familiasRoutes);
 router.use('/miembros', miembrosRoutes);
 router.use('/formularios', formulariosRoutes);
 router.use('/reportes', reportesRoutes);
-router.use('/auditoria', auditoriaRoutes);
 router.use('/configuracion', configuracionRoutes);
 router.use('/catalogos', catalogoRoutes);
 

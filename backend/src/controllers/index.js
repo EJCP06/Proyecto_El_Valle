@@ -5,6 +5,5 @@ module.exports = {
   miembros: require('./miembros.controller'),
   formularios: require('./formularios.controller'),
   reportes: require('./reportes.controller'),
-  auditoria: require('./auditoria.controller'),
   configuracion: require('./configuracion.controller'),
 };

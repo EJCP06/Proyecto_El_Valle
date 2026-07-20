@@ -1,7 +1,6 @@
 const formularioRepo = require('../repositories/formulario.repository');
 const asignacionRepo = require('../repositories/asignacion.repository');
 const respuestaRepo = require('../repositories/respuesta.repository');
-const { registrarAuditoria } = require('../utils/audit');
 
 exports.getAll = async (req, res, next) => {
   try {
@@ -46,7 +45,6 @@ exports.create = async (req, res, next) => {
     }
 
     const data = await formularioRepo.create({ titulo, descripcion, alcance, campos });
-    await registrarAuditoria(req, 'CREATE', 'Formulario', data.id, { titulo });
 
     return res.status(201).json({
       success: true,
@@ -67,8 +65,6 @@ exports.update = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Formulario no encontrado' });
     }
 
-    await registrarAuditoria(req, 'UPDATE', 'Formulario', id, { titulo, activo });
-
     return res.json({
       success: true,
       data
@@ -82,7 +78,6 @@ exports.delete = async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
     await formularioRepo.delete(id);
-    await registrarAuditoria(req, 'DELETE', 'Formulario', id);
     return res.json({
       success: true,
       message: 'Formulario eliminado'
@@ -103,8 +98,6 @@ exports.asignar = async (req, res, next) => {
       formularioId: parseInt(formularioId), 
       familiaId: parseInt(familiaId) 
     });
-
-    await registrarAuditoria(req, 'ASSIGN', 'Formulario', formularioId, { familiaId });
 
     return res.status(201).json({
       success: true,
@@ -130,7 +123,6 @@ exports.responder = async (req, res, next) => {
     }
 
     const data = await respuestaRepo.save(asignacionId, respuestas, miembroId || null);
-    await registrarAuditoria(req, 'SUBMIT_RESPONSES', 'Formulario', asignacion.formularioId, { asignacionId, miembroId });
 
     return res.json({
       success: true,

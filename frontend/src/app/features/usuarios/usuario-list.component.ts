@@ -6,7 +6,7 @@ import { Usuario } from '../../core/models/usuario.model';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { PaginatePipe } from '../../shared/pipes/paginate.pipe';
 import { FillersPipe } from '../../shared/pipes/fillers.pipe';
-import { LucideAngularModule, Edit2, Trash2, Plus, Search, ChevronDown, CheckCircle2 } from 'lucide-angular';
+import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, CheckCircle2 } from 'lucide-angular';
 
 @Component({
   selector: 'app-usuario-list',
@@ -30,7 +30,7 @@ import { LucideAngularModule, Edit2, Trash2, Plus, Search, ChevronDown, CheckCir
       <!-- Content Container -->
       @if (loading()) {
         <div class="flex flex-col items-center justify-center py-16 bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl">
-          <div class="w-8 h-8 border-3 border-blue-600/30 border-t-blue-600 rounded-full animate-spin"></div>
+          <div class="w-8 h-8 border-[3px] border-blue-600/30 border-t-blue-600 rounded-full animate-spin"></div>
           <span class="text-sm text-slate-500 dark:text-slate-400 mt-4 font-semibold animate-pulse">Cargando usuarios...</span>
         </div>
       } @else {
@@ -65,25 +65,25 @@ import { LucideAngularModule, Edit2, Trash2, Plus, Search, ChevronDown, CheckCir
             </div>
           </div>
         </div>
-        <div class="bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl overflow-hidden shadow-sm mt-4">
+        <div class="bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl shadow-sm mt-4">
           <div class="overflow-x-auto">
-            <table class="w-full table-fixed border-collapse">
+            <table class="w-full min-w-[800px] border-collapse">
               <thead>
-                <tr class="bg-slate-50/75 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                  <th class="w-[28%] px-6 py-4 text-center">Nombre</th>
-                  <th class="w-[26%] px-4 py-4 text-center">Correo</th>
-                  <th class="w-[14%] px-4 py-4 text-center">Rol</th>
-                  <th class="w-[14%] px-4 py-4 text-center">Estado</th>
-                  <th class="w-[18%] px-4 py-4 text-center">Acciones</th>
+                <tr class="bg-slate-50/75 dark:bg-slate-800/40 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider" [class.border-b]="usuariosFiltrados.length > 0" [class.border-slate-200]="usuariosFiltrados.length > 0" [class.dark:border-slate-800]="usuariosFiltrados.length > 0">
+                  <th class="px-6 py-4 text-center">Nombre</th>
+                  <th class="px-4 py-4 text-center">Correo</th>
+                  <th class="px-4 py-4 text-center">Rol</th>
+                  <th class="px-4 py-4 text-center">Estado</th>
+                  <th class="px-4 py-4 text-center">Acciones</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+              <tbody class="text-slate-750 dark:text-slate-300">
                 @for (u of usuariosFiltrados | paginate:currentPage:pageSize; track u.id) {
-                  <tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                  <tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-slate-100 dark:border-slate-800/60">
                     <td class="px-6 py-4 text-center">
-                      <span class="text-sm text-slate-500 dark:text-slate-400 truncate block">{{ u.nombre }}</span>
+                      <span class="text-sm text-slate-500 dark:text-slate-400">{{ u.nombre }}</span>
                     </td>
-                    <td class="px-4 py-4 text-center text-sm text-slate-500 dark:text-slate-400 truncate">{{ u.email }}</td>
+                    <td class="px-4 py-4 text-center text-sm text-slate-500 dark:text-slate-400">{{ u.email }}</td>
                     <td class="px-4 py-4 text-center">
                       <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
                         {{ u.rol }}
@@ -99,26 +99,27 @@ import { LucideAngularModule, Edit2, Trash2, Plus, Search, ChevronDown, CheckCir
                     </td>
                     <td class="px-4 py-4">
                       <div class="flex justify-center gap-1">
+                        <button (click)="openView(u)" aria-label="Ver usuario" class="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-100 hover:shadow-[0_2px_10px_-3px_rgba(16,185,129,0.4)] dark:hover:bg-emerald-900/30 rounded-xl transition-all cursor-pointer">
+                          <lucide-icon [name]="Eye" class="w-4 h-4"></lucide-icon>
+                        </button>
                         <button (click)="openEdit(u)" aria-label="Editar usuario" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 hover:shadow-[0_2px_10px_-3px_rgba(59,130,246,0.4)] dark:hover:bg-blue-900/30 rounded-xl transition-all cursor-pointer">
                           <lucide-icon [name]="Edit2" class="w-4 h-4"></lucide-icon>
                         </button>
                         @if (u.activo) {
                           <button (click)="deactivate(u)" aria-label="Desactivar usuario" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-100 hover:shadow-[0_2px_10px_-3px_rgba(244,63,94,0.4)] dark:hover:bg-rose-900/30 rounded-xl transition-all cursor-pointer">
                             <lucide-icon [name]="Trash2" class="w-4 h-4"></lucide-icon>
-                        </button>
+                          </button>
                         }
                       </div>
                     </td>
                   </tr>
-                } @empty {
-                  <tr>
-                    <td colspan="5" class="px-6 py-12 text-center text-sm text-slate-400 dark:text-slate-500 font-normal">
-                      No se encontraron usuarios en el sistema.
+                } @empty {}
+                @for (_ of usuariosFiltrados | fillers:currentPage:pageSize; track $index) {
+                  <tr class="hover:bg-transparent">
+                    <td colspan="5" class="px-6 py-4 text-center text-sm text-slate-400 dark:text-slate-500 font-normal">
+                      @if (usuariosFiltrados.length === 0 && $index === 3) { No se encontraron datos. }
                     </td>
                   </tr>
-                }
-                @for (_ of usuariosFiltrados | fillers:currentPage:pageSize; track $index) {
-                  <tr><td colspan="5" class="px-6 py-4">&nbsp;</td></tr>
                 }
               </tbody>
             </table>
@@ -130,14 +131,14 @@ import { LucideAngularModule, Edit2, Trash2, Plus, Search, ChevronDown, CheckCir
 
     <!-- Modal -->
     @if (showModal()) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeModal()">
+      <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" (click)="closeModal()">
         <div class="absolute inset-0 bg-black/50 "></div>
-        <div class="relative z-10 w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
+        <div class="relative z-10 w-full sm:max-w-2xl h-[95vh] sm:h-auto sm:max-h-[calc(100vh-2rem)] flex flex-col bg-white dark:bg-slate-900 sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
 
-          <div class="flex items-center justify-between p-6 bg-blue-600 dark:bg-blue-700">
-            <div>
-              <h3 class="text-lg font-black text-white tracking-tight">{{ editingId() ? 'Editar Usuario' : 'Nuevo Usuario' }}</h3>
-              <p class="text-xs text-blue-100 font-normal mt-0.5">Completa la información para configurar la cuenta del usuario.</p>
+          <div class="flex items-center justify-between p-4 sm:p-6 bg-blue-600 dark:bg-blue-700 shrink-0">
+            <div class="min-w-0">
+              <h3 class="text-base sm:text-lg font-black text-white tracking-tight truncate">{{ editingId() ? 'Editar Usuario' : 'Nuevo Usuario' }}</h3>
+              <p class="text-[10px] sm:text-xs text-blue-100 font-normal mt-0.5 truncate">Completa la información para configurar la cuenta del usuario.</p>
             </div>
             <button (click)="closeModal()" class="w-8 h-8 flex items-center justify-center rounded-xl text-blue-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -146,7 +147,7 @@ import { LucideAngularModule, Edit2, Trash2, Plus, Search, ChevronDown, CheckCir
             </button>
           </div>
 
-          <div class="p-6 max-h-[70vh] overflow-y-auto">
+          <div class="p-4 sm:p-6 overflow-y-auto flex-1">
             @if (modalError()) {
               <div class="flex items-center gap-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 rounded-2xl p-4 mb-6 text-sm font-normal">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -157,25 +158,25 @@ import { LucideAngularModule, Edit2, Trash2, Plus, Search, ChevronDown, CheckCir
             }
 
             <form (ngSubmit)="save()" class="space-y-6">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div class="sm:col-span-2 space-y-2">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="md:col-span-2 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Nombre completo <span class="text-red-500">*</span></label>
                   <input [(ngModel)]="form.nombre" name="nombre" required placeholder="Ej: Edward Pérez"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"/>
                 </div>
-                <div class="sm:col-span-2 space-y-2">
+                <div class="md:col-span-2 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Email <span class="text-red-500">*</span></label>
                   <input [(ngModel)]="form.email" name="email" type="email" required placeholder="correo@elvalle.com"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"/>
                 </div>
                 @if (!editingId()) {
-                  <div class="sm:col-span-2 space-y-2">
+                  <div class="md:col-span-1 space-y-2">
                     <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Contraseña <span class="text-red-500">*</span></label>
                     <input [(ngModel)]="password" name="password" type="password" required placeholder="••••••••"
                       class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"/>
                   </div>
                 }
-                <div class="sm:col-span-2 space-y-2">
+                <div class="space-y-2" [class.md:col-span-1]="!editingId()" [class.md:col-span-2]="editingId()">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Rol del sistema <span class="text-red-500">*</span></label>
                   <select [(ngModel)]="form.rol" name="rol" required
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
@@ -197,10 +198,73 @@ import { LucideAngularModule, Edit2, Trash2, Plus, Search, ChevronDown, CheckCir
         </div>
       </div>
     }
+
+    <!-- View Modal -->
+    @if (showViewModal()) {
+      <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" (click)="closeViewModal()">
+        <div class="absolute inset-0 bg-black/50 "></div>
+        <div class="relative z-10 w-full sm:max-w-xl h-[95vh] sm:h-auto sm:max-h-[calc(100vh-2rem)] flex flex-col bg-white dark:bg-slate-900 sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
+
+          <div class="flex items-center justify-between p-4 sm:p-6 bg-emerald-600 dark:bg-emerald-700 shrink-0">
+            <div class="min-w-0">
+              <h3 class="text-base sm:text-lg font-black text-white tracking-tight">Usuario</h3>
+              <p class="text-[10px] sm:text-xs text-white font-normal mt-0.5 truncate">Información registrada del usuario.</p>
+            </div>
+            <button (click)="closeViewModal()" class="w-8 h-8 flex items-center justify-center rounded-xl text-white hover:bg-white/10 transition-all cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="p-4 sm:p-6 overflow-y-auto flex-1">
+            @if (viewUsuario()) {
+              <div class="space-y-6">
+
+                <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Nombre completo</label>
+                  <div class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white font-normal">{{ viewUsuario()!.nombre }}</div>
+                </div>
+
+                <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Correo electrónico</label>
+                  <div class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white font-normal">{{ viewUsuario()!.email }}</div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Rol</label>
+                    <div class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white font-normal capitalize">{{ viewUsuario()!.rol === 'admin' ? 'Administrador' : 'Vocero' }}</div>
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Estado</label>
+                    <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2.5 w-fit">
+                      <div class="relative w-9 h-5 rounded-full transition-all duration-300 shadow-inner"
+                           [style.background]="viewUsuario()!.activo ? '#10b981' : '#cbd5e1'">
+                        <div class="absolute top-[2px] left-[2px] w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300"
+                             [style.transform]="viewUsuario()!.activo ? 'translateX(16px)' : 'translateX(0)'"></div>
+                      </div>
+                      <span class="text-[10px] font-bold uppercase tracking-wider"
+                            [class.text-emerald-600]="viewUsuario()!.activo"
+                            [class.text-slate-400]="!viewUsuario()!.activo">
+                        {{ viewUsuario()!.activo ? 'Activo' : 'Inactivo' }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            }
+          </div>
+
+        </div>
+      </div>
+    }
   `,
   styles: []
 })
 export class UsuarioListComponent implements OnInit {
+  readonly Eye = Eye;
   readonly Edit2 = Edit2;
   readonly Trash2 = Trash2;
   readonly Plus = Plus;
@@ -247,6 +311,10 @@ export class UsuarioListComponent implements OnInit {
   saving     = signal(false);
   modalError = signal('');
   password   = '';
+
+  // View modal
+  showViewModal = signal(false);
+  viewUsuario   = signal<Usuario | null>(null);
 
   form: Partial<Usuario> = { nombre: '', email: '', rol: 'vocero' };
 
@@ -307,6 +375,16 @@ export class UsuarioListComponent implements OnInit {
     this.showModal.set(false);
     this.saving.set(false);
     this.modalError.set('');
+  }
+
+  openView(u: Usuario) {
+    this.viewUsuario.set(u);
+    this.showViewModal.set(true);
+  }
+
+  closeViewModal() {
+    this.showViewModal.set(false);
+    this.viewUsuario.set(null);
   }
 
   save() {

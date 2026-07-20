@@ -8,10 +8,8 @@ exports.generate = async (req, res, next) => {
       data = await reporteRepo.getFamiliasData(desde, hasta);
     } else if (tipo === 'miembros') {
       data = await reporteRepo.getMiembrosData(desde, hasta);
-    } else if (tipo === 'formularios') {
-      data = await reporteRepo.getFormulariosData(desde, hasta);
     } else {
-      data = await reporteRepo.getAuditoriaData(desde, hasta);
+      data = await reporteRepo.getFormulariosData(desde, hasta);
     }
 
     return res.json({

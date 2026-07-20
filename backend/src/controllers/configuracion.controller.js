@@ -1,5 +1,4 @@
 const configuracionRepo = require('../repositories/configuracion.repository');
-const { registrarAuditoria } = require('../utils/audit');
 
 exports.getAll = async (req, res, next) => {
   try {
@@ -26,8 +25,6 @@ exports.update = async (req, res, next) => {
     if (!data) {
       return res.status(404).json({ success: false, message: 'Clave de configuración no encontrada' });
     }
-
-    await registrarAuditoria(req, 'UPDATE_CONFIG', 'Configuracion', null, { clave, valor });
 
     return res.json({
       success: true,

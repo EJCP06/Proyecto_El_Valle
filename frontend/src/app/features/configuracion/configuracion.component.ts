@@ -112,7 +112,7 @@ interface Tab {
 
             <!-- Items -->
             <div class="overflow-x-auto">
-              <table class="w-full text-left border-collapse">
+              <table class="w-full min-w-[600px] text-left border-collapse">
                 <thead>
                   <tr class="bg-slate-50/75 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                     <th class="px-4 py-3">#</th>

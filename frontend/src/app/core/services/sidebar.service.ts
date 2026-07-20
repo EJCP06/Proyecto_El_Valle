@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, effect } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
@@ -7,6 +7,18 @@ export class SidebarService {
   private isOpenSignal = signal(false);
 
   isOpen = this.isOpenSignal.asReadonly();
+
+  constructor() {
+    effect(() => {
+      if (typeof document !== 'undefined') {
+        if (this.isOpenSignal()) {
+          document.body.classList.add('overflow-hidden');
+        } else {
+          document.body.classList.remove('overflow-hidden');
+        }
+      }
+    });
+  }
 
   open(): void {
     this.isOpenSignal.set(true);

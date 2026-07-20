@@ -58,23 +58,6 @@ class ReporteRepository {
     return res.rows;
   }
 
-  async getAuditoriaData(desde, hasta) {
-    let query = `
-      SELECT a.id, a.accion, a.entidad, a.entidad_id, a.ip, a.created_at,
-             u.nombre as usuario
-      FROM auditoria a
-      LEFT JOIN usuarios u ON a.usuario_id = u.id
-    `;
-    const params = [];
-    if (desde && hasta) {
-      query += ` WHERE a.created_at BETWEEN $1 AND $2`;
-      params.push(desde, hasta);
-    }
-    query += ` ORDER BY a.id DESC`;
-    const res = await db.query(query, params);
-    return res.rows;
-  }
-
   async getDashboardStats() {
     const resConsejos = await db.query('SELECT COUNT(*)::int as total FROM consejos_comunales');
     const resFamilias = await db.query('SELECT COUNT(*)::int as total FROM familias');
@@ -100,13 +83,6 @@ class ReporteRepository {
        ORDER BY c.id ASC`
     );
 
-    const resLogs = await db.query(
-      `SELECT a.accion, a.entidad, a.created_at as "createdAt", u.nombre as usuario
-       FROM auditoria a
-       LEFT JOIN usuarios u ON a.usuario_id = u.id
-       ORDER BY a.id DESC LIMIT 5`
-    );
-
     return {
       consejosCount: resConsejos.rows[0].total,
       familiasCount: resFamilias.rows[0].total,
@@ -117,7 +93,6 @@ class ReporteRepository {
       adultosMayoresCount: resAdultosMayores.rows[0].total,
       ninosCount: resNinos.rows[0].total,
       familiasPorConsejo: resFamiliasPorConsejo.rows,
-      actividadesRecientes: resLogs.rows
     };
   }
 }

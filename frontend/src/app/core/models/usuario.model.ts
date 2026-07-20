@@ -114,19 +114,6 @@ export interface FormularioAsignacionFamilia {
   respondidos: number;
 }
 
-// ── Auditoría ─────────────────────────────────────────────────────────────────
-export interface RegistroAuditoria {
-  id: number;
-  usuarioId: number;
-  usuario?: Pick<Usuario, 'id' | 'nombre' | 'email'>;
-  accion: string;
-  entidad: string;
-  entidadId?: number;
-  detalle?: Record<string, unknown>;
-  ip?: string;
-  createdAt: string;
-}
-
 // ── Configuración ─────────────────────────────────────────────────────────────
 export interface ConfiguracionSistema {
   clave: string;
@@ -136,7 +123,7 @@ export interface ConfiguracionSistema {
 
 // ── Reporte ───────────────────────────────────────────────────────────────────
 export interface ReporteParams {
-  tipo: 'familias' | 'miembros' | 'formularios' | 'auditoria';
+  tipo: 'familias' | 'miembros' | 'formularios';
   desde?: string;
   hasta?: string;
   consejoId?: number;

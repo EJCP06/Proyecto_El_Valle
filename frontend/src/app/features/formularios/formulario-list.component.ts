@@ -99,7 +99,7 @@ import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Use
                   <!-- Meta + Actions -->
                   <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800/60">
                     <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                      {{ f.campos?.length ?? 0 }} campo(s)
+                      {{ f.num_campos ?? 0 }} campo(s)
                     </span>
                     <div class="flex items-center gap-1">
                       <button (click)="openView(f)" aria-label="Ver formulario" class="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-100 hover:shadow-[0_2px_10px_-3px_rgba(16,185,129,0.4)] rounded-xl transition-all cursor-pointer">
@@ -134,14 +134,14 @@ import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Use
 
 <!-- Builder Modal -->
     @if (showBuilderModal()) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="closeBuilderModal()"></div>
-        <div class="relative z-10 w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4">
+        <div class="absolute inset-0 bg-black/50 " (click)="closeBuilderModal()"></div>
+        <div class="relative z-10 w-full sm:max-w-4xl h-[95vh] sm:h-auto sm:max-h-[calc(100vh-2rem)] flex flex-col bg-white dark:bg-slate-900 sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
 
-          <div class="flex items-center justify-between p-6 bg-blue-600">
-            <div>
-              <h3 class="text-lg font-black text-white tracking-tight">{{ builderEditingId() ? 'Editar formulario' : 'Nuevo formulario' }}</h3>
-              <p class="text-xs text-blue-100 font-normal mt-0.5">Crea formularios dinámicos con campos personalizados.</p>
+          <div class="flex items-center justify-between p-4 sm:p-6 bg-blue-600 dark:bg-blue-700 shrink-0">
+            <div class="min-w-0">
+              <h3 class="text-base sm:text-lg font-black text-white tracking-tight truncate">{{ builderEditingId() ? 'Editar formulario' : 'Nuevo formulario' }}</h3>
+              <p class="text-[10px] sm:text-xs text-blue-100 font-normal mt-0.5 truncate">Crea formularios dinámicos con campos personalizados.</p>
             </div>
             <button (click)="closeBuilderModal()" class="w-8 h-8 flex items-center justify-center rounded-xl text-blue-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -150,7 +150,7 @@ import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Use
             </button>
           </div>
 
-          <div class="p-6 max-h-[70vh] overflow-y-auto">
+          <div class="p-4 sm:p-6 overflow-y-auto flex-1">
             @if (builderError()) {
               <div class="flex items-center gap-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 rounded-2xl p-4 mb-6 text-sm font-normal">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
@@ -181,18 +181,20 @@ import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Use
                       <option value="individual">Individual</option>
                     </select>
                   </div>
-                  <div class="space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Estado</label>
-                    <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl px-5 py-3.5 w-full">
-                      <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" [checked]="builderActivo()" (change)="builderActivo.set(!builderActivo())" name="bActivo" class="sr-only peer" />
-                        <div class="relative w-9 h-5 rounded-full transition-all duration-300 shadow-inner cursor-pointer"
-                             [style.background]="builderActivo() ? '#10b981' : '#cbd5e1'">
-                          <div class="absolute top-[2px] left-[2px] w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300"
-                               [style.transform]="builderActivo() ? 'translateX(16px)' : 'translateX(0)'"></div>
-                        </div>
-                      </label>
-                      <span class="text-[10px] font-bold uppercase tracking-wider" [class.text-emerald-600]="builderActivo()" [class.text-slate-400]="!builderActivo()">{{ builderActivo() ? 'Activo' : 'Inactivo' }}</span>
+                  <div class="flex flex-col">
+                    <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1 mb-2">Estado</label>
+                    <div class="flex-1 flex items-center">
+                      <div class="inline-flex items-center gap-2 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 w-fit">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" [checked]="builderActivo()" (change)="builderActivo.set(!builderActivo())" name="bActivo" class="sr-only peer" />
+                          <div class="relative w-9 h-5 rounded-full transition-all duration-300 shadow-inner cursor-pointer"
+                               [style.background]="builderActivo() ? '#10b981' : '#cbd5e1'">
+                            <div class="absolute top-[2px] left-[2px] w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300"
+                                 [style.transform]="builderActivo() ? 'translateX(16px)' : 'translateX(0)'"></div>
+                          </div>
+                        </label>
+                        <span class="text-[10px] font-bold uppercase tracking-wider" [class.text-emerald-600]="builderActivo()" [class.text-slate-400]="!builderActivo()">{{ builderActivo() ? 'Activo' : 'Inactivo' }}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -263,14 +265,14 @@ import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Use
 
     <!-- Asignar Modal -->
     @if (showAsignarModal()) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="closeAsignarModal()"></div>
-        <div class="relative z-10 w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4">
+        <div class="absolute inset-0 bg-black/50 " (click)="closeAsignarModal()"></div>
+        <div class="relative z-10 w-full sm:max-w-lg h-[95vh] sm:h-auto sm:max-h-[calc(100vh-2rem)] flex flex-col bg-white dark:bg-slate-900 sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
 
-          <div class="flex items-center justify-between p-6 bg-blue-600 dark:bg-blue-700">
-            <div>
-              <h3 class="text-lg font-black text-white tracking-tight">Asignar formulario</h3>
-              <p class="text-xs text-blue-100 font-normal mt-0.5">{{ asignarFormulario()?.titulo }}</p>
+          <div class="flex items-center justify-between p-4 sm:p-6 bg-blue-600 dark:bg-blue-700 shrink-0">
+            <div class="min-w-0">
+              <h3 class="text-base sm:text-lg font-black text-white tracking-tight truncate">Asignar formulario</h3>
+              <p class="text-[10px] sm:text-xs text-blue-100 font-normal mt-0.5 truncate">{{ asignarFormulario()?.titulo }}</p>
             </div>
             <button (click)="closeAsignarModal()" class="w-8 h-8 flex items-center justify-center rounded-xl text-blue-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -279,7 +281,7 @@ import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Use
             </button>
           </div>
 
-          <div class="p-6 max-h-[70vh] overflow-y-auto">
+          <div class="p-4 sm:p-6 overflow-y-auto flex-1">
             @if (asignarError()) {
               <div class="flex items-center gap-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 rounded-2xl p-4 mb-6 text-sm font-normal">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
@@ -316,14 +318,14 @@ import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Use
 
     <!-- View Modal -->
     @if (showViewModal()) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="closeViewModal()"></div>
-        <div class="relative z-10 w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4">
+        <div class="absolute inset-0 bg-black/50 " (click)="closeViewModal()"></div>
+        <div class="relative z-10 w-full sm:max-w-4xl h-[95vh] sm:h-auto sm:max-h-[calc(100vh-2rem)] flex flex-col bg-white dark:bg-slate-900 sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
 
-          <div class="flex items-center justify-between p-6 bg-emerald-600">
-            <div>
-              <h3 class="text-lg font-black text-white tracking-tight">Formulario</h3>
-              <p class="text-xs text-emerald-100 font-normal mt-0.5">Información registrada del formulario.</p>
+          <div class="flex items-center justify-between p-4 sm:p-6 bg-emerald-600 dark:bg-emerald-700 shrink-0">
+            <div class="min-w-0">
+              <h3 class="text-base sm:text-lg font-black text-white tracking-tight truncate">Formulario</h3>
+              <p class="text-[10px] sm:text-xs text-emerald-100 font-normal mt-0.5 truncate">Información registrada del formulario.</p>
             </div>
             <button (click)="closeViewModal()" class="w-8 h-8 flex items-center justify-center rounded-xl text-emerald-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -332,7 +334,7 @@ import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Use
             </button>
           </div>
 
-          <div class="p-6 max-h-[70vh] overflow-y-auto">
+          <div class="p-4 sm:p-6 overflow-y-auto flex-1">
             @if (viewFormulario()) {
               <div class="space-y-6">
 
@@ -354,19 +356,21 @@ import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Use
                     <label class="text-[10px] font-black text-slate-400 uppercase tracking-[2px] ml-1">Alcance</label>
                     <div class="px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-800">{{ viewFormulario()!.alcance === 'individual' ? 'Individual' : 'Familiar' }}</div>
                   </div>
-                  <div class="space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-[2px] ml-1">Estado del formulario</label>
-                    <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2.5 w-fit">
-                      <div class="relative w-9 h-5 rounded-full transition-all duration-300 shadow-inner"
-                           [style.background]="viewFormulario()!.activo ? '#10b981' : '#cbd5e1'">
-                        <div class="absolute top-[2px] left-[2px] w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300"
-                             [style.transform]="viewFormulario()!.activo ? 'translateX(16px)' : 'translateX(0)'"></div>
+                  <div class="flex flex-col">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-[2px] ml-1 mb-2">Estado del formulario</label>
+                    <div class="flex-1 flex items-center">
+                      <div class="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2.5 w-fit">
+                        <div class="relative w-9 h-5 rounded-full transition-all duration-300 shadow-inner"
+                             [style.background]="viewFormulario()!.activo ? '#10b981' : '#cbd5e1'">
+                          <div class="absolute top-[2px] left-[2px] w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300"
+                               [style.transform]="viewFormulario()!.activo ? 'translateX(16px)' : 'translateX(0)'"></div>
+                        </div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider"
+                              [class.text-emerald-600]="viewFormulario()!.activo"
+                              [class.text-slate-400]="!viewFormulario()!.activo">
+                          {{ viewFormulario()!.activo ? 'Activo' : 'Inactivo' }}
+                        </span>
                       </div>
-                      <span class="text-[10px] font-bold uppercase tracking-wider"
-                            [class.text-emerald-600]="viewFormulario()!.activo"
-                            [class.text-slate-400]="!viewFormulario()!.activo">
-                        {{ viewFormulario()!.activo ? 'Activo' : 'Inactivo' }}
-                      </span>
                     </div>
                   </div>
                 </div>
@@ -534,6 +538,11 @@ readonly CheckCircle2 = CheckCircle2;
       this.builderAlcance = f.alcance ?? 'familiar';
       this.builderCampos.set(f.campos ?? []);
       this.builderActivo.set(f.activo ?? true);
+      this.showBuilderModal.set(true);
+      this.svc.getById(f.id!).subscribe({
+        next: (r) => this.builderCampos.set(r.data.campos ?? []),
+        error: () => {}
+      });
     } else {
       this.builderEditingId.set(null);
       this.builderTitulo = '';
@@ -541,8 +550,8 @@ readonly CheckCircle2 = CheckCircle2;
       this.builderAlcance = 'familiar';
       this.builderCampos.set([]);
       this.builderActivo.set(true);
+      this.showBuilderModal.set(true);
     }
-    this.showBuilderModal.set(true);
   }
 
   closeBuilderModal() {
@@ -597,8 +606,13 @@ readonly CheckCircle2 = CheckCircle2;
 
   // View methods
   openView(f: Formulario) {
-    this.viewFormulario.set(f);
+    this.viewFormulario.set(f); // show modal immediately with what we have
     this.showViewModal.set(true);
+    // fetch full data (including campos) from the API
+    this.svc.getById(f.id!).subscribe({
+      next: (r) => this.viewFormulario.set(r.data),
+      error: () => {} // keep what we have if request fails
+    });
   }
 
   closeViewModal() {

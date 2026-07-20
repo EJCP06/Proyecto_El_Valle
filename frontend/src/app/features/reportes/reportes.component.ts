@@ -33,7 +33,6 @@ import { ReporteParams } from '../../core/models/usuario.model';
               <option value="familias">Familias</option>
               <option value="miembros">Miembros</option>
               <option value="formularios">Formularios</option>
-              <option value="auditoria">Auditoría</option>
             </select>
           </div>
 

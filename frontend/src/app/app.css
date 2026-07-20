@@ -5,3 +5,78 @@ router-outlet + * {
   flex: 1;
   min-height: 0;
 }
+
+/* Responsive table min-width classes for horizontal scroll on mobile */
+.min-w-\[600px\] { min-width: 600px; }
+.min-w-\[700px\] { min-width: 700px; }
+.min-w-\[800px\] { min-width: 800px; }
+
+/* Keep table content on a single line (no wrapping) — same as desktop behavior */
+table td,
+table th {
+  white-space: nowrap;
+}
+
+/* Premium Modals: Backdrop blur, custom shadow, and zoom-in animation (for both PC and Mobile) */
+div.fixed.inset-0.z-50 div.absolute.inset-0.bg-black\/50,
+div.fixed.inset-0.z-50 div.absolute.inset-0.bg-black\/40 {
+  background-color: rgba(15, 23, 42, 0.7) !important; /* bg-slate-900/70 */
+  backdrop-filter: blur(8px) !important; /* backdrop-blur-md */
+  animation: modal-backdrop-fade 0.25s ease-out forwards !important;
+}
+
+div.fixed.inset-0.z-50 div.relative.z-10.w-full {
+  animation: modal-zoom-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+}
+
+/* Mobile-only modal overrides (screens under 640px) */
+@media (max-width: 639px) {
+  /* Center the modal container on mobile */
+  div.fixed.inset-0.z-50.flex.items-end {
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 1rem !important;
+  }
+
+  /* Force auto-height, max-height, and slightly rounded corners (16px) on mobile */
+  div.fixed.inset-0.z-50 div.relative.z-10.w-full {
+    height: auto !important;
+    max-height: 90vh !important;
+    border-radius: 16px !important; /* rounded-2xl (slightly rounded, square-ish) */
+  }
+}
+
+/* PC-only modal overrides (screens 640px and wider) */
+@media (min-width: 640px) {
+  /* Restore the original rounded-3xl (24px) corners on PC */
+  div.fixed.inset-0.z-50 div.relative.z-10.w-full {
+    border-radius: 24px !important;
+  }
+}
+
+@keyframes modal-backdrop-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Ensure all form inputs, selects, textareas, and read-only text divs inside modals have the exact same text size, padding, height, and no bolding */
+div.fixed.inset-0.z-50 input:not([type="checkbox"]):not([type="radio"]),
+div.fixed.inset-0.z-50 select,
+div.fixed.inset-0.z-50 textarea,
+div.fixed.inset-0.z-50 div.bg-slate-50.border {
+  font-size: 0.875rem !important; /* text-sm */
+  padding-top: 0.875rem !important; /* py-3.5 equivalent */
+  padding-bottom: 0.875rem !important; /* py-3.5 equivalent */
+  font-weight: 400 !important; /* Normal weight (sin negrilla) */
+}
