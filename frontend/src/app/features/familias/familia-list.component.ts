@@ -682,6 +682,17 @@ export class FamiliaListComponent implements OnInit {
   }
 
   saveMiembro() {
+    const campos = [
+      { label: 'Nombre', value: this.miembroForm.nombre },
+      { label: 'Apellido', value: this.miembroForm.apellido },
+      { label: 'Cédula', value: this.miembroForm.cedula },
+      { label: 'Fecha de nacimiento', value: this.miembroForm.fechaNacimiento },
+    ];
+    const faltantes = campos.filter(c => !c.value?.trim?.()).map(c => c.label);
+    if (faltantes.length > 0) {
+      this.notify.warning('Campos obligatorios', 'Faltan algunos campos obligatorios por llenar');
+      return;
+    }
     this.miembroSaving.set(true);
     this.miembroError.set('');
     const editingId = this.editingId();

@@ -203,14 +203,14 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
     @if (showViewModal()) {
       <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" (click)="closeViewModal()">
         <div class="absolute inset-0 bg-black/50 "></div>
-        <div class="relative z-10 w-full sm:max-w-xl h-[95vh] sm:h-auto sm:max-h-[calc(100vh-2rem)] flex flex-col bg-white dark:bg-slate-900 sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
+        <div class="relative z-10 w-full sm:max-w-2xl h-[95vh] sm:h-auto sm:max-h-[calc(100vh-2rem)] flex flex-col bg-white dark:bg-slate-900 sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
 
           <div class="flex items-center justify-between p-4 sm:p-6 bg-emerald-600 dark:bg-emerald-700 shrink-0">
             <div class="min-w-0">
-              <h3 class="text-base sm:text-lg font-black text-white tracking-tight">Usuario</h3>
-              <p class="text-[10px] sm:text-xs text-white font-normal mt-0.5 truncate">Información registrada del usuario.</p>
+              <h3 class="text-base sm:text-lg font-black text-white tracking-tight truncate">Usuario</h3>
+              <p class="text-[10px] sm:text-xs text-emerald-100 font-normal mt-0.5 truncate">Información registrada del usuario.</p>
             </div>
-            <button (click)="closeViewModal()" class="w-8 h-8 flex items-center justify-center rounded-xl text-white hover:bg-white/10 transition-all cursor-pointer">
+            <button (click)="closeViewModal()" class="w-8 h-8 flex items-center justify-center rounded-xl text-emerald-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -220,39 +220,37 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
           <div class="p-4 sm:p-6 overflow-y-auto flex-1">
             @if (viewUsuario()) {
               <div class="space-y-6">
-
-                <div class="space-y-2">
-                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Nombre completo</label>
-                  <div class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white font-normal">{{ viewUsuario()!.nombre }}</div>
-                </div>
-
-                <div class="space-y-2">
-                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Correo electrónico</label>
-                  <div class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white font-normal">{{ viewUsuario()!.email }}</div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div class="md:col-span-2 space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Nombre completo</label>
+                    <div class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white font-normal">{{ viewUsuario()!.nombre }}</div>
+                  </div>
+                  <div class="md:col-span-2 space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Correo electrónico</label>
+                    <div class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white font-normal">{{ viewUsuario()!.email }}</div>
+                  </div>
                   <div class="space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Rol</label>
+                    <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Rol del sistema</label>
                     <div class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white font-normal capitalize">{{ viewUsuario()!.rol === 'admin' ? 'Administrador' : 'Vocero' }}</div>
                   </div>
                   <div class="space-y-2">
                     <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Estado</label>
-                    <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2.5 w-fit">
-                      <div class="relative w-9 h-5 rounded-full transition-all duration-300 shadow-inner"
-                           [style.background]="viewUsuario()!.activo ? '#10b981' : '#cbd5e1'">
-                        <div class="absolute top-[2px] left-[2px] w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300"
-                             [style.transform]="viewUsuario()!.activo ? 'translateX(16px)' : 'translateX(0)'"></div>
+                    <div class="flex items-center justify-center">
+                      <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2.5 w-fit">
+                        <div class="relative w-9 h-5 rounded-full transition-all duration-300 shadow-inner"
+                             [style.background]="viewUsuario()!.activo ? '#10b981' : '#cbd5e1'">
+                          <div class="absolute top-[2px] left-[2px] w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300"
+                               [style.transform]="viewUsuario()!.activo ? 'translateX(16px)' : 'translateX(0)'"></div>
+                        </div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider"
+                              [class.text-emerald-600]="viewUsuario()!.activo"
+                              [class.text-slate-400]="!viewUsuario()!.activo">
+                          {{ viewUsuario()!.activo ? 'Activo' : 'Inactivo' }}
+                        </span>
                       </div>
-                      <span class="text-[10px] font-bold uppercase tracking-wider"
-                            [class.text-emerald-600]="viewUsuario()!.activo"
-                            [class.text-slate-400]="!viewUsuario()!.activo">
-                        {{ viewUsuario()!.activo ? 'Activo' : 'Inactivo' }}
-                      </span>
                     </div>
                   </div>
                 </div>
-
               </div>
             }
           </div>

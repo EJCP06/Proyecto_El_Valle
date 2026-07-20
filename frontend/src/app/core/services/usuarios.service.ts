@@ -7,7 +7,7 @@ import { ApiResponse, PaginatedResponse } from '../interfaces/api-response.inter
 
 @Injectable({ providedIn: 'root' })
 export class UsuariosService {
-  private readonly url = `${environment.apiUrl}/usuarios`;
+  private readonly url = `${environment.apiUrl}/auth/usuarios`;
   private http: HttpClient = inject(HttpClient);
 
   getAll(page = 1, limit = 10): Observable<PaginatedResponse<Usuario>> {
@@ -28,6 +28,6 @@ export class UsuariosService {
   }
 
   deactivate(id: number): Observable<ApiResponse<void>> {
-    return this.http.patch<ApiResponse<void>>(`${this.url}/${id}/desactivar`, {});
+    return this.http.delete<ApiResponse<void>>(`${this.url}/${id}`);
   }
 }

@@ -1,18 +1,16 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { LucideAngularModule, Users, ClipboardList, BarChart3, ShieldCheck } from 'lucide-angular';
+import { LucideAngularModule, Users, ClipboardList, BarChart3 } from 'lucide-angular';
 
 @Component({
   selector: 'app-inicio',
   standalone: true,
   imports: [RouterLink, LucideAngularModule],
   template: `
-    <div class="min-h-screen w-screen flex flex-col items-center justify-center px-6 py-20 relative overflow-hidden bg-no-repeat bg-center bg-fixed" style="background-image: url('/fondo.jpg'); background-size: cover;">
-      
-      <!-- Dark overlay -->
+    <div class="min-h-screen w-screen flex flex-col items-center justify-center px-6 py-20 relative overflow-hidden bg-no-repeat bg-center bg-fixed" style="background-image: url('foto.jpg'); background-size: cover;">
+
       <div class="absolute inset-0 z-0" style="background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.3) 100%)"></div>
 
-      <!-- Top right login button -->
       <div class="absolute top-0 right-0 z-20 p-4">
         <a routerLink="/login"
           class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl shadow-xl shadow-blue-600/20 hover:-translate-y-0.5 transition-all duration-200 text-sm cursor-pointer">
@@ -23,31 +21,23 @@ import { LucideAngularModule, Users, ClipboardList, BarChart3, ShieldCheck } fro
         </a>
       </div>
 
-      <!-- Hero Section -->
       <div class="relative z-10 text-center max-w-2xl mx-auto space-y-8">
-        
-        <div class="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white rounded-full px-5 py-2 text-sm font-bold tracking-wider">
-          <span>Sistema de Gestión Comunal</span>
-        </div>
-
         <h1 class="text-5xl md:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.1]">
           Consejo Comunal<br/>
           <span class="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">El Valle</span>
         </h1>
-
-        <p class="text-lg text-slate-300 leading-relaxed font-normal max-w-lg mx-auto">
+        <p class="text-lg text-white leading-relaxed font-normal max-w-lg mx-auto">
           Plataforma digital para la gestión integral de familias, formularios y reportes del consejo comunal.
         </p>
       </div>
 
-      <!-- Feature Cards -->
-      <div class="relative z-10 mt-24 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-5xl mx-auto w-full">
+      <div class="relative z-10 mt-24 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-4xl mx-auto w-full">
         @for (f of features; track f.title) {
-          <div class="flex flex-col gap-4 bg-white/10 hover:bg-white/15 border border-white/20 hover:border-blue-400/40 p-6 rounded-3xl backdrop-blur-sm hover:-translate-y-1 transition-all duration-300 cursor-default group">
-            <lucide-icon [name]="f.icon" class="w-8 h-8 text-blue-400 group-hover:scale-110 transition-transform duration-300"></lucide-icon>
-            <div>
+          <div class="flex flex-col items-center gap-4 bg-white/10 hover:bg-white/15 border border-white/20 hover:border-blue-400/40 p-6 rounded-3xl backdrop-blur-sm hover:-translate-y-1 transition-all duration-300 cursor-default group">
+            <lucide-icon [name]="f.icon" class="w-8 h-8 text-white group-hover:scale-110 transition-transform duration-300"></lucide-icon>
+            <div class="text-center">
               <h3 class="font-black text-white text-lg mb-1">{{ f.title }}</h3>
-              <p class="text-base text-slate-300 leading-relaxed">{{ f.desc }}</p>
+              <p class="text-base text-white leading-relaxed">{{ f.desc }}</p>
             </div>
           </div>
         }
@@ -60,12 +50,10 @@ export class InicioComponent {
   readonly Users = Users;
   readonly ClipboardList = ClipboardList;
   readonly BarChart3 = BarChart3;
-  readonly ShieldCheck = ShieldCheck;
 
   features = [
     { icon: Users, title: 'Gestión Familiar', desc: 'Registro y seguimiento completo de familias y sus miembros.' },
     { icon: ClipboardList, title: 'Formularios', desc: 'Crea, asigna y gestiona formularios dinámicos fácilmente.' },
     { icon: BarChart3, title: 'Reportes', desc: 'Genera informes detallados en PDF y otros formatos.' },
-    { icon: ShieldCheck, title: 'Auditoría', desc: 'Rastrea cada acción realizada en el sistema.' },
   ];
 }
