@@ -32,19 +32,27 @@ class UsuarioRepository {
     return res.rows[0];
   }
 
-  async update(id, { nombre, email, rol, activo }) {
+  async update(id, { nombre, email, rol, activo, reset_token }) {
     const res = await db.query(
       `UPDATE usuarios 
        SET nombre = COALESCE($1, nombre), 
            email = COALESCE($2, email), 
            rol = COALESCE($3, rol), 
            activo = COALESCE($4, activo),
+           reset_token = $5,
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $5 
+       WHERE id = $6 
        RETURNING id, nombre, email, rol, activo, created_at`,
-      [nombre, email, rol, activo !== undefined ? activo : null, id]
+      [nombre, email, rol, activo !== undefined ? activo : null, reset_token !== undefined ? reset_token : null, id]
     );
     return res.rows[0];
+  }
+
+  async updatePassword(id, passwordHash) {
+    await db.query(
+      'UPDATE usuarios SET password = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      [passwordHash, id]
+    );
   }
 
   async deactivate(id) {

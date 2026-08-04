@@ -120,7 +120,7 @@ export class FormularioResponderComponent implements OnInit {
   saving    = signal(false);
   submitted = signal(false);
   error     = signal('');
-  familiaId = 0;
+  asignacionId = 0;
 
   miembros = signal<Miembro[]>([]);
   loadingMiembros = signal(false);
@@ -128,17 +128,14 @@ export class FormularioResponderComponent implements OnInit {
 
   ngOnInit() {
     const id = +this.route.snapshot.paramMap.get('id')!;
-    this.svc.getById(id).subscribe((r) => {
-      this.formulario.set(r.data);
+    this.svc.getAsignacionById(id).subscribe((r) => {
+      this.formulario.set(r.data.formulario);
+      this.asignacionId = r.data.id!;
       const qMiembro = this.route.snapshot.queryParamMap.get('miembro');
       if (qMiembro) {
         this.selectedMiembroId.set(+qMiembro);
       }
     });
-    const qFamilia = this.route.snapshot.queryParamMap.get('familia');
-    if (qFamilia) {
-      this.familiaId = +qFamilia;
-    }
   }
 
   selectMiembro(m: Miembro) {
@@ -147,19 +144,14 @@ export class FormularioResponderComponent implements OnInit {
 
   submit() {
     this.saving.set(true);
-    const asignacionId = +this.route.snapshot.paramMap.get('id')!;
-    this.svc.responder(asignacionId, this.respuestas, this.selectedMiembroId() ?? undefined).subscribe({
+    this.svc.responder(this.asignacionId, this.respuestas, this.selectedMiembroId() ?? undefined).subscribe({
       next: () => { this.submitted.set(true); this.saving.set(false); this.notify.success('Respuestas enviadas', 'Las respuestas se han registrado correctamente.'); },
       error: (e) => { this.error.set(e?.error?.message ?? 'Error.'); this.saving.set(false); this.notify.error('Error', e?.error?.message ?? 'Error al enviar respuestas.'); },
     });
   }
 
-  goBack() {
-    if (this.familiaId) {
-      this.router.navigate(['/app/familias', this.familiaId]);
-    } else {
-      this.router.navigate(['/app/formularios']);
-    }
+goBack() {
+    this.router.navigate(['/app/familias']);
   }
 }
 

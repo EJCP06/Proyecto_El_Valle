@@ -7,6 +7,7 @@ router.use(authMiddleware);
 
 router.get('/', formulariosController.getAll);
 router.get('/asignaciones', formulariosController.getAsignaciones);
+router.get('/asignacion/:id', formulariosController.getAsignacionById);
 router.get('/familia/:familiaId', formulariosController.getByFamilia);
 router.get('/:id', formulariosController.getById);
 router.post('/', rolesMiddleware('admin', 'editor'), formulariosController.create);

@@ -8,6 +8,10 @@ import {
   FormularioRespuesta,
   FormularioAsignacionFamilia,
 } from '../models/usuario.model';
+
+export interface AsignacionConFormulario extends FormularioAsignacion {
+  formulario: Formulario;
+}
 import { ApiResponse, PaginatedResponse } from '../interfaces/api-response.interface';
 
 @Injectable({ providedIn: 'root' })
@@ -57,6 +61,12 @@ export class FormulariosService {
     );
   }
 
+  getAsignacionById(asignacionId: number): Observable<ApiResponse<AsignacionConFormulario>> {
+    return this.http.get<ApiResponse<AsignacionConFormulario>>(
+      `${this.url}/asignacion/${asignacionId}`
+    );
+  }
+
   // Respuestas
   responder(
     asignacionId: number,
@@ -64,7 +74,7 @@ export class FormulariosService {
     miembroId?: number
   ): Observable<ApiResponse<FormularioRespuesta>> {
     return this.http.post<ApiResponse<FormularioRespuesta>>(
-      `${environment.apiUrl}/asignaciones/${asignacionId}/respuestas`,
+      `${this.url}/responder/${asignacionId}`,
       { respuestas, miembroId }
     );
   }

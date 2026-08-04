@@ -5,11 +5,12 @@ import { ConsejosService } from '../../core/services/consejos.service';
 import { MiembrosService } from '../../core/services/miembros.service';
 import { CatalogoService, CatalogoItem } from '../../core/services/catalogo.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { Familia, Miembro, ConsejoComunal } from '../../core/models/usuario.model';
+import { FormulariosService } from '../../core/services/formularios.service';
+import { Familia, Miembro, ConsejoComunal, FormularioAsignacionFamilia } from '../../core/models/usuario.model';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { PaginatePipe } from '../../shared/pipes/paginate.pipe';
 import { FillersPipe } from '../../shared/pipes/fillers.pipe';
-import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, CheckCircle2 } from 'lucide-angular';
+import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, CheckCircle2, ClipboardList } from 'lucide-angular';
 
 @Component({
   selector: 'app-familia-list',
@@ -96,6 +97,9 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                       <div class="flex justify-center gap-1">
                         <button (click)="openView(f)" aria-label="Ver familia" class="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-100 hover:shadow-[0_2px_10px_-3px_rgba(16,185,129,0.4)] dark:hover:bg-emerald-900/30 rounded-xl transition-all cursor-pointer">
                           <lucide-icon [name]="Eye" class="w-4 h-4"></lucide-icon>
+                        </button>
+                        <button (click)="openFormularios(f)" aria-label="Formularios asignados" class="p-2 text-slate-400 hover:text-violet-600 hover:bg-violet-100 hover:shadow-[0_2px_10px_-3px_rgba(139,92,246,0.4)] dark:hover:bg-violet-900/30 rounded-xl transition-all cursor-pointer">
+                          <lucide-icon [name]="ClipboardList" class="w-4 h-4"></lucide-icon>
                         </button>
                         <button (click)="openEdit(f)" aria-label="Editar familia" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 hover:shadow-[0_2px_10px_-3px_rgba(59,130,246,0.4)] dark:hover:bg-blue-900/30 rounded-xl transition-all cursor-pointer">
                           <lucide-icon [name]="Edit2" class="w-4 h-4"></lucide-icon>
@@ -354,6 +358,206 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
       </div>
     }
 
+    <!-- Formularios Asignados Modal -->
+    @if (showFormulariosModal()) {
+      <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" (click)="closeFormulariosModal()">
+        <div class="absolute inset-0 bg-black/50"></div>
+        <div class="relative z-10 w-full sm:max-w-2xl h-[95vh] sm:h-auto sm:max-h-[calc(100vh-2rem)] flex flex-col bg-white dark:bg-slate-900 sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
+
+          <div class="flex items-center justify-between p-4 sm:p-6 bg-blue-600 dark:bg-blue-700 shrink-0">
+            <div class="min-w-0">
+              <h3 class="text-base sm:text-lg font-black text-white tracking-tight">Formularios Asignados</h3>
+              <p class="text-[10px] sm:text-xs text-blue-100 font-normal mt-0.5 truncate">{{ formulariosFamilia()?.nombre }}</p>
+            </div>
+            <button (click)="closeFormulariosModal()" class="w-8 h-8 flex items-center justify-center rounded-xl text-blue-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="p-4 sm:p-6 overflow-y-auto flex-1">
+            @if (formulariosLoading()) {
+              <div class="flex flex-col items-center justify-center py-12">
+                <div class="w-8 h-8 border-[3px] border-blue-600/30 border-t-blue-600 rounded-full animate-spin"></div>
+                <span class="text-sm text-slate-500 dark:text-slate-400 mt-4 font-semibold animate-pulse">Cargando formularios...</span>
+              </div>
+            } @else if (formulariosAsignados().length === 0) {
+              <div class="flex flex-col items-center justify-center py-12 text-center">
+                <div class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
+                  <lucide-icon [name]="ClipboardList" class="w-8 h-8 text-slate-300 dark:text-slate-600"></lucide-icon>
+                </div>
+                <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">No hay formularios asignados</p>
+                <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Esta familia no tiene formularios pendientes.</p>
+              </div>
+            } @else {
+              <div class="space-y-4">
+                @for (fa of formulariosAsignados(); track fa.formulario.id) {
+                  <div class="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+                    <div class="flex items-start justify-between mb-3">
+                      <div class="min-w-0">
+                        <h4 class="text-sm font-bold text-slate-800 dark:text-white truncate">{{ fa.formulario.titulo }}</h4>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider mt-1"
+                              [class]="fa.formulario.alcance === 'familiar' ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400' : 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400'">
+                          {{ fa.formulario.alcance === 'familiar' ? 'Familiar' : 'Individual' }}
+                        </span>
+                      </div>
+                      <div class="text-right shrink-0 ml-3">
+                        <div class="text-xs font-bold text-slate-600 dark:text-slate-300">{{ fa.respondidos }}/{{ fa.totalMiembros }}</div>
+                        <div class="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">respondidos</div>
+                      </div>
+                    </div>
+
+                    <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 mb-3">
+                      <div class="bg-blue-500 h-1.5 rounded-full transition-all duration-500"
+                           [style.width.%]="fa.totalMiembros > 0 ? (fa.respondidos / fa.totalMiembros) * 100 : 0"></div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                      @for (a of fa.asignaciones; track a.id) {
+                        <div class="flex items-center justify-between py-1.5 px-3 bg-white dark:bg-slate-900/50 rounded-xl">
+                          <span class="text-xs text-slate-700 dark:text-slate-300 truncate">
+                            {{ a.miembro ? (a.miembro.nombre + ' ' + a.miembro.apellido) : 'Familiar' }}
+                          </span>
+                          <div class="flex items-center gap-2 shrink-0">
+                            @if (a.estado === 'completado') {
+                              <span class="inline-flex items-center gap-1 text-[10px] font-black text-emerald-600 dark:text-emerald-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                Completado
+                              </span>
+                            } @else {
+                              <span class="inline-flex items-center gap-1 text-[10px] font-black text-slate-400 dark:text-slate-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg>
+                                Pendiente
+                              </span>
+                              <button (click)="openResponder(a)" class="text-[10px] font-bold bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 px-2.5 py-1 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-500/30 transition-all cursor-pointer">
+                                Responder
+                              </button>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+        </div>
+      </div>
+    }
+
+    <!-- Responder Formulario Modal -->
+    @if (showResponderModal()) {
+      <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" (click)="closeResponderModal()">
+        <div class="absolute inset-0 bg-black/50"></div>
+        <div class="relative z-10 w-full sm:max-w-2xl h-[95vh] sm:h-auto sm:max-h-[calc(100vh-2rem)] flex flex-col bg-white dark:bg-slate-900 sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
+
+          <div class="flex items-center justify-between p-4 sm:p-6 bg-blue-600 dark:bg-blue-700 shrink-0">
+            <div class="min-w-0">
+              <h3 class="text-base sm:text-lg font-black text-white tracking-tight">Responder Formulario</h3>
+              <p class="text-[10px] sm:text-xs text-blue-100 font-normal mt-0.5 truncate">{{ responderFormulario()?.titulo }}</p>
+            </div>
+            <button (click)="closeResponderModal()" class="w-8 h-8 flex items-center justify-center rounded-xl text-blue-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="p-4 sm:p-6 overflow-y-auto flex-1">
+            @if (responderLoading()) {
+              <div class="flex flex-col items-center justify-center py-12">
+                <div class="w-8 h-8 border-[3px] border-blue-600/30 border-t-blue-600 rounded-full animate-spin"></div>
+                <span class="text-sm text-slate-500 dark:text-slate-400 mt-4 font-semibold animate-pulse">Cargando formulario...</span>
+              </div>
+            } @else if (responderFormulario()) {
+              @if (responderError()) {
+                <div class="flex items-center gap-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 rounded-2xl p-4 mb-6 text-sm font-normal">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                  </svg>
+                  <span>{{ responderError() }}</span>
+                </div>
+              }
+
+              @if (responderFormulario()!.alcance === 'individual' && !responderMiembroId()) {
+                <div class="form-card">
+                  <p class="form-desc">Este formulario es individual. Selecciona el miembro al que corresponde:</p>
+                  @if (responderMiembros().length === 0) {
+                    <p class="form-desc">No hay miembros registrados en esta familia.</p>
+                  } @else {
+                    <div class="miembros-list">
+                      @for (m of responderMiembros(); track m.id) {
+                        <button type="button" class="miembro-btn" (click)="selectResponderMiembro(m)">
+                          <span class="miembro-name">{{ m.nombre }} {{ m.apellido }}</span>
+                          <span class="miembro-cedula">{{ m.cedula }}</span>
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              } @else {
+                <form (ngSubmit)="submitResponder()" class="form-card space-y-6">
+                  @for (campo of responderFormulario()?.campos ?? []; track campo.id) {
+                    <div class="field">
+                      <label>{{ campo.label }}@if(campo.requerido) { <span class="text-red-500">*</span> }</label>
+                      @if (campo.tipo === 'textarea') {
+                        <textarea [name]="campo.id" [(ngModel)]="responderRespuestas[campo.id]" [required]="campo.requerido" rows="3"
+                          class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"></textarea>
+                      } @else if (campo.tipo === 'select') {
+                        <select [name]="campo.id" [(ngModel)]="responderRespuestas[campo.id]" [required]="campo.requerido"
+                          class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm">
+                          <option value="">Seleccionar...</option>
+                          @for (op of campo.opciones ?? []; track op) {
+                            <option [value]="op">{{ op }}</option>
+                          }
+                        </select>
+                      } @else if (campo.tipo === 'radio' || campo.tipo === 'yes_no') {
+                        <div class="yesno-group">
+                          @for (op of campo.opciones ?? []; track op) {
+                            <label class="yesno-option">
+                              <input type="radio" [name]="campo.id" [value]="op" [(ngModel)]="responderRespuestas[campo.id]" [required]="campo.requerido"
+                                class="w-4 h-4 accent-blue-600 cursor-pointer">
+                              <span>{{ op }}</span>
+                            </label>
+                          }
+                        </div>
+                      } @else if (campo.tipo === 'checkbox') {
+                        <div class="space-y-2">
+                          @for (op of campo.opciones ?? []; track op) {
+                            <label class="flex items-center gap-2 cursor-pointer">
+                              <input type="checkbox" [name]="campo.id + '_' + op" [value]="true" (change)="onCheckboxChange(campo.id, op, $event)"
+                                class="w-4 h-4 accent-blue-600 cursor-pointer">
+                              <span>{{ op }}</span>
+                            </label>
+                          }
+                        </div>
+                      } @else if (campo.tipo === 'time') {
+                        <input type="time" [name]="campo.id" [(ngModel)]="responderRespuestas[campo.id]" [required]="campo.requerido"
+                          class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm" />
+                      } @else {
+                        <input [type]="campo.tipo" [name]="campo.id" [(ngModel)]="responderRespuestas[campo.id]" [required]="campo.requerido"
+                          class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm" />
+                      }
+                    </div>
+                  }
+                  <div class="form-actions">
+                    <button type="button" class="btn-secondary" (click)="closeResponderModal()">Volver</button>
+                    <button type="submit" class="btn-primary" [disabled]="responderSubmitting()">
+                      {{ responderSubmitting() ? 'Enviando...' : 'Enviar respuestas' }}
+                    </button>
+                  </div>
+                </form>
+              }
+            }
+          </div>
+
+        </div>
+      </div>
+    }
+
     <!-- Miembro Modal -->
     @if (showMiembroModal()) {
       <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" (click)="closeMiembroModal()">
@@ -506,12 +710,14 @@ export class FamiliaListComponent implements OnInit {
   readonly Search = Search;
   readonly ChevronDown = ChevronDown;
   readonly CheckCircle2 = CheckCircle2;
+  readonly ClipboardList = ClipboardList;
 
   private famSvc  = inject(FamiliasService);
   private conSvc  = inject(ConsejosService);
   private miembSvc = inject(MiembrosService);
   private catSvc  = inject(CatalogoService);
   private notify = inject(NotificationService);
+  private formulariosSvc = inject(FormulariosService);
   private el = inject(ElementRef);
 
   pageSize = 8;
@@ -520,6 +726,21 @@ export class FamiliaListComponent implements OnInit {
   familias = signal<Familia[]>([]);
   loading  = signal(true);
   consejos = signal<ConsejoComunal[]>([]);
+
+  showFormulariosModal = signal(false);
+  formulariosAsignados = signal<FormularioAsignacionFamilia[]>([]);
+  formulariosLoading = signal(false);
+  formulariosFamilia = signal<Familia | null>(null);
+
+  showResponderModal = signal(false);
+  responderAsignacion = signal<any>(null);
+  responderFormulario = signal<any>(null);
+  responderLoading = signal(false);
+  responderSubmitting = signal(false);
+  responderMiembroId = signal<number | null>(null);
+  responderRespuestas: Record<string, unknown> = {};
+  responderError = signal('');
+  responderMiembros = signal<Miembro[]>([]);
 
   searchQuery = '';
   searchFilter = 'todo';
@@ -659,6 +880,109 @@ export class FamiliaListComponent implements OnInit {
   closeViewModal() {
     this.showViewModal.set(false);
     this.viewFamilia.set(null);
+  }
+
+  openFormularios(f: Familia) {
+    this.formulariosFamilia.set(f);
+    this.formulariosLoading.set(true);
+    this.formulariosAsignados.set([]);
+    this.showFormulariosModal.set(true);
+
+    this.formulariosSvc.getByFamilia(f.id!).subscribe({
+      next: (r) => {
+        this.formulariosAsignados.set(r.data);
+        this.formulariosLoading.set(false);
+      },
+      error: () => {
+        this.formulariosLoading.set(false);
+      }
+    });
+  }
+
+  closeFormulariosModal() {
+    this.showFormulariosModal.set(false);
+    this.formulariosAsignados.set([]);
+    this.formulariosFamilia.set(null);
+  }
+
+  openResponder(a: any) {
+    this.responderAsignacion.set(a);
+    this.responderLoading.set(true);
+    this.responderError.set('');
+    this.responderRespuestas = {};
+    this.responderMiembroId.set(null);
+    this.responderFormulario.set(null);
+    this.responderMiembros.set([]);
+
+    this.formulariosSvc.getAsignacionById(a.id).subscribe({
+      next: (r) => {
+        this.responderFormulario.set(r.data.formulario);
+        this.responderLoading.set(false);
+        
+        if (r.data.formulario.alcance === 'individual') {
+          this.loadResponderMiembros(r.data.familiaId);
+        }
+        
+        this.showResponderModal.set(true);
+      },
+      error: () => {
+        this.responderLoading.set(false);
+        this.responderError.set('Error al cargar el formulario');
+      }
+    });
+  }
+
+  loadResponderMiembros(familiaId: number) {
+    this.miembSvc.getByFamilia(familiaId).subscribe({
+      next: (r) => this.responderMiembros.set(r.data),
+      error: () => this.responderMiembros.set([])
+    });
+  }
+
+  closeResponderModal() {
+    this.showResponderModal.set(false);
+    this.responderAsignacion.set(null);
+    this.responderFormulario.set(null);
+    this.responderRespuestas = {};
+    this.responderMiembroId.set(null);
+    this.responderError.set('');
+    this.responderMiembros.set([]);
+  }
+
+  selectResponderMiembro(m: Miembro) {
+    this.responderMiembroId.set(m.id!);
+  }
+
+  submitResponder() {
+    this.responderSubmitting.set(true);
+    this.responderError.set('');
+    
+    const asignacionId = this.responderAsignacion()?.id;
+    const miembroId = this.responderFormulario()?.alcance === 'individual' ? (this.responderMiembroId() ?? undefined) : undefined;
+    
+    this.formulariosSvc.responder(asignacionId, this.responderRespuestas, miembroId).subscribe({
+      next: () => {
+        this.responderSubmitting.set(false);
+        this.notify.success('Respuestas enviadas', 'Las respuestas se han registrado correctamente.');
+        this.closeResponderModal();
+        this.openFormularios(this.formulariosFamilia()!);
+      },
+      error: (e) => {
+        this.responderSubmitting.set(false);
+        this.responderError.set(e?.error?.message ?? 'Error al enviar respuestas.');
+        this.notify.error('Error', e?.error?.message ?? 'Error al enviar respuestas.');
+      }
+    });
+  }
+
+  onCheckboxChange(campoId: string, opcion: string, event: Event) {
+    const checked = (event.target as HTMLInputElement).checked;
+    const current = this.responderRespuestas[campoId] as string[] || [];
+    if (checked) {
+      this.responderRespuestas[campoId] = [...current, opcion];
+    } else {
+      this.responderRespuestas[campoId] = current.filter(v => v !== opcion);
+    }
   }
 
   openMiembroModal(familiaId?: number, m?: Partial<Miembro>, pendingIdx?: number) {

@@ -155,3 +155,101 @@ exports.deactivateUser = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Contraseña actual y nueva contraseña requeridas' });
+    }
+
+    const usuario = await usuarioRepo.findById(req.user.id);
+    if (!usuario) {
+      return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, usuario.password);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: 'La contraseña actual es incorrecta' });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await usuarioRepo.updatePassword(usuario.id, passwordHash);
+
+    return res.json({
+      success: true,
+      message: 'Contraseña actualizada correctamente'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email requerido' });
+    }
+
+    const usuario = await usuarioRepo.findByEmail(email);
+    if (!usuario) {
+      return res.json({
+        success: true,
+        message: 'Si el correo está registrado, recibirás un enlace de recuperación'
+      });
+    }
+
+    const resetToken = jwt.sign(
+      { sub: usuario.id, purpose: 'password-reset' },
+      env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    await usuarioRepo.update(usuario.id, { reset_token: resetToken });
+
+    return res.json({
+      success: true,
+      message: 'Si el correo está registrado, recibirás un enlace de recuperación',
+      data: { resetToken }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.resetPassword = async (req, res, next) => {
+  try {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Token y nueva contraseña requeridos' });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, env.JWT_SECRET);
+    } catch {
+      return res.status(400).json({ success: false, message: 'Token inválido o expirado' });
+    }
+
+    if (decoded.purpose !== 'password-reset') {
+      return res.status(400).json({ success: false, message: 'Token inválido' });
+    }
+
+    const usuario = await usuarioRepo.findById(decoded.sub);
+    if (!usuario || usuario.reset_token !== token) {
+      return res.status(400).json({ success: false, message: 'Token inválido o ya utilizado' });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await usuarioRepo.updatePassword(usuario.id, passwordHash);
+    await usuarioRepo.update(usuario.id, { reset_token: null });
+
+    return res.json({
+      success: true,
+      message: 'Contraseña restablecida correctamente'
+    });
+  } catch (error) {
+    next(error);
+  }
+};

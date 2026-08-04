@@ -104,12 +104,37 @@ export const routes: Routes = [
       },
       {
         path: 'configuracion',
-        loadComponent: () =>
-          import('./features/configuracion/configuracion.component').then(
-            (m) => m.ConfiguracionComponent
-          ),
-        canActivate: [roleGuard],
-        data: { roles: ['admin'] },
+        children: [
+          {
+            path: '',
+            redirectTo: 'preguntas',
+            pathMatch: 'full',
+          },
+          {
+            path: ':seccion',
+            loadComponent: () =>
+              import('./features/configuracion/configuracion.component').then(
+                (m) => m.ConfiguracionComponent
+              ),
+          },
+        ],
+      },
+      {
+        path: 'catalogos',
+        children: [
+          {
+            path: '',
+            redirectTo: 'parentescos',
+            pathMatch: 'full',
+          },
+          {
+            path: ':seccion',
+            loadComponent: () =>
+              import('./features/configuracion/configuracion.component').then(
+                (m) => m.ConfiguracionComponent
+              ),
+          },
+        ],
       },
       {
         path: 'usuarios',

@@ -62,4 +62,44 @@ export class AuthService {
   getToken(): string | null {
     return this._token();
   }
+
+  changePassword(currentPassword: string, newPassword: string): Observable<ApiResponse<any>> {
+    return this.http.patch<ApiResponse<any>>(`${this.api}/auth/password`, { currentPassword, newPassword });
+  }
+
+  solicitarRecuperacion(email: string): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.api}/auth/recuperacion/solicitar`, { email });
+  }
+
+  verificarOTP(email: string, codigo: string): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.api}/auth/recuperacion/verificar`, { email, codigo });
+  }
+
+  restablecerPassword(email: string, codigo: string, newPassword: string): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.api}/auth/recuperacion/restablecer`, { email, codigo, newPassword });
+  }
+
+  verificarPreguntas(email: string, respuestas: { preguntaId: number; respuesta: string }[]): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.api}/preguntas-seguridad/verify`, { email, respuestas });
+  }
+
+  resetPorPreguntas(email: string, respuestas: { preguntaId: number; respuesta: string }[], newPassword: string): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.api}/preguntas-seguridad/reset-password`, { email, respuestas, newPassword });
+  }
+
+  getPreguntasByUsuario(usuarioId: number): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.api}/preguntas-seguridad/usuario/${usuarioId}`);
+  }
+
+  crearPregunta(usuarioId: number, pregunta: string, respuesta: string): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.api}/preguntas-seguridad/usuario/${usuarioId}`, { pregunta, respuesta });
+  }
+
+  actualizarPregunta(id: number, pregunta: string, respuesta: string): Observable<ApiResponse<any>> {
+    return this.http.put<ApiResponse<any>>(`${this.api}/preguntas-seguridad/${id}`, { pregunta, respuesta });
+  }
+
+  eliminarPregunta(id: number): Observable<ApiResponse<any>> {
+    return this.http.delete<ApiResponse<any>>(`${this.api}/preguntas-seguridad/${id}`);
+  }
 }

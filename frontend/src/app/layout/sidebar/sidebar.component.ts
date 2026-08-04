@@ -9,6 +9,7 @@ import {
   Building2,
   LogOut,
   X,
+  ChevronDown,
 } from "lucide-angular";
 
 @Component({
@@ -30,52 +31,62 @@ import {
       </button>
 
       <!-- Logo Header -->
-      <div
-        class="relative pb-4 overflow-hidden shrink-0 logo-header"
-      >
+      <div class="relative pb-4 overflow-hidden shrink-0 logo-header">
         <div class="flex items-center gap-3 pl-3 pr-3">
           <div class="flex items-center gap-3">
-            <div
-              class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shrink-0"
-            >
-              <lucide-icon
-                [name]="Building2"
-                class="w-5 h-5 text-white"
-              ></lucide-icon>
+            <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shrink-0">
+              <lucide-icon [name]="Building2" class="w-5 h-5 text-white"></lucide-icon>
             </div>
             <div class="min-w-0">
-              <div
-                class="flex flex-col leading-none animate-in fade-in duration-200 text-center mt-2 whitespace-nowrap"
-              >
-                <span
-                  class="text-lg font-black text-slate-800 dark:text-white uppercase tracking-wider"
-                  >Sistema Comunal</span
-                >
+              <div class="flex flex-col leading-none animate-in fade-in duration-200 text-center mt-2 whitespace-nowrap">
+                <span class="text-lg font-black text-slate-800 dark:text-white uppercase tracking-wider">Sistema Comunal</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <nav
-        class="flex-1 overflow-y-auto pt-6 sm:pt-16 pb-4 px-4 space-y-1.5 sm:space-y-3 touch-scroll hide-scrollbar"
-      >
-        @for (item of visibleItems(); track item.route) {
-          <a
-            [routerLink]="item.route"
-            (click)="onLinkClick()"
-            class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white active:bg-slate-100 dark:active:bg-slate-800/80 transition-all duration-200 group text-sm font-semibold cursor-pointer"
-            [title]="item.label"
-          >
-            <lucide-icon
-              [name]="item.icon"
-              class="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform text-slate-500 dark:text-slate-400"
-            ></lucide-icon>
-            <span
-              class="truncate animate-in fade-in duration-200 uppercase text-[11px] tracking-wider font-bold"
-              >{{ item.label }}</span
+      <nav class="flex-1 overflow-y-auto pt-6 sm:pt-16 pb-4 px-4 space-y-1.5 sm:space-y-3 touch-scroll hide-scrollbar">
+        @for (item of visibleItems(); track item.label) {
+          <!-- Item con hijos (expandible) -->
+          @if (item.children) {
+            <div>
+              <button
+                (click)="toggleSection(item.label)"
+                class="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white active:bg-slate-100 dark:active:bg-slate-800/80 transition-all duration-200 group text-sm font-semibold cursor-pointer"
+              >
+                <lucide-icon [name]="item.icon" class="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform text-slate-500 dark:text-slate-400"></lucide-icon>
+                <span class="flex-1 text-left truncate animate-in fade-in duration-200 uppercase text-[11px] tracking-wider font-bold">{{ item.label }}</span>
+                <lucide-icon [name]="ChevronDown" class="w-4 h-4 shrink-0 transition-transform duration-200" [class]="isSectionOpen(item.label) ? 'rotate-180' : ''"></lucide-icon>
+              </button>
+              @if (isSectionOpen(item.label)) {
+                <div class="ml-4 mt-1 space-y-0.5 border-l-2 border-slate-100 dark:border-slate-800 pl-3">
+                  @for (child of item.children; track child.route) {
+                    <a
+                      [routerLink]="child.route"
+                      (click)="onLinkClick()"
+                      class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white active:bg-slate-100 dark:active:bg-slate-800/80 transition-all duration-200 group text-sm font-semibold cursor-pointer"
+                      [class]="isChildActive(child.route) ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400' : ''"
+                    >
+                      <lucide-icon [name]="child.icon" class="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform"></lucide-icon>
+                      <span class="truncate animate-in fade-in duration-200 text-[11px] tracking-wider font-bold">{{ child.label }}</span>
+                    </a>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <!-- Item simple -->
+            <a
+              [routerLink]="item.route"
+              (click)="onLinkClick()"
+              class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white active:bg-slate-100 dark:active:bg-slate-800/80 transition-all duration-200 group text-sm font-semibold cursor-pointer"
+              [title]="item.label"
             >
-          </a>
+              <lucide-icon [name]="item.icon" class="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform text-slate-500 dark:text-slate-400"></lucide-icon>
+              <span class="truncate animate-in fade-in duration-200 uppercase text-[11px] tracking-wider font-bold">{{ item.label }}</span>
+            </a>
+          }
         }
       </nav>
 
@@ -88,25 +99,12 @@ import {
           title="Cerrar sesión"
         >
           @if (!logoutLoading()) {
-            <lucide-icon
-              [name]="LogOut"
-              class="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform"
-            ></lucide-icon>
-            <span
-              class="truncate font-bold uppercase text-[11px] tracking-wider"
-              >Cerrar Sesión</span
-            >
+            <lucide-icon [name]="LogOut" class="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform"></lucide-icon>
+            <span class="truncate font-bold uppercase text-[11px] tracking-wider">Cerrar Sesión</span>
           } @else {
-            <div
-              class="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-[800ms] w-full"
-            >
-              <div
-                class="w-5 h-5 border-2 border-rose-600/30 dark:border-rose-400/30 border-t-rose-600 dark:border-t-rose-400 rounded-full animate-spin"
-              ></div>
-              <span
-                class="animate-pulse font-bold uppercase text-[11px] tracking-wider text-rose-600 dark:text-rose-400"
-                >Cerrando...</span
-              >
+            <div class="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-[800ms] w-full">
+              <div class="w-5 h-5 border-2 border-rose-600/30 dark:border-rose-400/30 border-t-rose-600 dark:border-t-rose-400 rounded-full animate-spin"></div>
+              <span class="animate-pulse font-bold uppercase text-[11px] tracking-wider text-rose-600 dark:text-rose-400">Cerrando...</span>
             </div>
           }
         </button>
@@ -150,10 +148,12 @@ export class SidebarComponent implements OnInit {
 
   isDesktop = signal(true);
   logoutLoading = signal(false);
+  openSections = signal<Set<string>>(new Set(['Configuración']));
 
   readonly LogOut = LogOut;
   readonly Building2 = Building2;
   readonly X = X;
+  readonly ChevronDown = ChevronDown;
 
   ngOnInit() {
     this.syncResponsiveState();
@@ -174,6 +174,27 @@ export class SidebarComponent implements OnInit {
         this.sidebarService.close();
       }
     }
+  }
+
+  toggleSection(label: string) {
+    this.openSections.update(sections => {
+      const newSections = new Set(sections);
+      if (newSections.has(label)) {
+        newSections.delete(label);
+      } else {
+        newSections.add(label);
+      }
+      return newSections;
+    });
+  }
+
+  isSectionOpen(label: string): boolean {
+    return this.openSections().has(label);
+  }
+
+  isChildActive(route?: string): boolean {
+    if (!route) return false;
+    return this.router.url === route || this.router.url.startsWith(route + '/');
   }
 
   onLinkClick() {

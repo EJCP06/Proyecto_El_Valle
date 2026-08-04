@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
   password VARCHAR(255) NOT NULL,
   rol VARCHAR(50) DEFAULT 'vocero' CHECK (rol IN ('admin', 'vocero')),
   activo BOOLEAN DEFAULT TRUE,
+  reset_token VARCHAR(500),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -151,6 +152,28 @@ CREATE TABLE IF NOT EXISTS configuracion (
   valor TEXT NOT NULL,
   descripcion TEXT
 );
+
+-- Tabla de Preguntas de Seguridad
+CREATE TABLE IF NOT EXISTS preguntas_seguridad (
+  id SERIAL PRIMARY KEY,
+  usuario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
+  pregunta VARCHAR(255) NOT NULL,
+  respuesta VARCHAR(255) NOT NULL, -- hash de la respuesta
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabla de Recuperación de Contraseña (código OTP)
+CREATE TABLE IF NOT EXISTS recuperacion_clave (
+  id SERIAL PRIMARY KEY,
+  usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  codigo VARCHAR(255) NOT NULL,
+  expiracion TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP + INTERVAL '3 minutes'),
+  intentos INTEGER DEFAULT 0,
+  usado BOOLEAN DEFAULT FALSE,
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_recuperacion_clave_usuario ON recuperacion_clave(usuario_id, usado);
 
 -- Seed de Datos Iniciales
 -- Contraseña para todos los usuarios por defecto: "test123"

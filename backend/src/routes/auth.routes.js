@@ -59,10 +59,12 @@ const router = require('express').Router();
 const authController = require('../controllers/auth.controller');
 const authMiddleware = require('../middleware/auth');
 const rolesMiddleware = require('../middleware/roles');
+const validarPassword = require('../middleware/validarPassword');
 
 router.post('/login', authController.login);
-router.post('/register', authController.register);
+router.post('/register', validarPassword, authController.register);
 router.get('/me', authMiddleware, authController.profile);
+router.patch('/password', authMiddleware, validarPassword, authController.changePassword);
 
 // Admin users CRUD routes
 router.get('/usuarios', authMiddleware, rolesMiddleware('admin'), authController.getAllUsers);

@@ -165,3 +165,20 @@ exports.getByFamilia = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getAsignacionById = async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+    const asignacion = await asignacionRepo.findById(id);
+    if (!asignacion) {
+      return res.status(404).json({ success: false, message: 'Asignación no encontrada' });
+    }
+    const formulario = await formularioRepo.findById(asignacion.formularioId);
+    return res.json({
+      success: true,
+      data: { ...asignacion, formulario }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
