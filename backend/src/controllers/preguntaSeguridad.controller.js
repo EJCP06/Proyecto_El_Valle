@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const preguntaRepo = require('../repositories/preguntaSeguridad.repository');
 const usuarioRepo = require('../repositories/usuario.repository');
+const catalogoRepos = require('../repositories/catalogo.repository');
 
 exports.getAllByUser = async (req, res, next) => {
   try {
@@ -12,72 +13,31 @@ exports.getAllByUser = async (req, res, next) => {
   }
 };
 
-exports.create = async (req, res, next) => {
-  try {
-    const usuarioId = parseInt(req.params.usuarioId);
-    if (req.user.id !== usuarioId) {
-      return res.status(403).json({ success: false, message: 'No puedes crear preguntas para otro usuario' });
-    }
+/**
+ * Crea (o reemplaza) las preguntas de seguridad de un usuario a partir del
+ * catálogo de preguntas. Cada elemento debe ser { preguntaId, respuesta }.
+ * Retorna los registros creados.
+ */
+exports.crearPreguntasParaUsuario = async (usuarioId, preguntasSeguridad) => {
+  if (!preguntasSeguridad || !Array.isArray(preguntasSeguridad)) return [];
 
-    const { pregunta, respuesta } = req.body;
-    if (!pregunta || !respuesta) {
-      return res.status(400).json({ success: false, message: 'Pregunta y respuesta son requeridas' });
-    }
+  const catPreguntas = catalogoRepos.preguntasSeguridad;
+  const creadas = [];
 
-    const existing = await preguntaRepo.findByUsuarioId(usuarioId);
-    if (existing.length >= 3) {
-      return res.status(400).json({ success: false, message: 'Máximo 3 preguntas de seguridad por usuario' });
-    }
+  for (const item of preguntasSeguridad) {
+    const preguntaId = parseInt(item.preguntaId);
+    const respuesta = (item.respuesta || '').trim();
+    if (!preguntaId || !respuesta) continue;
 
-    const respuestaHash = await bcrypt.hash(respuesta.toLowerCase().trim(), 10);
-    const created = await preguntaRepo.create(usuarioId, pregunta, respuestaHash);
-    return res.status(201).json({ success: true, data: created });
-  } catch (error) {
-    next(error);
+    const preguntaCat = await catPreguntas.findById(preguntaId);
+    if (!preguntaCat) continue;
+
+    const respuestaHash = await bcrypt.hash(respuesta.toLowerCase(), 10);
+    const creada = await preguntaRepo.create(usuarioId, preguntaId, preguntaCat.nombre, respuestaHash);
+    creadas.push(creada);
   }
-};
 
-exports.update = async (req, res, next) => {
-  try {
-    const id = parseInt(req.params.id);
-    const existing = await preguntaRepo.findById(id);
-    if (!existing) {
-      return res.status(404).json({ success: false, message: 'Pregunta no encontrada' });
-    }
-    if (existing.usuario_id !== req.user.id) {
-      return res.status(403).json({ success: false, message: 'No puedes modificar preguntas de otro usuario' });
-    }
-
-    const { pregunta, respuesta } = req.body;
-
-    let respuestaHash = null;
-    if (respuesta) {
-      respuestaHash = await bcrypt.hash(respuesta.toLowerCase().trim(), 10);
-    }
-
-    const updated = await preguntaRepo.update(id, pregunta, respuestaHash);
-    return res.json({ success: true, data: updated });
-  } catch (error) {
-    next(error);
-  }
-};
-
-exports.remove = async (req, res, next) => {
-  try {
-    const id = parseInt(req.params.id);
-    const existing = await preguntaRepo.findById(id);
-    if (!existing) {
-      return res.status(404).json({ success: false, message: 'Pregunta no encontrada' });
-    }
-    if (existing.usuario_id !== req.user.id) {
-      return res.status(403).json({ success: false, message: 'No puedes eliminar preguntas de otro usuario' });
-    }
-
-    await preguntaRepo.remove(id);
-    return res.json({ success: true, message: 'Pregunta eliminada' });
-  } catch (error) {
-    next(error);
-  }
+  return creadas;
 };
 
 exports.verifyAnswers = async (req, res, next) => {

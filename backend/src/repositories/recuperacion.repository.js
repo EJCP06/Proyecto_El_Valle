@@ -16,11 +16,11 @@ class RecuperacionRepository {
     );
   }
 
-  async insertarCodigo(usuarioId, codigo) {
+  async insertarCodigo(usuarioId, codigo, canal = 'email') {
     await db.query(
-      `INSERT INTO recuperacion_clave (usuario_id, codigo, expiracion)
-       VALUES ($1, $2, NOW() + INTERVAL '3 minutes')`,
-      [usuarioId, codigo]
+      `INSERT INTO recuperacion_clave (usuario_id, codigo, expiracion, canal)
+       VALUES ($1, $2, NOW() + INTERVAL '3 minutes', $3)`,
+      [usuarioId, codigo, canal]
     );
   }
 

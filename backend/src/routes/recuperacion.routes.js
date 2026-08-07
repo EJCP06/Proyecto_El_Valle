@@ -13,5 +13,6 @@ const otpLimiter = rateLimit({
 router.post('/solicitar', recuperacionController.solicitar);
 router.post('/verificar', otpLimiter, recuperacionController.verificar);
 router.post('/restablecer', otpLimiter, recuperacionController.restablecer);
+router.post('/vincular-telegram', otpLimiter, recuperacionController.vincularTelegram);
 
 module.exports = router;

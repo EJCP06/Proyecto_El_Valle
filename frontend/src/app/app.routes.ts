@@ -103,23 +103,6 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'configuracion',
-        children: [
-          {
-            path: '',
-            redirectTo: 'preguntas',
-            pathMatch: 'full',
-          },
-          {
-            path: ':seccion',
-            loadComponent: () =>
-              import('./features/configuracion/configuracion.component').then(
-                (m) => m.ConfiguracionComponent
-              ),
-          },
-        ],
-      },
-      {
         path: 'catalogos',
         children: [
           {

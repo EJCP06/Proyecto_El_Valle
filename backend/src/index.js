@@ -10,6 +10,7 @@ const { pool } = require('./config/db');
 const routes = require('./routes/index');
 const errorHandler = require('./middleware/error');
 const migrate = require('../migrate');
+const { startBot } = require('./config/telegramBot');
 
 const app = express();
 
@@ -83,6 +84,7 @@ async function start() {
     await pool.query('SELECT 1');
     logger.info('Conexión a PostgreSQL establecida.');
     await migrate();
+    startBot();
     const server = app.listen(env.PORT, () => {
       logger.info(`Servidor corriendo en http://localhost:${env.PORT}`);
     });

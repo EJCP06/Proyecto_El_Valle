@@ -9,6 +9,7 @@ const reportesRoutes = require('./reportes.routes');
 const configuracionRoutes = require('./configuracion.routes');
 const catalogoRoutes = require('./catalogo.routes');
 const preguntaSeguridadRoutes = require('./preguntaSeguridad.routes');
+const sessionRoutes = require('./session.routes');
 
 router.use('/auth/recuperacion', recuperacionRoutes);
 router.use('/auth', authRoutes);
@@ -20,5 +21,6 @@ router.use('/reportes', reportesRoutes);
 router.use('/configuracion', configuracionRoutes);
 router.use('/catalogos', catalogoRoutes);
 router.use('/preguntas-seguridad', preguntaSeguridadRoutes);
+router.use('/sesiones', sessionRoutes);
 
 module.exports = router;

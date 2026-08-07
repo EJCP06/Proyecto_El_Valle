@@ -146,6 +146,12 @@ CREATE TABLE IF NOT EXISTS cat_tipos_discapacidad (
   activo BOOLEAN DEFAULT TRUE
 );
 
+CREATE TABLE IF NOT EXISTS cat_preguntas_seguridad (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(200) NOT NULL UNIQUE,
+  activo BOOLEAN DEFAULT TRUE
+);
+
 -- Tabla de Configuración
 CREATE TABLE IF NOT EXISTS configuracion (
   clave VARCHAR(100) PRIMARY KEY,
@@ -161,6 +167,9 @@ CREATE TABLE IF NOT EXISTS preguntas_seguridad (
   respuesta VARCHAR(255) NOT NULL, -- hash de la respuesta
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Relaciona las preguntas del usuario con el catálogo de preguntas de seguridad
+ALTER TABLE preguntas_seguridad ADD COLUMN IF NOT EXISTS pregunta_id INTEGER REFERENCES cat_preguntas_seguridad(id);
 
 -- Tabla de Recuperación de Contraseña (código OTP)
 CREATE TABLE IF NOT EXISTS recuperacion_clave (
@@ -218,6 +227,17 @@ ON CONFLICT (nombre) DO NOTHING;
 INSERT INTO cat_tipos_discapacidad (nombre) VALUES
   ('Física'), ('Visual'), ('Auditiva'), ('Cognitiva'),
   ('Psicosocial'), ('Múltiple'), ('Otra')
+ON CONFLICT (nombre) DO NOTHING;
+
+INSERT INTO cat_preguntas_seguridad (nombre) VALUES
+  ('¿Cuál es el nombre de tu primera mascota?'),
+  ('¿Cuál es el nombre de tu mejor amigo/a de la infancia?'),
+  ('¿En qué ciudad naciste?'),
+  ('¿Cuál es el nombre de tu escuela primaria?'),
+  ('¿Cuál es el apellido de soltera de tu madre?'),
+  ('¿Cuál es tu comida favorita?'),
+  ('¿Cuál es el nombre de tu profesor/a favorito/a?'),
+  ('¿Cuál es el modelo de tu primer carro?')
 ON CONFLICT (nombre) DO NOTHING;
 
 -- Configuración inicial

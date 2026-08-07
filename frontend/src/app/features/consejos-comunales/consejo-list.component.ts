@@ -7,28 +7,19 @@ import { ConsejoComunal } from '../../core/models/usuario.model';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { PaginatePipe } from '../../shared/pipes/paginate.pipe';
 import { FillersPipe } from '../../shared/pipes/fillers.pipe';
-import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, CheckCircle2 } from 'lucide-angular';
+import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, CheckCircle2, ClipboardList } from 'lucide-angular';
 
 @Component({
   selector: 'app-consejo-list',
   standalone: true,
   imports: [CommonModule, FormsModule, PaginationComponent, PaginatePipe, FillersPipe, LucideAngularModule],
   template: `
-    <div class="space-y-6 animate-in fade-in duration-300">
+    <div class="space-y-6 animate-in fade-in duration-300 flex flex-col flex-1 min-h-0">
       
       <!-- Page Header -->
-      <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Consejos Comunales</h2>
-          <p class="text-sm text-slate-500 dark:text-slate-400 font-normal">Administra los consejos comunales adscritos en la jurisdicción de El Valle.</p>
-        </div>
-        <button 
-          (click)="openModal()" 
-          class="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-3 rounded-2xl shadow-lg shadow-blue-600/10 hover:shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 text-sm cursor-pointer"
-        >
-          <span class="text-lg leading-none">+</span>
-          <span>Nuevo consejo</span>
-        </button>
+      <header>
+        <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Consejos Comunales</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 font-normal">Administra los consejos comunales adscritos en la jurisdicción de El Valle.</p>
       </header>
 
       <!-- Table Wrapper -->
@@ -38,40 +29,48 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
           <span class="text-sm text-slate-500 dark:text-slate-400 mt-4 font-semibold animate-pulse">Cargando consejos comunales...</span>
         </div>
       } @else {
-        <!-- Search/Filter Bar -->
-        <div class="flex justify-center mb-6 md:mb-10 mt-6 md:mt-10">
-          <div class="relative w-full max-w-2xl">
-            <div class="flex items-center w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-1.5 shadow-lg group focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500 transition-all duration-300">
-              <div class="relative search-filter-container">
-                <button type="button" (click)="toggleSearchFilterDropdown()" class="bg-slate-50 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 px-5 py-2.5 text-[11px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 focus:outline-none rounded-xl cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-all flex items-center gap-2.5">
+        <div class="bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl shadow-sm mt-3 flex flex-col flex-1 min-h-0">
+
+          <!-- Toolbar: búsqueda + nuevo -->
+          <div class="flex flex-col lg:flex-row lg:items-center gap-3 px-4 md:px-6 py-6 border-b border-slate-100 dark:border-slate-800">
+            <div class="flex-1 relative search-filter-container">
+              <div class="flex items-center w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl group focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500 transition-all duration-300 overflow-hidden">
+                <button type="button" (click)="toggleSearchFilterDropdown()" class="bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 focus:outline-none cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center gap-2 shrink-0">
                   <span>{{ getSearchFilterLabel() }}</span>
                   <lucide-icon [name]="ChevronDown" class="w-3.5 h-3.5 transition-transform duration-200" [class.rotate-180]="showSearchFilterDropdown"></lucide-icon>
                 </button>
-                @if (showSearchFilterDropdown) {
-                  <div class="absolute z-[110] w-44 mt-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 border-t-4 border-t-blue-600 left-0">
-                    <div class="p-1.5 max-h-48 overflow-y-auto">
-                      @for (opt of searchFilterOptions; track opt.value) {
-                        <div (click)="selectSearchFilter(opt.value)" class="px-4 py-2.5 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors rounded-xl flex items-center justify-between" [class.bg-blue-50]="searchFilter === opt.value" [class.text-blue-600]="searchFilter === opt.value">
-                          <span>{{ opt.label }}</span>
-                          @if (searchFilter === opt.value) {
-                            <lucide-icon [name]="CheckCircle2" class="w-3.5 h-3.5"></lucide-icon>
-                          }
-                        </div>
-                      }
-                    </div>
+                <div class="relative flex-1">
+                  <lucide-icon [name]="Search" class="w-4 h-4 absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors"></lucide-icon>
+                  <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange($event)" placeholder="Buscar consejo comunal..." class="w-full pl-[72px] pr-4 py-2.5 text-sm focus:outline-none font-normal bg-transparent rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500" />
+                </div>
+              </div>
+              @if (showSearchFilterDropdown) {
+                <div class="absolute z-[110] w-44 top-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 border-t-4 border-t-blue-600 left-0">
+                  <div class="p-1.5 max-h-48 overflow-y-auto">
+                    @for (opt of searchFilterOptions; track opt.value) {
+                      <div (click)="selectSearchFilter(opt.value)" class="px-4 py-2.5 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors rounded-xl flex items-center justify-between" [class.bg-blue-50]="searchFilter === opt.value" [class.text-blue-600]="searchFilter === opt.value">
+                        <span>{{ opt.label }}</span>
+                        @if (searchFilter === opt.value) {
+                          <lucide-icon [name]="CheckCircle2" class="w-3.5 h-3.5"></lucide-icon>
+                        }
+                      </div>
+                    }
                   </div>
-                }
-              </div>
-              <div class="relative flex-1">
-                <lucide-icon [name]="Search" class="w-4 h-4 absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors"></lucide-icon>
-                <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange($event)" placeholder="Buscar consejo comunal..." class="w-full pl-[72px] pr-4 py-3 text-sm focus:outline-none font-normal bg-transparent rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500" />
-              </div>
+                </div>
+              }
             </div>
+            <button 
+              (click)="openModal()" 
+              class="order-first lg:order-none inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-blue-600/10 hover:shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 text-sm cursor-pointer shrink-0"
+            >
+              <span class="text-lg leading-none">+</span>
+              <span>Nuevo consejo</span>
+            </button>
           </div>
-        </div>
-        <div class="bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl shadow-sm mt-4">
-          <div class="overflow-x-auto">
-            <table class="w-full min-w-[800px] border-collapse">
+          <!--/ Toolbar -->
+
+          <div class="relative flex-1 min-h-0 overflow-x-auto overflow-y-auto">
+            <table class="w-full min-w-[800px] border-collapse h-full">
               <thead>
                     <tr class="bg-slate-50/75 dark:bg-slate-800/40 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider" [class.border-b]="consejosFiltrados.length > 0" [class.border-slate-200]="consejosFiltrados.length > 0" [class.dark:border-slate-800]="consejosFiltrados.length > 0">
                       <th class="px-6 py-4 text-center">Nombre</th>
@@ -116,13 +115,17 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                 } @empty {}
                 @for (_ of consejosFiltrados | fillers:currentPage:pageSize; track $index) {
                   <tr class="hover:bg-transparent">
-                    <td colspan="6" class="px-6 py-4 text-center text-sm text-slate-400 dark:text-slate-500 font-normal">
-                      @if (consejosFiltrados.length === 0 && $index === 3) { No se encontraron datos. }
-                    </td>
+                    <td colspan="6" class="px-6 py-4"></td>
                   </tr>
                 }
               </tbody>
             </table>
+            @if (consejosFiltrados.length === 0) {
+              <div class="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
+                <lucide-icon [name]="ClipboardList" class="text-5xl text-slate-300 dark:text-slate-600"></lucide-icon>
+                <span class="text-sm text-slate-400 dark:text-slate-500 font-normal">No se encontraron datos.</span>
+              </div>
+            }
           </div>
           <app-pagination [currentPage]="currentPage" [totalItems]="consejosFiltrados.length" [pageSize]="pageSize" (pageChange)="currentPage = $event"></app-pagination>
         </div>
@@ -368,6 +371,7 @@ export class ConsejoListComponent implements OnInit {
   readonly Search = Search;
   readonly ChevronDown = ChevronDown;
   readonly CheckCircle2 = CheckCircle2;
+  readonly ClipboardList = ClipboardList;
 
   private svc    = inject(ConsejosService);
   private notify = inject(NotificationService);

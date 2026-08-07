@@ -62,7 +62,6 @@ const rolesMiddleware = require('../middleware/roles');
 const validarPassword = require('../middleware/validarPassword');
 
 router.post('/login', authController.login);
-router.post('/register', validarPassword, authController.register);
 router.get('/me', authMiddleware, authController.profile);
 router.patch('/password', authMiddleware, validarPassword, authController.changePassword);
 

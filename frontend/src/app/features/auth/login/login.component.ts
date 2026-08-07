@@ -22,7 +22,8 @@ import {
   Shield,
   Clock,
   CheckCircle2,
-  HelpCircle
+  HelpCircle,
+  Send
 } from 'lucide-angular';
 
 @Component({
@@ -233,6 +234,16 @@ import {
                       </div>
                     </button>
 
+                    <!-- Opción: Telegram -->
+                    <button (click)="seleccionarMetodo('telegram')" class="w-full flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-all group cursor-pointer text-left">
+                      <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center group-hover:bg-blue-200 dark:group-hover:bg-blue-800/40 transition-colors">
+                        <lucide-icon [name]="Send" class="w-6 h-6 text-blue-600 dark:text-blue-400"></lucide-icon>
+                      </div>
+                      <div class="flex-1">
+                        <p class="text-sm font-bold text-slate-800 dark:text-white">Telegram</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Recibe el código por Telegram (requiere vinculación previa)</p>
+                      </div>
+                    </button>
 
                   </div>
                 }
@@ -406,6 +417,11 @@ import {
                           </div>
                         }
                       </button>
+                      @if (mostrarFallbackPreguntas()) {
+                        <p class="text-center text-xs text-slate-500 dark:text-slate-400 mt-3">
+                          <span (click)="seleccionarMetodo('correo')" class="text-blue-600 dark:text-blue-400 underline cursor-pointer hover:text-blue-700 dark:hover:text-blue-300">¿No tienes preguntas configuradas? Recupera por correo electrónico</span>
+                        </p>
+                      }
                     </div>
                   }
 
@@ -424,21 +440,24 @@ import {
                           </div>
                         </div>
                       }
-                      <button (click)="verificarPreguntas()" [disabled]="cargandoReset()" class="!mt-8 w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-600/20 hover:shadow-blue-600/40 hover:-translate-y-0.5 active:translate-y-0 transition-transform flex items-center justify-center gap-3 text-sm uppercase tracking-widest cursor-pointer disabled:cursor-not-allowed">
-                        @if (!cargandoReset()) {
-                          <span class="flex items-center gap-2">
-                            Verificar Respuestas
-                            <lucide-icon [name]="CheckCircle2" class="w-5 h-5"></lucide-icon>
-                          </span>
-                        } @else {
-                          <div class="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-[800ms]">
-                            <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                            <span class="animate-pulse">Verificando...</span>
-                          </div>
-                        }
-                      </button>
-                    </div>
-                  }
+<button (click)="verificarPreguntas()" [disabled]="cargandoReset()" class="!mt-8 w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-600/20 hover:shadow-blue-600/40 hover:-translate-y-0.5 active:translate-y-0 transition-transform flex items-center justify-center gap-3 text-sm uppercase tracking-widest cursor-pointer disabled:cursor-not-allowed">
+                          @if (!cargandoReset()) {
+                            <span class="flex items-center gap-2">
+                              Verificar Respuestas
+                              <lucide-icon [name]="CheckCircle2" class="w-5 h-5"></lucide-icon>
+                            </span>
+                          } @else {
+                            <div class="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-[800ms]">
+                              <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                              <span class="animate-pulse">Verificando...</span>
+                            </div>
+                          }
+                        </button>
+                        <p class="text-center text-xs text-slate-500 dark:text-slate-400 mt-3">
+                          <span (click)="seleccionarMetodo('correo')" class="text-blue-600 dark:text-blue-400 underline cursor-pointer hover:text-blue-700 dark:hover:text-blue-300">¿No recuerdas tus respuestas? Recupera por correo electrónico</span>
+                        </p>
+                      </div>
+                    }
 
                   <!-- PASO 3: Nueva Contraseña -->
                   @if (paso === 3) {
@@ -483,6 +502,141 @@ import {
                     </div>
                   }
                 }
+
+                <!-- ===================== FLUJO POR TELEGRAM ===================== -->
+                @if (metodoRecuperacion() === 'telegram') {
+                  <!-- Step indicator -->
+                  <div class="flex justify-center mb-4" style="gap: 8px;">
+                    <div style="width: 32px; height: 6px; border-radius: 9999px; transition: background-color 0.3s; background-color: {{ paso >= 1 ? '#2563eb' : '#e2e8f0' }}"></div>
+                    <div style="width: 32px; height: 6px; border-radius: 9999px; transition: background-color 0.3s; background-color: {{ paso >= 2 ? '#2563eb' : '#e2e8f0' }}"></div>
+                    <div style="width: 32px; height: 6px; border-radius: 9999px; transition: background-color 0.3s; background-color: {{ paso >= 3 ? '#2563eb' : '#e2e8f0' }}"></div>
+                  </div>
+
+                  <!-- PASO 1: Correo (para enviar a Telegram) -->
+                  @if (paso === 1) {
+                    <div class="space-y-4">
+                      <p class="text-sm text-slate-500 dark:text-slate-400 text-center">Ingresa tu correo para enviar el código a tu Telegram vinculado</p>
+                      <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Correo</label>
+                        <div class="relative group">
+                          <div class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 dark:text-slate-500 group-focus-within:text-blue-600 transition-colors">
+                            <lucide-icon [name]="Send" class="w-5 h-5"></lucide-icon>
+                          </div>
+                          <input type="email" [(ngModel)]="recuperacionEmail" name="recuperacionEmailTelegram" placeholder="Ej: correo@ejemplo.com" class="w-full pl-12 pr-5 py-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal" />
+                        </div>
+                      </div>
+                      <button (click)="solicitarCodigo()" [disabled]="cargandoReset()" class="!mt-8 w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-600/20 hover:shadow-blue-600/40 hover:-translate-y-0.5 active:translate-y-0 transition-transform flex items-center justify-center gap-3 text-sm uppercase tracking-widest cursor-pointer disabled:cursor-not-allowed">
+                        @if (!cargandoReset()) {
+                          <span class="flex items-center gap-2">
+                            Enviar Código
+                            <lucide-icon [name]="Send" class="w-5 h-5"></lucide-icon>
+                          </span>
+                        } @else {
+                          <div class="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-[800ms]">
+                            <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                            <span class="animate-pulse">Enviando...</span>
+                          </div>
+                        }
+                      </button>
+                    </div>
+                  }
+
+                  <!-- PASO 2: Código OTP -->
+                  @if (paso === 2) {
+                    <div class="space-y-4">
+                      <div class="text-center mb-4">
+                        <p class="text-xs text-slate-500 dark:text-slate-400 font-normal">Enviamos un código a <strong class="text-slate-700 dark:text-slate-300">{{ recuperacionEmail }}</strong> (Telegram)</p>
+                      </div>
+                      <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Código de verificación</label>
+                        <div class="relative group">
+                          <div class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 dark:text-slate-500 group-focus-within:text-blue-600 transition-colors">
+                            <lucide-icon [name]="Shield" class="w-5 h-5"></lucide-icon>
+                          </div>
+                          <input type="text" [(ngModel)]="recuperacionCodigo" name="recuperacionCodigoTelegram" (keypress)="soloNumeros($event)" maxlength="6" placeholder="000000" class="w-full pl-12 pr-5 py-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-center text-2xl tracking-[8px]" />
+                        </div>
+                      </div>
+                      <div class="flex items-center justify-center gap-2 text-sm">
+                        <lucide-icon [name]="Clock" class="w-4 h-4" [class]="tiempoAgotado ? 'text-red-500' : 'text-amber-500'"></lucide-icon>
+                        <span class="font-bold" [class]="tiempoAgotado ? 'text-red-500' : 'text-amber-500'">
+                          {{ tiempoAgotado ? 'Código expirado' : tiempoFormateado }}
+                        </span>
+                      </div>
+                      @if (!tiempoAgotado) {
+                        <button (click)="verificarCodigo()" [disabled]="cargandoReset()" class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-600/20 hover:shadow-blue-600/40 hover:-translate-y-0.5 active:translate-y-0 transition-transform flex items-center justify-center gap-3 text-sm uppercase tracking-widest cursor-pointer disabled:cursor-not-allowed">
+                          @if (!cargandoReset()) {
+                            <span class="flex items-center gap-2">
+                              Verificar Código
+                              <lucide-icon [name]="CheckCircle2" class="w-5 h-5"></lucide-icon>
+                            </span>
+                          } @else {
+                            <div class="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-[800ms]">
+                              <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                              <span class="animate-pulse">Verificando...</span>
+                            </div>
+                          }
+                        </button>
+                      } @else {
+                        <button (click)="solicitarCodigo()" [disabled]="cargandoReset()" class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-600/20 hover:shadow-blue-600/40 hover:-translate-y-0.5 active:translate-y-0 transition-transform flex items-center justify-center gap-3 text-sm uppercase tracking-widest cursor-pointer disabled:cursor-not-allowed">
+                          @if (!cargandoReset()) {
+                            <span class="flex items-center gap-2">
+                              Reenviar Código
+                              <lucide-icon [name]="Send" class="w-5 h-5"></lucide-icon>
+                            </span>
+                          } @else {
+                            <div class="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-[800ms]">
+                              <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                              <span class="animate-pulse">Enviando...</span>
+                            </div>
+                          }
+                        </button>
+                      }
+                    </div>
+                  }
+
+                  <!-- PASO 3: Nueva Contraseña (compartido con correo) -->
+                  @if (paso === 3) {
+                    <div class="space-y-4">
+                      <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Nueva Contraseña</label>
+                        <div class="relative group">
+                          <div class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 dark:text-slate-500 group-focus-within:text-blue-600 transition-colors">
+                            <lucide-icon [name]="Lock" class="w-5 h-5"></lucide-icon>
+                          </div>
+                          <input [type]="mostrarNewPassword() ? 'text' : 'password'" [(ngModel)]="newPassword" name="newPasswordTelegram" placeholder="••••••••" class="w-full pl-12 pr-12 py-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal" />
+                          <button type="button" (click)="mostrarNewPassword.update(v => !v)" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-blue-600 transition-colors cursor-pointer">
+                            <lucide-icon [name]="mostrarNewPassword() ? EyeOff : Eye" class="w-5 h-5"></lucide-icon>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Confirmar Contraseña</label>
+                        <div class="relative group">
+                          <div class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 dark:text-slate-500 group-focus-within:text-blue-600 transition-colors">
+                            <lucide-icon [name]="KeyRound" class="w-5 h-5"></lucide-icon>
+                          </div>
+                          <input [type]="mostrarConfirmPassword() ? 'text' : 'password'" [(ngModel)]="confirmPassword" name="confirmPasswordTelegram" placeholder="••••••••" class="w-full pl-12 pr-5 py-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal" />
+                          <button type="button" (click)="mostrarConfirmPassword.update(v => !v)" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-blue-600 transition-colors cursor-pointer">
+                            <lucide-icon [name]="mostrarConfirmPassword() ? EyeOff : Eye" class="w-5 h-5"></lucide-icon>
+                          </button>
+                        </div>
+                      </div>
+                      <button (click)="restablecerPassword()" [disabled]="cargandoReset()" class="!mt-8 w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-600/20 hover:shadow-blue-600/40 hover:-translate-y-0.5 active:translate-y-0 transition-transform flex items-center justify-center gap-3 text-sm uppercase tracking-widest cursor-pointer disabled:cursor-not-allowed">
+                        @if (!cargandoReset()) {
+                          <span class="flex items-center gap-2">
+                            Restablecer Contraseña
+                            <lucide-icon [name]="KeyRound" class="w-5 h-5"></lucide-icon>
+                          </span>
+                        } @else {
+                          <div class="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-[800ms]">
+                            <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                            <span class="animate-pulse">Restableciendo...</span>
+                          </div>
+                        }
+                      </button>
+                    </div>
+                  }
+                }
               </div>
             }
 
@@ -507,7 +661,7 @@ export class LoginComponent implements OnDestroy {
   showPassword = signal(false);
 
   mostrarRecuperacion = signal(false);
-  metodoRecuperacion = signal<'correo' | 'preguntas' | null>(null);
+  metodoRecuperacion = signal<'correo' | 'preguntas' | 'telegram' | null>(null);
   recuperacionEmail = '';
   recuperacionCodigo = '';
   newPassword = '';
@@ -518,6 +672,7 @@ export class LoginComponent implements OnDestroy {
   forgotHover = false;
   paso = 1;
   tiempoRestante = 0;
+  mostrarFallbackPreguntas = signal(false);
   private intervaloTemporizador: ReturnType<typeof setInterval> | null = null;
 
   preguntasSeguridad: { id: number; pregunta: string }[] = [];
@@ -540,10 +695,11 @@ export class LoginComponent implements OnDestroy {
   readonly Clock = Clock;
   readonly CheckCircle2 = CheckCircle2;
   readonly HelpCircle = HelpCircle;
+  readonly Send = Send;
 
   get tituloRecuperacion(): string {
     if (!this.metodoRecuperacion()) return 'Elige un método de recuperación';
-    if (this.metodoRecuperacion() === 'correo') {
+    if (this.metodoRecuperacion() === 'correo' || this.metodoRecuperacion() === 'telegram') {
       return this.paso === 1 ? 'Verifica tu identidad' : this.paso === 2 ? 'Ingresa el código recibido' : 'Crea una nueva contraseña';
     }
     return this.paso === 1 ? 'Ingresa tu correo' : this.paso === 2 ? 'Responde tus preguntas de seguridad' : 'Crea una nueva contraseña';
@@ -595,9 +751,12 @@ export class LoginComponent implements OnDestroy {
     }
   }
 
-  seleccionarMetodo(metodo: 'correo' | 'preguntas') {
+  seleccionarMetodo(metodo: 'correo' | 'preguntas' | 'telegram') {
     this.metodoRecuperacion.set(metodo);
     this.paso = 1;
+    if (metodo === 'preguntas') {
+      this.mostrarFallbackPreguntas.set(false);
+    }
   }
 
   private resetearRecuperacion() {
@@ -642,11 +801,12 @@ export class LoginComponent implements OnDestroy {
       this.notify.warning('Correo requerido', 'Ingrese su correo electrónico.');
       return;
     }
+    const canal = this.metodoRecuperacion() === 'telegram' ? 'telegram' : 'email';
     this.cargandoReset.set(true);
     const inicio = Date.now();
     const MIN_CARGANDO = 800;
 
-    this.auth.solicitarRecuperacion(this.recuperacionEmail).subscribe({
+    this.auth.solicitarRecuperacion(this.recuperacionEmail, canal).subscribe({
       next: (res) => {
         const elapsed = Date.now() - inicio;
         const restante = Math.max(0, MIN_CARGANDO - elapsed);
@@ -656,7 +816,10 @@ export class LoginComponent implements OnDestroy {
           this.paso = 2;
           this.recuperacionCodigo = '';
           this.iniciarTemporizador(expiracion);
-          this.notify.success('Código enviado', 'Revisa el mensaje más reciente en tu correo.');
+          const mensaje = canal === 'telegram' 
+            ? 'Revisa tu Telegram, te enviamos el código.'
+            : 'Revisa el mensaje más reciente en tu correo.';
+          this.notify.success('Código enviado', mensaje);
         }, restante);
       },
       error: (err) => {
@@ -760,6 +923,7 @@ export class LoginComponent implements OnDestroy {
         if (res.data?.preguntas) {
           setTimeout(() => {
             this.cargandoReset.set(false);
+            this.mostrarFallbackPreguntas.set(false);
             this.preguntasSeguridad = res.data.preguntas;
             this.respuestasPreguntas = this.preguntasSeguridad.map(() => '');
             this.paso = 2;
@@ -767,6 +931,7 @@ export class LoginComponent implements OnDestroy {
         } else {
           setTimeout(() => {
             this.cargandoReset.set(false);
+            this.mostrarFallbackPreguntas.set(true);
             this.notify.error('Error', 'No se pudieron cargar las preguntas.');
           }, restante);
         }
@@ -776,6 +941,7 @@ export class LoginComponent implements OnDestroy {
         const restante = Math.max(0, MIN_CARGANDO - elapsed);
         setTimeout(() => {
           this.cargandoReset.set(false);
+          this.mostrarFallbackPreguntas.set(true);
           this.notify.error('Error', err.error?.message ?? 'Error al buscar preguntas.');
         }, restante);
       }

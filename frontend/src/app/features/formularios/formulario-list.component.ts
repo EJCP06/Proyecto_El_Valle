@@ -14,21 +14,13 @@ import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Use
   standalone: true,
   imports: [FormsModule, PaginationComponent, PaginatePipe, LucideAngularModule],
   template: `
-    <div class="space-y-6 animate-in fade-in duration-300">
+    <div class="space-y-6 animate-in fade-in duration-300 flex flex-col flex-1 min-h-0">
 
       <!-- Page Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Formularios</h2>
-          <p class="text-sm text-slate-500 dark:text-slate-400 font-normal">Gestiona formularios dinámicos para censos y encuestas comunales.</p>
-        </div>
-        @if (isAdmin()) {
-          <button (click)="openBuilderModal()" class="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-3 rounded-2xl shadow-lg shadow-blue-600/10 hover:shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 text-sm cursor-pointer">
-            <span class="text-lg leading-none">+</span>
-            <span>Nuevo formulario</span>
-          </button>
-        }
-      </div>
+      <header>
+        <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Formularios</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 font-normal">Gestiona formularios dinámicos para censos y encuestas comunales.</p>
+      </header>
 
       @if (loading()) {
         <div class="flex flex-col items-center justify-center py-16 bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl">
@@ -36,39 +28,49 @@ import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Use
           <span class="text-sm text-slate-500 dark:text-slate-400 mt-4 font-semibold animate-pulse">Cargando formularios...</span>
         </div>
       } @else {
-        <!-- Search/Filter Bar -->
-        <div class="flex justify-center mb-6 md:mb-10 mt-6 md:mt-10">
-          <div class="relative w-full max-w-2xl">
-            <div class="flex items-center w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-1.5 shadow-lg group focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500 transition-all duration-300">
-              <div class="relative search-filter-container">
-                <button type="button" (click)="toggleSearchFilterDropdown()" class="bg-slate-50 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 px-5 py-2.5 text-[11px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 focus:outline-none rounded-xl cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-all flex items-center gap-2.5">
+        <div class="bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl shadow-sm mt-3 flex flex-col flex-1 min-h-0">
+
+          <!-- Toolbar: búsqueda + nuevo -->
+          <div class="flex flex-col lg:flex-row lg:items-center gap-3 px-4 md:px-6 py-6 border-b border-slate-100 dark:border-slate-800">
+            <div class="flex-1 relative search-filter-container">
+              <div class="flex items-center w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl group focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500 transition-all duration-300 overflow-hidden">
+                <button type="button" (click)="toggleSearchFilterDropdown()" class="bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 focus:outline-none cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center gap-2 shrink-0">
                   <span>{{ getSearchFilterLabel() }}</span>
                   <lucide-icon [name]="ChevronDown" class="w-3.5 h-3.5 transition-transform duration-200" [class.rotate-180]="showSearchFilterDropdown"></lucide-icon>
                 </button>
-                @if (showSearchFilterDropdown) {
-                  <div class="absolute z-[110] w-44 mt-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 border-t-4 border-t-blue-600 left-0">
-                    <div class="p-1.5 max-h-48 overflow-y-auto">
-                      @for (opt of searchFilterOptions; track opt.value) {
-                        <div (click)="selectSearchFilter(opt.value)" class="px-4 py-2.5 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors rounded-xl flex items-center justify-between" [class.bg-blue-50]="searchFilter === opt.value" [class.text-blue-600]="searchFilter === opt.value">
-                          <span>{{ opt.label }}</span>
-                          @if (searchFilter === opt.value) {
-                            <lucide-icon [name]="CheckCircle2" class="w-3.5 h-3.5"></lucide-icon>
-                          }
-                        </div>
-                      }
-                    </div>
+                <div class="relative flex-1">
+                  <lucide-icon [name]="Search" class="w-4 h-4 absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors"></lucide-icon>
+                  <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange($event)" placeholder="Buscar formulario..." class="w-full pl-[72px] pr-4 py-2.5 text-sm focus:outline-none font-normal bg-transparent rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500" />
+                </div>
+              </div>
+              @if (showSearchFilterDropdown) {
+                <div class="absolute z-[110] w-44 top-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 border-t-4 border-t-blue-600 left-0">
+                  <div class="p-1.5 max-h-48 overflow-y-auto">
+                    @for (opt of searchFilterOptions; track opt.value) {
+                      <div (click)="selectSearchFilter(opt.value)" class="px-4 py-2.5 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors rounded-xl flex items-center justify-between" [class.bg-blue-50]="searchFilter === opt.value" [class.text-blue-600]="searchFilter === opt.value">
+                        <span>{{ opt.label }}</span>
+                        @if (searchFilter === opt.value) {
+                          <lucide-icon [name]="CheckCircle2" class="w-3.5 h-3.5"></lucide-icon>
+                        }
+                      </div>
+                    }
                   </div>
-                }
-              </div>
-              <div class="relative flex-1">
-                <lucide-icon [name]="Search" class="w-4 h-4 absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors"></lucide-icon>
-                <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange($event)" placeholder="Buscar formulario..." class="w-full pl-[72px] pr-4 py-3 text-sm focus:outline-none font-normal bg-transparent rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500" />
-              </div>
+                </div>
+              }
             </div>
+            @if (isAdmin()) {
+              <button 
+                (click)="openBuilderModal()" 
+                class="order-first lg:order-none inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-blue-600/10 hover:shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 text-sm cursor-pointer shrink-0"
+              >
+                <span class="text-lg leading-none">+</span>
+                <span>Nuevo formulario</span>
+              </button>
+            }
           </div>
-        </div>
-        <div class="bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl shadow-sm mt-4">
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 p-5 pb-2">
+          <!--/ Toolbar -->
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 p-5 pb-2 flex-1 content-start min-h-0">
               @for (f of formulariosFiltrados | paginate:currentPage:pageSize; track f.id) {
                 <div class="flex flex-col gap-4 bg-slate-50 dark:bg-slate-800/30 border border-slate-200/80 dark:border-slate-800/80 p-6 rounded-3xl hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
                   
@@ -122,8 +124,7 @@ import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Use
 } @empty {
                 <div class="sm:col-span-2 lg:col-span-3 flex flex-col items-center justify-center py-16">
                   <lucide-icon [name]="ClipboardList" class="text-5xl text-slate-300 dark:text-slate-600 mb-4"></lucide-icon>
-                  <p class="text-sm text-slate-400 dark:text-slate-500 font-normal">No hay formularios registrados aún.</p>
-                  <button (click)="openBuilderModal()" class="mt-4 text-sm font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">Crear el primero</button>
+                  <p class="text-sm text-slate-400 dark:text-slate-500 font-normal">No se encontraron datos.</p>
                 </div>
               }
             </div>

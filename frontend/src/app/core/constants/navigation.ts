@@ -4,7 +4,6 @@ import {
   Users,
   ClipboardList,
   BarChart3,
-  Settings,
   UserCog,
   HelpCircle,
   List,
@@ -35,13 +34,7 @@ export const NAV_ITEMS: NavItem[] = [
       { label: 'Ocupaciones', icon: List, route: '/app/catalogos/ocupaciones' },
       { label: 'Tipos de Vivienda', icon: List, route: '/app/catalogos/tipos-vivienda' },
       { label: 'Tipos de Discapacidad', icon: List, route: '/app/catalogos/tipos-discapacidad' },
-    ]
-  },
-  {
-    label: 'Configuración',
-    icon: Settings,
-    children: [
-      { label: 'Preguntas de Seguridad', icon: HelpCircle, route: '/app/configuracion/preguntas' },
+      { label: 'Preguntas de Seguridad', icon: HelpCircle, route: '/app/catalogos/preguntas-seguridad' },
     ]
   },
   { label: 'Usuarios', icon: UserCog, route: '/app/usuarios', roles: ['admin'] },

@@ -67,8 +67,8 @@ export class AuthService {
     return this.http.patch<ApiResponse<any>>(`${this.api}/auth/password`, { currentPassword, newPassword });
   }
 
-  solicitarRecuperacion(email: string): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.api}/auth/recuperacion/solicitar`, { email });
+  solicitarRecuperacion(email: string, canal: 'email' | 'telegram' = 'email'): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.api}/auth/recuperacion/solicitar`, { email, canal });
   }
 
   verificarOTP(email: string, codigo: string): Observable<ApiResponse<any>> {
@@ -91,15 +91,16 @@ export class AuthService {
     return this.http.get<ApiResponse<any>>(`${this.api}/preguntas-seguridad/usuario/${usuarioId}`);
   }
 
-  crearPregunta(usuarioId: number, pregunta: string, respuesta: string): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.api}/preguntas-seguridad/usuario/${usuarioId}`, { pregunta, respuesta });
+  // Sesiones
+  getSessions(): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.api}/sesiones`);
   }
 
-  actualizarPregunta(id: number, pregunta: string, respuesta: string): Observable<ApiResponse<any>> {
-    return this.http.put<ApiResponse<any>>(`${this.api}/preguntas-seguridad/${id}`, { pregunta, respuesta });
+  revokeSession(sessionId: number): Observable<ApiResponse<any>> {
+    return this.http.delete<ApiResponse<any>>(`${this.api}/sesiones/${sessionId}`);
   }
 
-  eliminarPregunta(id: number): Observable<ApiResponse<any>> {
-    return this.http.delete<ApiResponse<any>>(`${this.api}/preguntas-seguridad/${id}`);
+  revokeAllOtherSessions(): Observable<ApiResponse<any>> {
+    return this.http.delete<ApiResponse<any>>(`${this.api}/sesiones`);
   }
 }

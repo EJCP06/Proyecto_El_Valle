@@ -1,7 +1,24 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const usuarioRepo = require('../repositories/usuario.repository');
+const preguntaRepo = require('../repositories/preguntaSeguridad.repository');
+const preguntaSeguridadController = require('./preguntaSeguridad.controller');
 const env = require('../config/env');
+const db = require('../config/db');
+
+function hashToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+function parseDevice(userAgent) {
+  if (!userAgent) return 'Desconocido';
+  if (userAgent.includes('Mobile')) return 'Móvil';
+  if (userAgent.includes('Windows')) return 'Windows';
+  if (userAgent.includes('Mac')) return 'Mac';
+  if (userAgent.includes('Linux')) return 'Linux';
+  return 'Escritorio';
+}
 
 exports.login = async (req, res, next) => {
   try {
@@ -20,11 +37,33 @@ exports.login = async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
     }
 
+    const jti = crypto.randomUUID();
     const token = jwt.sign(
-      { sub: usuario.id, email: usuario.email, rol: usuario.rol },
+      { sub: usuario.id, email: usuario.email, rol: usuario.rol, jti },
       env.JWT_SECRET,
       { expiresIn: '8h' }
     );
+
+    const tokenHash = hashToken(token);
+    const expiraEn = new Date(Date.now() + 8 * 60 * 60 * 1000);
+
+    // Guardar sesión
+    await db.query(
+      `INSERT INTO sesiones_usuario (usuario_id, jti, token_hash, ip, user_agent, dispositivo, expira_en)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [usuario.id, jti, tokenHash, req.ip, req.get('user-agent'), parseDevice(req.get('user-agent')), expiraEn]
+    );
+
+    // Si REQUIERIR_SESION_UNICA está activado, revocar otras sesiones
+    const configResult = await db.query(`SELECT valor FROM configuracion WHERE clave = 'REQUIERIR_SESION_UNICA'`);
+    const requireSingle = configResult.rows[0]?.valor === 'true';
+
+    if (requireSingle) {
+      await db.query(
+        `UPDATE sesiones_usuario SET revocada = true WHERE usuario_id = $1 AND jti != $2`,
+        [usuario.id, jti]
+      );
+    }
 
     return res.json({
       success: true,
@@ -46,7 +85,7 @@ exports.login = async (req, res, next) => {
 
 exports.register = async (req, res, next) => {
   try {
-    const { nombre, email, password, rol } = req.body;
+    const { nombre, email, password, rol, preguntasSeguridad } = req.body;
     if (!nombre || !email || !password) {
       return res.status(400).json({ success: false, message: 'Todos los campos son requeridos' });
     }
@@ -63,6 +102,11 @@ exports.register = async (req, res, next) => {
       password: passwordHash,
       rol: rol || 'vocero'
     });
+
+    if (Array.isArray(preguntasSeguridad) && preguntasSeguridad.length > 0) {
+      const creadas = await preguntaSeguridadController.crearPreguntasParaUsuario(newUsuario.id, preguntasSeguridad);
+      newUsuario.preguntasSeguridad = creadas;
+    }
 
     return res.status(201).json({
       success: true,
@@ -127,11 +171,17 @@ exports.getUserById = async (req, res, next) => {
 exports.updateUser = async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
-    const { nombre, email, rol, activo } = req.body;
+    const { nombre, email, rol, activo, preguntasSeguridad } = req.body;
 
     const updated = await usuarioRepo.update(id, { nombre, email, rol, activo });
     if (!updated) {
       return res.status(404).json({ success: false, message: 'Usuario no encontrado o no actualizado' });
+    }
+
+    if (Array.isArray(preguntasSeguridad)) {
+      await preguntaRepo.removeByUsuarioId(id);
+      const creadas = await preguntaSeguridadController.crearPreguntasParaUsuario(id, preguntasSeguridad);
+      updated.preguntasSeguridad = creadas;
     }
 
     return res.json({

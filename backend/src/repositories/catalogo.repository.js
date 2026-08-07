@@ -19,6 +19,14 @@ class CatalogoRepository {
     return res.rows;
   }
 
+  async findById(id) {
+    const res = await db.query(
+      `SELECT id, nombre FROM ${this.table} WHERE id = $1`,
+      [id]
+    );
+    return res.rows[0];
+  }
+
   async create(nombre) {
     const res = await db.query(
       `INSERT INTO ${this.table} (nombre) VALUES ($1) RETURNING id, nombre, activo`,
@@ -47,6 +55,7 @@ const repos = {
   ocupaciones: new CatalogoRepository('cat_ocupaciones'),
   tiposVivienda: new CatalogoRepository('cat_tipos_vivienda'),
   tiposDiscapacidad: new CatalogoRepository('cat_tipos_discapacidad'),
+  preguntasSeguridad: new CatalogoRepository('cat_preguntas_seguridad'),
 };
 
 module.exports = repos;

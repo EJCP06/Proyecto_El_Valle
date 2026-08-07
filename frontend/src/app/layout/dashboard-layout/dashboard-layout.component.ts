@@ -1,8 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { SidebarService } from '../../core/services/sidebar.service';
+import { AuthService } from '../../core/services/auth.service';
+import { SessionTimerService } from '../../core/services/session-timer.service';
 
 @Component({
   selector: 'app-dashboard-layout',
@@ -46,6 +48,18 @@ import { SidebarService } from '../../core/services/sidebar.service';
     }
   `]
 })
-export class DashboardLayoutComponent {
+export class DashboardLayoutComponent implements OnInit, OnDestroy {
   sidebarService = inject(SidebarService);
+  private auth = inject(AuthService);
+  private sessionTimer = inject(SessionTimerService);
+
+  ngOnInit(): void {
+    if (this.auth.isAuthenticated()) {
+      this.sessionTimer.start();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.sessionTimer.stop();
+  }
 }

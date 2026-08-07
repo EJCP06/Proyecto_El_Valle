@@ -16,7 +16,8 @@ export type CatalogoNombre =
   | 'niveles-educativos'
   | 'ocupaciones'
   | 'tipos-vivienda'
-  | 'tipos-discapacidad';
+  | 'tipos-discapacidad'
+  | 'preguntas-seguridad';
 
 @Injectable({ providedIn: 'root' })
 export class CatalogoService {

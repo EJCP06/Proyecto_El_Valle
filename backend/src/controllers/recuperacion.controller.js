@@ -1,16 +1,17 @@
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { enviarCorreoOTP } = require('../config/email');
+const { enviarMensaje } = require('../config/telegram');
 const recuperacionRepo = require('../repositories/recuperacion.repository');
 
 /**
  * Inicia el proceso de recuperación de contraseña. Siempre responde
  * con el mismo mensaje genérico para evitar enumeración de cuentas.
- * Si el usuario existe, genera y envía un código OTP por correo.
+ * Soporta canal: 'email' (default) o 'telegram'.
  */
 exports.solicitar = async (req, res, next) => {
   try {
-    const { email } = req.body;
+    const { email, canal = 'email' } = req.body;
     if (!email) {
       return res.status(400).json({ success: false, message: 'Correo requerido' });
     }
@@ -25,21 +26,41 @@ exports.solicitar = async (req, res, next) => {
       });
     }
 
+    // Validar canal telegram
+    if (canal === 'telegram') {
+      if (!usuario.telegram_chat_id) {
+        return res.status(400).json({ success: false, message: 'El usuario no tiene Telegram vinculado. Ve a Usuarios → Vincular Telegram.' });
+      }
+    }
+
     const codigo = crypto.randomInt(100000, 999999).toString();
     const codigoHash = await bcrypt.hash(codigo, 10);
 
     await recuperacionRepo.invalidarCodigosPendientes(usuario.id);
-    await recuperacionRepo.insertarCodigo(usuario.id, codigoHash);
+    await recuperacionRepo.insertarCodigo(usuario.id, codigoHash, canal);
 
-    try {
-      await enviarCorreoOTP(usuario.email, codigo);
-    } catch (emailError) {
-      return res.status(500).json({ success: false, message: 'Error al enviar el correo. Verifica la configuración de email.' });
+    let enviado = false;
+    if (canal === 'telegram') {
+      const resultado = await enviarMensaje(usuario.telegram_chat_id,
+        `🔐 <b>Código de recuperación</b>\n\nTu código es: <b>${codigo}</b>\n\nExpira en 3 minutos. No lo compartas.`
+      );
+      enviado = resultado.ok;
+    } else {
+      try {
+        await enviarCorreoOTP(usuario.email, codigo);
+        enviado = true;
+      } catch (emailError) {
+        enviado = false;
+      }
+    }
+
+    if (!enviado) {
+      return res.status(500).json({ success: false, message: `Error al enviar el código por ${canal}.` });
     }
 
     return res.json({
       success: true,
-      message: 'Código enviado al correo registrado',
+      message: `Código enviado por ${canal}`,
       expiracion: 180
     });
   } catch (error) {
@@ -121,6 +142,50 @@ exports.restablecer = async (req, res, next) => {
     await recuperacionRepo.marcarUsado(registro.id);
 
     return res.json({ success: true, message: 'Contraseña actualizada exitosamente' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Vincula la cuenta de Telegram del usuario.
+ * Recibe { email, codigo } donde codigo es el que el bot envió al usuario al hacer /start <email>.
+ * Si el código coincide con el pendiente, guarda el chat_id en el usuario.
+ */
+exports.vincularTelegram = async (req, res, next) => {
+  try {
+    const { email, codigo } = req.body;
+    if (!email || !codigo) {
+      return res.status(400).json({ success: false, message: 'Correo y código son requeridos' });
+    }
+
+    const telegramBot = require('../config/telegramBot');
+    const pendiente = telegramBot.pendingLinks?.get(email.toLowerCase().trim());
+
+    if (!pendiente) {
+      return res.status(400).json({ success: false, message: 'No hay vinculación pendiente para este correo. Envía /start tu@email.com al bot primero.' });
+    }
+
+    if (pendiente.expires < Date.now()) {
+      telegramBot.pendingLinks.delete(email.toLowerCase().trim());
+      return res.status(400).json({ success: false, message: 'El código ha expirado. Vuelve a enviar /start al bot.' });
+    }
+
+    if (pendiente.codigo !== codigo.trim()) {
+      return res.status(400).json({ success: false, message: 'Código incorrecto' });
+    }
+
+    // Guardar chat_id en el usuario
+    const pool = telegramBot.pool;
+    await pool.query(
+      'UPDATE usuarios SET telegram_chat_id = $1 WHERE LOWER(email) = LOWER($2)',
+      [pendiente.chatId, email]
+    );
+
+    // Limpiar pendiente
+    telegramBot.pendingLinks.delete(email.toLowerCase().trim());
+
+    return res.json({ success: true, message: 'Telegram vinculado correctamente' });
   } catch (error) {
     next(error);
   }

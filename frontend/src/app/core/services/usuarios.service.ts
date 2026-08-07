@@ -30,4 +30,8 @@ export class UsuariosService {
   deactivate(id: number): Observable<ApiResponse<void>> {
     return this.http.delete<ApiResponse<void>>(`${this.url}/${id}`);
   }
+
+  vincularTelegram(email: string, codigo: string): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${environment.apiUrl}/auth/recuperacion/vincular-telegram`, { email, codigo });
+  }
 }

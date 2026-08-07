@@ -7,6 +7,7 @@ const map = {
   ocupaciones: repos.ocupaciones,
   'tipos-vivienda': repos.tiposVivienda,
   'tipos-discapacidad': repos.tiposDiscapacidad,
+  'preguntas-seguridad': repos.preguntasSeguridad,
 };
 
 function getRepo(req) {
