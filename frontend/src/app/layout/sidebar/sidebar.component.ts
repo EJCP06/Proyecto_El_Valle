@@ -148,7 +148,7 @@ export class SidebarComponent implements OnInit {
 
   isDesktop = signal(true);
   logoutLoading = signal(false);
-  openSections = signal<Set<string>>(new Set(['Configuración']));
+  openSections = signal<Set<string>>(new Set(['Seguridad']));
 
   readonly LogOut = LogOut;
   readonly Building2 = Building2;
@@ -203,9 +203,15 @@ export class SidebarComponent implements OnInit {
 
   visibleItems() {
     const user = this.auth.currentUser();
-    return NAV_ITEMS.filter(
-      (item) => !item.roles || (user && item.roles.includes(user.rol)),
-    );
+    return NAV_ITEMS
+      .filter((item) => !item.roles || (user && item.roles.includes(user.rol)))
+      .map((item) => {
+        if (!item.children) return item;
+        const children = item.children.filter(
+          (child) => !child.roles || (user && child.roles.includes(user.rol)),
+        );
+        return { ...item, children };
+      });
   }
 
   initials(): string {

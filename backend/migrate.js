@@ -50,11 +50,16 @@ async function migrate() {
     await pool.query(sesionesSql);
 
     // 8. Configuración REQUIERIR_SESION_UNICA
+    // La sesión única es obligatoria: al iniciar sesión se revocan las demás.
     await pool.query(`
       INSERT INTO configuracion (clave, valor) 
-      VALUES ('REQUIERIR_SESION_UNICA', 'false')
-      ON CONFLICT (clave) DO NOTHING;
+      VALUES ('REQUIERIR_SESION_UNICA', 'true')
+      ON CONFLICT (clave) DO UPDATE SET valor = 'true';
     `);
+
+    // 9. Tabla telegram_pending_links (códigos de vinculación en BD)
+    const telegramPendingSql = fs.readFileSync(path.join(__dirname, 'db', 'migration_add_telegram_pending_links.sql'), 'utf8');
+    await pool.query(telegramPendingSql);
 
     console.log('Migración completada exitosamente.');
   } catch (error) {

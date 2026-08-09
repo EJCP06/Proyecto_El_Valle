@@ -11,6 +11,10 @@ export class NotificationService {
     Swal.fire({ icon: 'error', title, text: message, confirmButtonColor: '#dc2626' });
   }
 
+  errorToast(title: string, message?: string) {
+    Swal.fire({ icon: 'error', title, text: message, timer: 4000, showConfirmButton: false, toast: true, position: 'top-end' });
+  }
+
   warning(title: string, message?: string) {
     Swal.fire({ icon: 'warning', title, text: message, timer: 3000, showConfirmButton: false, toast: true, position: 'top-end' });
   }

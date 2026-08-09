@@ -225,8 +225,8 @@ import {
 
                     <!-- Opción: Preguntas de seguridad -->
                     <button (click)="seleccionarMetodo('preguntas')" class="w-full flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-all group cursor-pointer text-left">
-                      <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex items-center justify-center group-hover:bg-amber-200 dark:group-hover:bg-amber-800/40 transition-colors">
-                        <lucide-icon [name]="HelpCircle" class="w-6 h-6 text-amber-600 dark:text-amber-400"></lucide-icon>
+                      <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center group-hover:bg-blue-200 dark:group-hover:bg-blue-800/40 transition-colors">
+                        <lucide-icon [name]="HelpCircle" class="w-6 h-6 text-blue-600 dark:text-blue-400"></lucide-icon>
                       </div>
                       <div class="flex-1">
                         <p class="text-sm font-bold text-slate-800 dark:text-white">Preguntas de seguridad</p>
@@ -873,8 +873,9 @@ export class LoginComponent implements OnDestroy {
       this.notify.warning('Campos requeridos', 'Complete todos los campos.');
       return;
     }
-    if (this.newPassword.length < 8) {
-      this.notify.warning('Contraseña corta', 'La contraseña debe tener al menos 8 caracteres.');
+    const erroresPass = this.validarPassword(this.newPassword);
+    if (erroresPass.length > 0) {
+      this.notify.warning('Contraseña no válida', `La contraseña no cumple los requisitos: ${erroresPass.join(', ')}.`);
       return;
     }
     if (this.newPassword !== this.confirmPassword) {
@@ -989,8 +990,9 @@ export class LoginComponent implements OnDestroy {
       this.notify.warning('Campos requeridos', 'Complete todos los campos.');
       return;
     }
-    if (this.newPassword.length < 8) {
-      this.notify.warning('Contraseña corta', 'La contraseña debe tener al menos 8 caracteres.');
+    const erroresPass = this.validarPassword(this.newPassword);
+    if (erroresPass.length > 0) {
+      this.notify.warning('Contraseña no válida', `La contraseña no cumple los requisitos: ${erroresPass.join(', ')}.`);
       return;
     }
     if (this.newPassword !== this.confirmPassword) {
@@ -1026,6 +1028,16 @@ export class LoginComponent implements OnDestroy {
         }, restante);
       }
     });
+  }
+
+  private validarPassword(pw: string): string[] {
+    const errors: string[] = [];
+    if (pw.length < 8) errors.push('mínimo 8 caracteres');
+    if (!/[A-Z]/.test(pw)) errors.push('una mayúscula');
+    if (!/[a-z]/.test(pw)) errors.push('una minúscula');
+    if (!/[0-9]/.test(pw)) errors.push('un número');
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pw)) errors.push('un símbolo');
+    return errors;
   }
 
   onSubmit() {

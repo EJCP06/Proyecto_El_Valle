@@ -10,9 +10,11 @@ export class SessionTimerService {
 
   private readonly INACTIVITY_MS = 5 * 60 * 1000;
   private readonly WARNING_MS = 60 * 1000;
+  private readonly SESSION_CHECK_MS = 20 * 1000;
 
   private timeoutId: ReturnType<typeof setTimeout> | null = null;
   private warningTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private sessionCheckId: ReturnType<typeof setInterval> | null = null;
   private lastActivity = 0;
   private isRunning = false;
   private swalVisible = false;
@@ -29,6 +31,7 @@ export class SessionTimerService {
     });
 
     this.scheduleCheck();
+    this.startSessionWatch();
   }
 
   stop(): void {
@@ -37,7 +40,45 @@ export class SessionTimerService {
       document.removeEventListener(event, this.onActivity);
     });
     this.clearTimers();
+    this.stopSessionWatch();
     this.closeSwal();
+  }
+
+  /**
+   * Vigila la sesión en el servidor: consulta periódicamente si el token sigue válido.
+   * Si fue revocada (login en otro dispositivo), el backend responde 401 SESSION_REVOKED
+   * y el interceptor de auth muestra la alerta y cierra la sesión de inmediato.
+   */
+  private startSessionWatch(): void {
+    this.stopSessionWatch();
+    this.checkSessionNow();
+    this.sessionCheckId = setInterval(() => this.checkSessionNow(), this.SESSION_CHECK_MS);
+    // Al volver a la pestaña (focus/visibilidad), verificar de inmediato.
+    window.addEventListener('focus', this.onWindowFocus);
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
+  }
+
+  private stopSessionWatch(): void {
+    if (this.sessionCheckId) {
+      clearInterval(this.sessionCheckId);
+      this.sessionCheckId = null;
+    }
+    window.removeEventListener('focus', this.onWindowFocus);
+    document.removeEventListener('visibilitychange', this.onVisibilityChange);
+  }
+
+  private onWindowFocus = (): void => {
+    this.checkSessionNow();
+  };
+
+  private onVisibilityChange = (): void => {
+    if (document.visibilityState === 'visible') {
+      this.checkSessionNow();
+    }
+  };
+
+  private checkSessionNow(): void {
+    this.auth.checkSession().subscribe({ error: () => {} });
   }
 
   private onActivity = (): void => {
@@ -85,12 +126,8 @@ export class SessionTimerService {
       title: '¿Seguir en la sesión?',
       html: `Tu sesión expirará en <b>${countdown}</b> segundos por inactividad.`,
       icon: 'warning',
-      showCancelButton: true,
       confirmButtonColor: '#2563eb',
-      cancelButtonColor: '#dc2626',
       confirmButtonText: 'Continuar',
-      cancelButtonText: 'Salir',
-      reverseButtons: true,
       allowOutsideClick: false,
       allowEscapeKey: false,
       timer: this.WARNING_MS,

@@ -3,6 +3,8 @@ const crypto = require('crypto');
 const { enviarCorreoOTP } = require('../config/email');
 const { enviarMensaje } = require('../config/telegram');
 const recuperacionRepo = require('../repositories/recuperacion.repository');
+const { registrarAuditoria } = require('../services/auditoria.service');
+const { validarPassword } = require('../middleware/validarPassword');
 
 /**
  * Inicia el proceso de recuperación de contraseña. Siempre responde
@@ -58,6 +60,14 @@ exports.solicitar = async (req, res, next) => {
       return res.status(500).json({ success: false, message: `Error al enviar el código por ${canal}.` });
     }
 
+    await registrarAuditoria({
+      accion: 'SOLICITAR CÓDIGO DE RECUPERACIÓN',
+      entidad: 'USUARIO',
+      entidadId: usuario.id,
+      detalle: { canal },
+      req
+    });
+
     return res.json({
       success: true,
       message: `Código enviado por ${canal}`,
@@ -92,8 +102,22 @@ exports.verificar = async (req, res, next) => {
     const codigoValido = await bcrypt.compare(codigo, registro.codigo);
     if (!codigoValido) {
       await recuperacionRepo.incrementarIntentos(registro.id);
+      await registrarAuditoria({
+        accion: 'CÓDIGO INCORRECTO',
+        entidad: 'USUARIO',
+        entidadId: registro.usuario_id,
+        detalle: { email },
+        req
+      });
       return res.status(400).json({ success: false, message: 'Código incorrecto' });
     }
+
+    await registrarAuditoria({
+      accion: 'CÓDIGO VERIFICADO',
+      entidad: 'USUARIO',
+      entidadId: registro.usuario_id,
+      req
+    });
 
     return res.json({ success: true, message: 'Código verificado correctamente' });
   } catch (error) {
@@ -111,8 +135,13 @@ exports.restablecer = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Todos los campos son requeridos' });
     }
 
-    if (newPassword.length < 8) {
-      return res.status(400).json({ success: false, message: 'La contraseña debe tener al menos 8 caracteres' });
+    const erroresPassword = validarPassword(newPassword);
+    if (erroresPassword.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `La contraseña no cumple los requisitos de seguridad: ${erroresPassword.join(', ')}`,
+        errors: erroresPassword
+      });
     }
 
     const registro = await recuperacionRepo.findCodigoValido(email);
@@ -141,6 +170,13 @@ exports.restablecer = async (req, res, next) => {
     await recuperacionRepo.updatePassword(usuario.id, passwordHash);
     await recuperacionRepo.marcarUsado(registro.id);
 
+    await registrarAuditoria({
+      accion: 'RESTABLECER CONTRASEÑA',
+      entidad: 'USUARIO',
+      entidadId: usuario.id,
+      req
+    });
+
     return res.json({ success: true, message: 'Contraseña actualizada exitosamente' });
   } catch (error) {
     next(error);
@@ -159,15 +195,23 @@ exports.vincularTelegram = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Correo y código son requeridos' });
     }
 
-    const telegramBot = require('../config/telegramBot');
-    const pendiente = telegramBot.pendingLinks?.get(email.toLowerCase().trim());
+    const db = require('../config/db');
+    const emailLower = email.toLowerCase().trim();
 
-    if (!pendiente) {
+    // Buscar código pendiente en BD
+    const result = await db.query(
+      'SELECT id, codigo, chat_id, expira_en FROM telegram_pending_links WHERE LOWER(email) = $1 ORDER BY creado_en DESC LIMIT 1',
+      [emailLower]
+    );
+
+    if (result.rows.length === 0) {
       return res.status(400).json({ success: false, message: 'No hay vinculación pendiente para este correo. Envía /start tu@email.com al bot primero.' });
     }
 
-    if (pendiente.expires < Date.now()) {
-      telegramBot.pendingLinks.delete(email.toLowerCase().trim());
+    const pendiente = result.rows[0];
+
+    if (new Date(pendiente.expira_en) < new Date()) {
+      await db.query('DELETE FROM telegram_pending_links WHERE id = $1', [pendiente.id]);
       return res.status(400).json({ success: false, message: 'El código ha expirado. Vuelve a enviar /start al bot.' });
     }
 
@@ -176,14 +220,20 @@ exports.vincularTelegram = async (req, res, next) => {
     }
 
     // Guardar chat_id en el usuario
-    const pool = telegramBot.pool;
-    await pool.query(
-      'UPDATE usuarios SET telegram_chat_id = $1 WHERE LOWER(email) = LOWER($2)',
-      [pendiente.chatId, email]
+    const resultado = await db.query(
+      'UPDATE usuarios SET telegram_chat_id = $1 WHERE LOWER(email) = LOWER($2) RETURNING id',
+      [pendiente.chat_id, email]
     );
 
     // Limpiar pendiente
-    telegramBot.pendingLinks.delete(email.toLowerCase().trim());
+    await db.query('DELETE FROM telegram_pending_links WHERE id = $1', [pendiente.id]);
+
+    await registrarAuditoria({
+      accion: 'VINCULAR TELEGRAM',
+      entidad: 'USUARIO',
+      entidadId: resultado.rows[0] ? resultado.rows[0].id : null,
+      req
+    });
 
     return res.json({ success: true, message: 'Telegram vinculado correctamente' });
   } catch (error) {

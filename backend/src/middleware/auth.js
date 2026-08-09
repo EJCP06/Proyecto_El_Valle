@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const env = require('../config/env');
 const db = require('../config/db');
+const { registrarAuditoria } = require('../services/auditoria.service');
 
 const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -33,6 +34,12 @@ const authMiddleware = async (req, res, next) => {
       [payload.jti]
     );
     if (revokedResult.rows.length > 0 && revokedResult.rows[0].revocada) {
+      await registrarAuditoria({
+        accion: 'SESIÓN REVOCADA',
+        entidad: 'AUTENTICACIÓN',
+        entidadId: revokedResult.rows[0].usuario_id,
+        req
+      });
       return res.status(401).json({ 
         success: false, 
         code: 'SESSION_REVOKED', 
@@ -42,11 +49,36 @@ const authMiddleware = async (req, res, next) => {
     return res.status(401).json({ success: false, message: 'Sesión inválida o expirada' });
   }
 
-  // Actualizar última actividad
-  await db.query(
-    `UPDATE sesiones_usuario SET ultima_actividad = NOW() WHERE jti = $1`,
-    [payload.jti]
-  );
+  // Terminar sesión por inactividad: si no hubo actividad en los últimos 5 minutos
+  // se revoca en BD y se obliga a volver a iniciar sesión.
+  const inactiva = sessionResult.rows[0].ultima_actividad < new Date(Date.now() - 5 * 60 * 1000);
+  if (inactiva) {
+    await db.query(
+      `UPDATE sesiones_usuario SET revocada = true WHERE jti = $1`,
+      [payload.jti]
+    );
+    await registrarAuditoria({
+      accion: 'TERMINAR SESIÓN POR INACTIVIDAD',
+      entidad: 'AUTENTICACIÓN',
+      entidadId: sessionResult.rows[0].usuario_id,
+      req
+    });
+    return res.status(401).json({
+      success: false,
+      code: 'SESSION_INACTIVE',
+      message: 'Tu sesión terminó por inactividad. Vuelve a iniciar sesión.'
+    });
+  }
+
+  // Actualizar última actividad (se omite para los chequeos de sesión del frontend,
+  // para no interferir con la revocación por inactividad del servidor).
+  const esChequeoSesion = req.headers['x-session-check'] === '1';
+  if (!esChequeoSesion) {
+    await db.query(
+      `UPDATE sesiones_usuario SET ultima_actividad = NOW() WHERE jti = $1`,
+      [payload.jti]
+    );
+  }
 
   req.user = { id: payload.sub, email: payload.email, rol: payload.rol, jti: payload.jti };
   next();

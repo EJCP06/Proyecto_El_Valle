@@ -5,6 +5,7 @@ export interface Usuario {
   email: string;
   rol: 'admin' | 'vocero';
   activo: boolean;
+  telegram_chat_id?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }

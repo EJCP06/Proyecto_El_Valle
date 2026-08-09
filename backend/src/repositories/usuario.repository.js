@@ -2,7 +2,7 @@ const db = require('../config/db');
 
 class UsuarioRepository {
   async findByEmail(email) {
-    const res = await db.query('SELECT * FROM usuarios WHERE email = $1', [email]);
+    const res = await db.query('SELECT * FROM usuarios WHERE LOWER(email) = LOWER($1)', [email]);
     return res.rows[0];
   }
 
@@ -11,16 +11,28 @@ class UsuarioRepository {
     return res.rows[0];
   }
 
-  async findAll(limit = 10, offset = 0) {
+  /** Trae el usuario con columnas sensibles (password, reset_token). Usar sólo cuando se necesiten. */
+  async findByIdWithCredentials(id) {
+    const res = await db.query('SELECT id, nombre, email, rol, activo, created_at, password, reset_token FROM usuarios WHERE id = $1', [id]);
+    return res.rows[0];
+  }
+
+  async findAll(limit = 10, offset = 0, excludeId = null) {
     const res = await db.query(
-      'SELECT id, nombre, email, rol, activo, created_at FROM usuarios ORDER BY id DESC LIMIT $1 OFFSET $2',
-      [limit, offset]
+      `SELECT id, nombre, email, rol, activo, created_at, telegram_chat_id
+       FROM usuarios
+       WHERE ($1::int IS NULL OR id != $1)
+       ORDER BY id DESC LIMIT $2 OFFSET $3`,
+      [excludeId, limit, offset]
     );
     return res.rows;
   }
 
-  async count() {
-    const res = await db.query('SELECT COUNT(*)::int as total FROM usuarios');
+  async count(excludeId = null) {
+    const res = await db.query(
+      'SELECT COUNT(*)::int as total FROM usuarios WHERE ($1::int IS NULL OR id != $1)',
+      [excludeId]
+    );
     return res.rows[0].total;
   }
 

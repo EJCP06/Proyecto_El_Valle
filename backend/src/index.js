@@ -11,18 +11,36 @@ const routes = require('./routes/index');
 const errorHandler = require('./middleware/error');
 const migrate = require('../migrate');
 const { startBot } = require('./config/telegramBot');
+const { iniciarLimpiezaSesiones } = require('./jobs/limpiarSesiones');
+const validarIP = require('./middleware/validarIP');
+const configuracionRepo = require('./repositories/configuracion.repository');
 
 const app = express();
 
 // Security headers
 app.use(helmet());
 
-// CORS
-const allowedOrigins = [
+// CORS dinámico desde configuración
+let allowedOrigins = [
   'http://localhost:4200',
   'http://localhost:3000',
   'http://127.0.0.1:4200',
 ];
+
+async function cargarCORS() {
+  try {
+    const r = await pool.query("SELECT valor FROM configuracion WHERE clave = 'ORIGENES_PERMITIDOS'");
+    if (r.rows[0]?.valor) {
+      allowedOrigins = r.rows[0].valor.split(',').map(s => s.trim()).filter(Boolean);
+      logger.info(`CORS actualizado: ${allowedOrigins.join(', ')}`);
+    }
+  } catch (e) {
+    logger.warn('No se pudo cargar ORIGENES_PERMITIDOS, usando defaults');
+  }
+}
+
+await cargarCORS();
+setInterval(cargarCORS, 60 * 1000);
 
 app.use(cors({
   origin: (origin, cb) => {
@@ -55,6 +73,9 @@ const authLimiter = rateLimit({
   message: { success: false, message: 'Demasiados intentos de inicio de sesión. Intenta de nuevo en 15 minutos.' },
 });
 
+// Validar IP (antes de rutas)
+app.use(validarIP);
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', env: env.NODE_ENV, timestamp: new Date().toISOString() });
@@ -85,6 +106,7 @@ async function start() {
     logger.info('Conexión a PostgreSQL establecida.');
     await migrate();
     startBot();
+    iniciarLimpiezaSesiones();
     const server = app.listen(env.PORT, () => {
       logger.info(`Servidor corriendo en http://localhost:${env.PORT}`);
     });

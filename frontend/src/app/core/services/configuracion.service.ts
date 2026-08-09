@@ -5,6 +5,14 @@ import { environment } from '../../../environments/environment';
 import { ConfiguracionSistema } from '../models/usuario.model';
 import { ApiResponse } from '../interfaces/api-response.interface';
 
+export interface IpIntento {
+  ip: string;
+  intentos_fallidos: number;
+  bloqueada_hasta: string | null;
+  creado_en: string;
+  actualizado_en: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ConfiguracionService {
   private readonly url = `${environment.apiUrl}/configuracion`;
@@ -20,5 +28,13 @@ export class ConfiguracionService {
       `${this.url}/${clave}`,
       { valor }
     );
+  }
+
+  getIpIntentos(): Observable<ApiResponse<IpIntento[]>> {
+    return this.http.get<ApiResponse<IpIntento[]>>(`${this.url}/ip-intentos`);
+  }
+
+  desbloquearIp(ip: string): Observable<ApiResponse<any>> {
+    return this.http.delete<ApiResponse<any>>(`${this.url}/ip-intentos/${ip}`);
   }
 }

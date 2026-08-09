@@ -62,13 +62,15 @@ const rolesMiddleware = require('../middleware/roles');
 const validarPassword = require('../middleware/validarPassword');
 
 router.post('/login', authController.login);
+router.post('/logout', authMiddleware, authController.logout);
 router.get('/me', authMiddleware, authController.profile);
+router.patch('/me', authMiddleware, authController.updateProfile);
 router.patch('/password', authMiddleware, validarPassword, authController.changePassword);
 
 // Admin users CRUD routes
 router.get('/usuarios', authMiddleware, rolesMiddleware('admin'), authController.getAllUsers);
 router.get('/usuarios/:id', authMiddleware, rolesMiddleware('admin'), authController.getUserById);
-router.post('/usuarios', authMiddleware, rolesMiddleware('admin'), authController.register);
+router.post('/usuarios', authMiddleware, rolesMiddleware('admin'), validarPassword, authController.register);
 router.patch('/usuarios/:id', authMiddleware, rolesMiddleware('admin'), authController.updateUser);
 router.delete('/usuarios/:id', authMiddleware, rolesMiddleware('admin'), authController.deactivateUser);
 

@@ -31,15 +31,16 @@ function validarPassword(password) {
 }
 
 /**
- * Express middleware que valida req.body.password.
+ * Express middleware que valida la contraseña del cuerpo de la petición.
+ * Soporta el campo 'password' (registro) y 'newPassword' (cambio de contraseña).
  */
 module.exports = function validarPasswordMiddleware(req, res, next) {
-  const password = req.body.password;
+  const password = req.body.password || req.body.newPassword;
   const errors = validarPassword(password);
   if (errors.length > 0) {
     return res.status(400).json({
       success: false,
-      message: 'La contraseña no cumple los requisitos de seguridad',
+      message: `La contraseña no cumple los requisitos de seguridad: ${errors.join(', ')}`,
       errors
     });
   }

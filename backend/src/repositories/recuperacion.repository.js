@@ -3,7 +3,7 @@ const db = require('../config/db');
 class RecuperacionRepository {
   async findUsuarioByEmail(email) {
     const res = await db.query(
-      'SELECT id, email, activo FROM usuarios WHERE LOWER(email) = LOWER($1)',
+      'SELECT id, email, activo, telegram_chat_id FROM usuarios WHERE LOWER(email) = LOWER($1)',
       [email.trim()]
     );
     return res.rows[0] || null;
@@ -26,7 +26,7 @@ class RecuperacionRepository {
 
   async findCodigoValido(email) {
     const res = await db.query(
-      `SELECT rc.id, rc.codigo, rc.expiracion, rc.intentos
+      `SELECT rc.id, rc.usuario_id, rc.codigo, rc.expiracion, rc.intentos
        FROM recuperacion_clave rc
        JOIN usuarios u ON rc.usuario_id = u.id
        WHERE LOWER(u.email) = LOWER($1) AND rc.usado = false

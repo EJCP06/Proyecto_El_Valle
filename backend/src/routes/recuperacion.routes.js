@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const recuperacionController = require('../controllers/recuperacion.controller');
 const rateLimit = require('express-rate-limit');
+const validarPassword = require('../middleware/validarPassword');
 
 const otpLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -12,7 +13,7 @@ const otpLimiter = rateLimit({
 
 router.post('/solicitar', recuperacionController.solicitar);
 router.post('/verificar', otpLimiter, recuperacionController.verificar);
-router.post('/restablecer', otpLimiter, recuperacionController.restablecer);
+router.post('/restablecer', otpLimiter, validarPassword, recuperacionController.restablecer);
 router.post('/vincular-telegram', otpLimiter, recuperacionController.vincularTelegram);
 
 module.exports = router;

@@ -8,6 +8,8 @@ import {
   HelpCircle,
   List,
   BookOpen,
+  User,
+  ShieldCheck,
 } from 'lucide-angular';
 
 export interface NavItem {
@@ -37,5 +39,13 @@ export const NAV_ITEMS: NavItem[] = [
       { label: 'Preguntas de Seguridad', icon: HelpCircle, route: '/app/catalogos/preguntas-seguridad' },
     ]
   },
-  { label: 'Usuarios', icon: UserCog, route: '/app/usuarios', roles: ['admin'] },
+  {
+    label: 'Seguridad',
+    icon: UserCog,
+    children: [
+      { label: 'Perfil', icon: User, route: '/app/perfil' },
+      { label: 'Usuarios', icon: Users, route: '/app/usuarios', roles: ['admin'] },
+      { label: 'Auditoría', icon: ShieldCheck, route: '/app/auditoria', roles: ['admin'] },
+    ],
+  },
 ];

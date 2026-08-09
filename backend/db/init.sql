@@ -159,6 +159,15 @@ CREATE TABLE IF NOT EXISTS configuracion (
   descripcion TEXT
 );
 
+-- Tabla de control de intentos por IP (bloqueo automático)
+CREATE TABLE IF NOT EXISTS ip_intentos (
+  ip VARCHAR(45) PRIMARY KEY,
+  intentos_fallidos INT DEFAULT 0,
+  bloqueada_hasta TIMESTAMP,
+  creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Tabla de Preguntas de Seguridad
 CREATE TABLE IF NOT EXISTS preguntas_seguridad (
   id SERIAL PRIMARY KEY,
@@ -245,5 +254,11 @@ INSERT INTO configuracion (clave, valor, descripcion)
 VALUES 
   ('NOMBRE_SISTEMA', 'El Valle - Gestión Comunal', 'Nombre de la aplicación visible en el sistema'),
   ('MODO_MANTENIMIENTO', 'false', 'Indica si el sistema está en mantenimiento'),
-  ('REGISTRO_ABIERTO', 'true', 'Indica si se permite el registro de nuevos usuarios en el sistema')
+  ('REGISTRO_ABIERTO', 'true', 'Indica si se permite el registro de nuevos usuarios en el sistema'),
+  ('IP_VALIDACION', 'true', 'Habilita validación y bloqueo de IPs'),
+  ('IP_BLOQUEADAS', '', 'Lista de IPs bloqueadas manualmente (CSV)'),
+  ('IP_PERMITIDAS', '', 'Lista de IPs permitidas; si no está vacía, solo estas acceden (CSV)'),
+  ('MAX_INTENTOS_LOGIN', '3', 'Intentos fallidos antes de bloqueo temporal automático'),
+  ('TIEMPO_BLOQUEO_MIN', '15', 'Minutos de bloqueo tras exceder intentos fallidos'),
+  ('ORIGENES_PERMITIDOS', 'http://localhost:4200,http://localhost:3000,http://127.0.0.1:4200', 'Orígenes CORS permitidos (CSV)')
 ON CONFLICT (clave) DO NOTHING;

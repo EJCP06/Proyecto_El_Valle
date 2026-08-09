@@ -1,7 +1,7 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { tap } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { LoginRequest, LoginResponse, AuthUser } from '../interfaces/auth.interface';
 import { ApiResponse } from '../interfaces/api-response.interface';
@@ -18,6 +18,20 @@ export class AuthService {
     JSON.parse(sessionStorage.getItem(USER_KEY) ?? 'null')
   );
 
+  /**
+   * Evita mostrar la alerta de sesión revocada más de una vez por sesión de login.
+   * Se reinicia únicamente al iniciar sesión de nuevo.
+   */
+  private _sessionAlertShown = false;
+
+  get sessionAlertShown(): boolean {
+    return this._sessionAlertShown;
+  }
+
+  markSessionAlertShown(): void {
+    this._sessionAlertShown = true;
+  }
+
   /** Publicly readable signals */
   readonly currentUser = this._user.asReadonly();
   readonly isAdmin = computed(() => this._user()?.rol === 'admin');
@@ -31,6 +45,7 @@ export class AuthService {
       .pipe(
         tap((res) => {
           if (res.success) {
+            this._sessionAlertShown = false;
             this._token.set(res.data.token);
             this._user.set(res.data.user);
             sessionStorage.setItem(TOKEN_KEY, res.data.token);
@@ -41,6 +56,13 @@ export class AuthService {
   }
 
   logout(): void {
+    const token = this._token();
+    if (token) {
+      this.http
+        .post<ApiResponse<any>>(`${this.api}/auth/logout`, {})
+        .pipe(catchError(() => of(null)))
+        .subscribe();
+    }
     this._token.set(null);
     this._user.set(null);
     sessionStorage.removeItem(TOKEN_KEY);
@@ -63,8 +85,31 @@ export class AuthService {
     return this._token();
   }
 
+  /**
+   * Consulta liviana de sesión: el backend responde 401 SESSION_REVOKED si fue revocada.
+   * La cabecera x-session-check evita que esta consulta renueve la actividad (no interfiere
+   * con la revocación por inactividad del servidor).
+   */
+  checkSession(): Observable<ApiResponse<AuthUser>> {
+    return this.http.get<ApiResponse<AuthUser>>(`${this.api}/auth/me`, {
+      headers: { 'x-session-check': '1' },
+    });
+  }
+
   changePassword(currentPassword: string, newPassword: string): Observable<ApiResponse<any>> {
     return this.http.patch<ApiResponse<any>>(`${this.api}/auth/password`, { currentPassword, newPassword });
+  }
+
+  updateProfile(nombre: string, email: string): Observable<ApiResponse<AuthUser>> {
+    return this.http.patch<ApiResponse<AuthUser>>(`${this.api}/auth/me`, { nombre, email }).pipe(
+      tap((res) => {
+        if (res.success && res.data) {
+          const updated = { ...this._user(), ...res.data };
+          this._user.set(updated);
+          sessionStorage.setItem(USER_KEY, JSON.stringify(updated));
+        }
+      })
+    );
   }
 
   solicitarRecuperacion(email: string, canal: 'email' | 'telegram' = 'email'): Observable<ApiResponse<any>> {
@@ -91,16 +136,11 @@ export class AuthService {
     return this.http.get<ApiResponse<any>>(`${this.api}/preguntas-seguridad/usuario/${usuarioId}`);
   }
 
-  // Sesiones
-  getSessions(): Observable<ApiResponse<any>> {
-    return this.http.get<ApiResponse<any>>(`${this.api}/sesiones`);
+  getMisPreguntas(): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.api}/preguntas-seguridad/mias`);
   }
 
-  revokeSession(sessionId: number): Observable<ApiResponse<any>> {
-    return this.http.delete<ApiResponse<any>>(`${this.api}/sesiones/${sessionId}`);
-  }
-
-  revokeAllOtherSessions(): Observable<ApiResponse<any>> {
-    return this.http.delete<ApiResponse<any>>(`${this.api}/sesiones`);
+  updateMisPreguntas(preguntas: { id?: number | null; preguntaId: number; respuesta: string }[]): Observable<ApiResponse<any>> {
+    return this.http.put<ApiResponse<any>>(`${this.api}/preguntas-seguridad/mias`, { preguntas });
   }
 }

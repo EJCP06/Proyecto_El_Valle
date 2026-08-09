@@ -120,6 +120,13 @@ export const routes: Routes = [
         ],
       },
       {
+        path: 'perfil',
+        loadComponent: () =>
+          import('./features/perfil/perfil.component').then(
+            (m) => m.PerfilComponent
+          ),
+      },
+      {
         path: 'usuarios',
         canActivate: [roleGuard],
         data: { roles: ['admin'] },
@@ -132,6 +139,15 @@ export const routes: Routes = [
               ),
           },
         ],
+      },
+      {
+        path: 'auditoria',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () =>
+          import('./features/auditoria/auditoria.component').then(
+            (m) => m.AuditoriaComponent
+          ),
       },
     ],
   },

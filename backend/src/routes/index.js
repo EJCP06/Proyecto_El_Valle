@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const registrarActividadMiddleware = require('../middleware/auditoria');
 const authRoutes = require('./auth.routes');
 const recuperacionRoutes = require('./recuperacion.routes');
 const consejosRoutes = require('./consejos.routes');
@@ -9,8 +10,9 @@ const reportesRoutes = require('./reportes.routes');
 const configuracionRoutes = require('./configuracion.routes');
 const catalogoRoutes = require('./catalogo.routes');
 const preguntaSeguridadRoutes = require('./preguntaSeguridad.routes');
-const sessionRoutes = require('./session.routes');
+const auditoriaRoutes = require('./auditoria.routes');
 
+router.use(registrarActividadMiddleware);
 router.use('/auth/recuperacion', recuperacionRoutes);
 router.use('/auth', authRoutes);
 router.use('/consejos', consejosRoutes);
@@ -21,6 +23,6 @@ router.use('/reportes', reportesRoutes);
 router.use('/configuracion', configuracionRoutes);
 router.use('/catalogos', catalogoRoutes);
 router.use('/preguntas-seguridad', preguntaSeguridadRoutes);
-router.use('/sesiones', sessionRoutes);
+router.use('/auditoria', auditoriaRoutes);
 
 module.exports = router;

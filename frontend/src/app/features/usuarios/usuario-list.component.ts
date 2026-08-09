@@ -109,9 +109,11 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                         <button (click)="openEdit(u)" aria-label="Editar usuario" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 hover:shadow-[0_2px_10px_-3px_rgba(59,130,246,0.4)] dark:hover:bg-blue-900/30 rounded-xl transition-all cursor-pointer">
                           <lucide-icon [name]="Edit2" class="w-4 h-4"></lucide-icon>
                         </button>
-                        <button (click)="openTelegramLink(u)" aria-label="Vincular Telegram" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 hover:shadow-[0_2px_10px_-3px_rgba(59,130,246,0.4)] dark:hover:bg-blue-900/30 rounded-xl transition-all cursor-pointer">
-                          <lucide-icon [name]="Send" class="w-4 h-4"></lucide-icon>
-                        </button>
+                        @if (!u.telegram_chat_id) {
+                          <button (click)="openTelegramLink(u)" aria-label="Vincular Telegram" title="Vincular Telegram" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 hover:shadow-[0_2px_10px_-3px_rgba(59,130,246,0.4)] dark:hover:bg-blue-900/30 rounded-xl transition-all cursor-pointer">
+                            <lucide-icon [name]="Send" class="w-4 h-4"></lucide-icon>
+                          </button>
+                        }
                         @if (u.activo) {
                           <button (click)="deactivate(u)" aria-label="Desactivar usuario" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-100 hover:shadow-[0_2px_10px_-3px_rgba(244,63,94,0.4)] dark:hover:bg-rose-900/30 rounded-xl transition-all cursor-pointer">
                             <lucide-icon [name]="Trash2" class="w-4 h-4"></lucide-icon>
@@ -185,6 +187,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                     <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Contraseña <span class="text-red-500">*</span></label>
                     <input [(ngModel)]="password" name="password" type="password" required placeholder="••••••••"
                       class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"/>
+                    <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5">Mínimo 8 caracteres, mayúscula, minúscula, número y símbolo.</p>
                   </div>
                 }
                 <div class="space-y-2" [class.md:col-span-1]="!editingId()" [class.md:col-span-2]="editingId()">
@@ -320,17 +323,26 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
 
           <div class="p-4 sm:p-6">
             <div class="mb-6">
-              <div class="flex items-center gap-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-900/50 rounded-xl p-4">
-                <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
-                  <lucide-icon [name]="Send" class="w-5 h-5 text-blue-600 dark:text-blue-400"></lucide-icon>
-                </div>
+              <div class="bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-900/50 rounded-xl p-4">
                 <div>
                   <p class="text-sm font-bold text-slate-800 dark:text-white">¿Cómo vincular?</p>
-                  <ol class="text-xs text-slate-600 dark:text-slate-400 mt-1 space-y-1 list-decimal list-inside">
-                    <li>Abre Telegram y busca el bot <b>@ConsejoElValleBot</b> (o el nombre de tu bot)</li>
-                    <li>Envía el comando: <code class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-xs">{{ getTelegramStartCommand() }}</code></li>
-                    <li>El bot te responderá con un <b>código de 6 dígitos</b></li>
-                    <li>Ingresa ese código aquí y pulsa <b>Vincular</b></li>
+                  <ol class="text-xs text-slate-600 dark:text-slate-400 mt-2 space-y-4 list-none">
+                    <li class="flex items-start gap-2.5">
+                      <span class="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-[10px] font-black shrink-0 mt-0.5">1</span>
+                      <span>Abre Telegram y busca el bot <b>@ConsejoElValleBot</b></span>
+                    </li>
+                    <li class="flex items-start gap-2.5">
+                      <span class="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-[10px] font-black shrink-0 mt-0.5">2</span>
+                      <span>Pulsa <b>Iniciar</b> en el bot y escribe tu correo: <code class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-xs">{{ telegramLinkUsuario()?.email }}</code></span>
+                    </li>
+                    <li class="flex items-start gap-2.5">
+                      <span class="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-[10px] font-black shrink-0 mt-0.5">3</span>
+                      <span>El bot te responderá con un <b>código de 6 dígitos</b></span>
+                    </li>
+                    <li class="flex items-start gap-2.5">
+                      <span class="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-[10px] font-black shrink-0 mt-0.5">4</span>
+                      <span>Ingresa ese código aquí y pulsa <b>Vincular</b></span>
+                    </li>
                   </ol>
                 </div>
               </div>
@@ -598,6 +610,17 @@ readonly Eye = Eye;
       this.modalError.set('Debes asignar las 3 preguntas de seguridad al crear el usuario.');
       return;
     }
+    if (!id) {
+      if (!this.password) {
+        this.modalError.set('La contraseña es requerida.');
+        return;
+      }
+      const erroresPass = this.validarPassword(this.password);
+      if (erroresPass.length > 0) {
+        this.modalError.set(`La contraseña no cumple los requisitos: ${erroresPass.join(', ')}.`);
+        return;
+      }
+    }
 
     this.saving.set(true);
     const basePayload = id ? { ...this.form } : { ...this.form, password: this.password };
@@ -629,8 +652,15 @@ async deactivate(u: Usuario) {
     }
   }
 
-  getTelegramStartCommand(): string {
-    return `/start ${this.telegramLinkUsuario()?.email ?? ''}`;
+  private validarPassword(pw: string): string[] {
+    const errors: string[] = [];
+    if (pw.length < 8) errors.push('mínimo 8 caracteres');
+    if (!/[A-Z]/.test(pw)) errors.push('una mayúscula');
+    if (!/[a-z]/.test(pw)) errors.push('una minúscula');
+    if (!/[0-9]/.test(pw)) errors.push('un número');
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pw)) errors.push('un símbolo');
+    return errors;
   }
+
 }
 
