@@ -3,13 +3,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { FormulariosService } from '../../core/services/formularios.service';
 import { MiembrosService } from '../../core/services/miembros.service';
+import { CustomSelectComponent } from '../../shared/components/custom-select/custom-select.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { Formulario, Miembro } from '../../core/models/usuario.model';
 
 @Component({
   selector: 'app-formulario-responder',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, CustomSelectComponent],
   template: `
     <div class="page-form">
       <h2 class="form-title">{{ formulario()?.titulo }}</h2>
@@ -47,12 +48,7 @@ import { Formulario, Miembro } from '../../core/models/usuario.model';
                 @if (campo.tipo === 'textarea') {
                   <textarea [name]="campo.label" [(ngModel)]="respuestas[campo.label]" [required]="campo.requerido" rows="3"></textarea>
                 } @else if (campo.tipo === 'select') {
-                  <select [name]="campo.label" [(ngModel)]="respuestas[campo.label]" [required]="campo.requerido">
-                    <option value="">Seleccionar...</option>
-                    @for (op of campo.opciones ?? []; track op) {
-                      <option [value]="op">{{ op }}</option>
-                    }
-                  </select>
+                  <app-custom-select [name]="campo.label" [(ngModel)]="respuestas[campo.label]" [options]="campoOpciones(campo)" placeholder="SELECCIONAR..."></app-custom-select>
                 } @else if (campo.tipo === 'yes_no') {
                   <div class="yesno-group">
                     <label class="yesno-option">
@@ -140,6 +136,10 @@ export class FormularioResponderComponent implements OnInit {
 
   selectMiembro(m: Miembro) {
     this.selectedMiembroId.set(m.id!);
+  }
+
+  campoOpciones(campo: any): { value: any; label: string }[] {
+    return (campo.opciones ?? []).map((op: string) => ({ value: op, label: op }));
   }
 
   submit() {

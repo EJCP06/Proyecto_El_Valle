@@ -260,5 +260,6 @@ VALUES
   ('IP_PERMITIDAS', '', 'Lista de IPs permitidas; si no está vacía, solo estas acceden (CSV)'),
   ('MAX_INTENTOS_LOGIN', '3', 'Intentos fallidos antes de bloqueo temporal automático'),
   ('TIEMPO_BLOQUEO_MIN', '15', 'Minutos de bloqueo tras exceder intentos fallidos'),
-  ('ORIGENES_PERMITIDOS', 'http://localhost:4200,http://localhost:3000,http://127.0.0.1:4200', 'Orígenes CORS permitidos (CSV)')
+  ('ORIGENES_PERMITIDOS', 'http://localhost:4200,http://localhost:3000,http://127.0.0.1:4200', 'Orígenes CORS permitidos (CSV)'),
+  ('RETENCION_BACKUPS_DIAS', '30', 'Días que se conservan los respaldos antes de la limpieza automática')
 ON CONFLICT (clave) DO NOTHING;

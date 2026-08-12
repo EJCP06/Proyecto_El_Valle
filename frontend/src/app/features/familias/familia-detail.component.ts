@@ -12,11 +12,12 @@ import { PaginationComponent } from '../../shared/components/pagination/paginati
 import { PaginatePipe } from '../../shared/pipes/paginate.pipe';
 import { FillersPipe } from '../../shared/pipes/fillers.pipe';
 import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 } from 'lucide-angular';
+import { CustomSelectComponent } from '../../shared/components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-familia-detail',
   standalone: true,
-  imports: [RouterLink, FormsModule, PaginationComponent, PaginatePipe, FillersPipe, LucideAngularModule],
+  imports: [RouterLink, FormsModule, PaginationComponent, PaginatePipe, FillersPipe, LucideAngularModule, CustomSelectComponent],
   template: `
     <div class="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300">
       @if (loading()) {
@@ -57,7 +58,7 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
             <div class="relative w-full max-w-lg">
               <div class="flex items-center w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-1.5 shadow-lg group focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500 transition-all duration-300">
                 <div class="relative search-filter-container">
-                  <button type="button" (click)="toggleSearchFilterDropdown()" class="bg-slate-50 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 px-5 py-2.5 text-[11px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 focus:outline-none rounded-xl cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-all flex items-center gap-2.5">
+                  <button type="button" (click)="toggleSearchFilterDropdown()" class="bg-slate-50 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 px-5 self-stretch text-[11px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 focus:outline-none rounded-xl cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-all flex items-center gap-2.5">
                     <span>{{ getSearchFilterLabel() }}</span>
                     <lucide-icon [name]="ChevronDown" class="w-3.5 h-3.5 transition-transform duration-200" [class.rotate-180]="showSearchFilterDropdown"></lucide-icon>
                   </button>
@@ -226,52 +227,23 @@ import { LucideAngularModule, Edit2, Trash2, Search, ChevronDown, CheckCircle2 }
                 </div>
                 <div class="md:col-span-1 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Sexo</label>
-                  <select [(ngModel)]="miembroForm.sexo" name="mSexo"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
-                    <option value="">— Sin especificar —</option>
-                    <option value="M">Masculino</option>
-                    <option value="F">Femenino</option>
-                  </select>
+                  <app-custom-select [(ngModel)]="miembroForm.sexo" name="mSexo" [options]="sexoOptions" placeholder="— Sin especificar —"></app-custom-select>
                 </div>
                 <div class="md:col-span-1 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Parentesco</label>
-                  <select [(ngModel)]="miembroForm.parentesco" name="mParentesco"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
-                    <option value="">— Seleccionar —</option>
-                    @for (p of parentescos(); track p.id) {
-                      <option [value]="p.nombre">{{ p.nombre }}</option>
-                    }
-                  </select>
+                  <app-custom-select [(ngModel)]="miembroForm.parentesco" name="mParentesco" [options]="parentescoOptions" placeholder="— Seleccionar —"></app-custom-select>
                 </div>
                 <div class="md:col-span-1 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Estado civil</label>
-                  <select [(ngModel)]="miembroForm.estadoCivil" name="mEstadoCivil"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
-                    <option value="">— Seleccionar —</option>
-                    @for (e of estadosCiviles(); track e.id) {
-                      <option [value]="e.nombre">{{ e.nombre }}</option>
-                    }
-                  </select>
+                  <app-custom-select [(ngModel)]="miembroForm.estadoCivil" name="mEstadoCivil" [options]="estadoCivilOptions" placeholder="— Seleccionar —"></app-custom-select>
                 </div>
                 <div class="md:col-span-1 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Nivel educativo</label>
-                  <select [(ngModel)]="miembroForm.nivelEducativo" name="mNivelEducativo"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
-                    <option value="">— Seleccionar —</option>
-                    @for (n of nivelesEducativos(); track n.id) {
-                      <option [value]="n.nombre">{{ n.nombre }}</option>
-                    }
-                  </select>
+                  <app-custom-select [(ngModel)]="miembroForm.nivelEducativo" name="mNivelEducativo" [options]="nivelEducativoOptions" placeholder="— Seleccionar —"></app-custom-select>
                 </div>
                 <div class="md:col-span-2 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Ocupación</label>
-                  <select [(ngModel)]="miembroForm.ocupacion" name="mOcupacion"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
-                    <option value="">— Seleccionar —</option>
-                    @for (o of ocupaciones(); track o.id) {
-                      <option [value]="o.nombre">{{ o.nombre }}</option>
-                    }
-                  </select>
+                  <app-custom-select [(ngModel)]="miembroForm.ocupacion" name="mOcupacion" [options]="ocupacionOptions" placeholder="— Seleccionar —"></app-custom-select>
                 </div>
                 <div class="md:col-span-2 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Teléfono</label>
@@ -545,6 +517,27 @@ export class FamiliaDetailComponent implements OnInit {
     this.showMiembroModal.set(false);
     this.miembroSaving.set(false);
     this.miembroError.set('');
+  }
+
+  sexoOptions: { value: string; label: string }[] = [
+    { value: 'M', label: 'Masculino' },
+    { value: 'F', label: 'Femenino' },
+  ];
+
+  get parentescoOptions(): { value: string; label: string }[] {
+    return this.parentescos().map((p) => ({ value: p.nombre, label: p.nombre }));
+  }
+
+  get estadoCivilOptions(): { value: string; label: string }[] {
+    return this.estadosCiviles().map((e) => ({ value: e.nombre, label: e.nombre }));
+  }
+
+  get nivelEducativoOptions(): { value: string; label: string }[] {
+    return this.nivelesEducativos().map((n) => ({ value: n.nombre, label: n.nombre }));
+  }
+
+  get ocupacionOptions(): { value: string; label: string }[] {
+    return this.ocupaciones().map((o) => ({ value: o.nombre, label: o.nombre }));
   }
 
   saveMiembro() {

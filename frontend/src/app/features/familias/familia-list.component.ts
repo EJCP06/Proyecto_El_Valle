@@ -6,16 +6,17 @@ import { MiembrosService } from '../../core/services/miembros.service';
 import { CatalogoService, CatalogoItem } from '../../core/services/catalogo.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { FormulariosService } from '../../core/services/formularios.service';
-import { Familia, Miembro, ConsejoComunal, FormularioAsignacionFamilia } from '../../core/models/usuario.model';
+import { Familia, Miembro, ConsejoComunal, FormularioAsignacionFamilia, CampoFormulario } from '../../core/models/usuario.model';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { PaginatePipe } from '../../shared/pipes/paginate.pipe';
 import { FillersPipe } from '../../shared/pipes/fillers.pipe';
 import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, CheckCircle2, ClipboardList } from 'lucide-angular';
+import { CustomSelectComponent } from '../../shared/components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-familia-list',
   standalone: true,
-  imports: [FormsModule, PaginationComponent, PaginatePipe, FillersPipe, LucideAngularModule],
+  imports: [FormsModule, PaginationComponent, PaginatePipe, FillersPipe, LucideAngularModule, CustomSelectComponent],
   template: `
     <div class="space-y-6 animate-in fade-in duration-300 flex flex-col flex-1 min-h-0">
 
@@ -37,7 +38,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
           <div class="flex flex-col lg:flex-row lg:items-center gap-3 px-4 md:px-6 py-6 border-b border-slate-100 dark:border-slate-800">
             <div class="flex-1 relative search-filter-container">
               <div class="flex items-center w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl group focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500 transition-all duration-300 overflow-hidden">
-                <button type="button" (click)="toggleSearchFilterDropdown()" class="bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 focus:outline-none cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center gap-2 shrink-0">
+                <button type="button" (click)="toggleSearchFilterDropdown()" class="bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 px-4 self-stretch text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 focus:outline-none cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center gap-2 shrink-0">
                   <span>{{ getSearchFilterLabel() }}</span>
                   <lucide-icon [name]="ChevronDown" class="w-3.5 h-3.5 transition-transform duration-200" [class.rotate-180]="showSearchFilterDropdown"></lucide-icon>
                 </button>
@@ -174,13 +175,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                 </div>
                 <div class="space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Consejo Comunal <span class="text-red-500">*</span></label>
-                  <select [(ngModel)]="form.consejoId" name="consejoId"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
-                    <option value="">Seleccionar consejo...</option>
-                    @for (c of consejos(); track c.id) {
-                      <option [value]="c.id">{{ c.nombre }}</option>
-                    }
-                  </select>
+                  <app-custom-select [(ngModel)]="form.consejoId" name="consejoId" [options]="consejoOptions" placeholder="Seleccionar consejo..."></app-custom-select>
                 </div>
               </div>
 
@@ -513,13 +508,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                         <textarea [name]="campo.id" [(ngModel)]="responderRespuestas[campo.id]" [required]="campo.requerido" rows="3"
                           class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm"></textarea>
                       } @else if (campo.tipo === 'select') {
-                        <select [name]="campo.id" [(ngModel)]="responderRespuestas[campo.id]" [required]="campo.requerido"
-                          class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm">
-                          <option value="">Seleccionar...</option>
-                          @for (op of campo.opciones ?? []; track op) {
-                            <option [value]="op">{{ op }}</option>
-                          }
-                        </select>
+                        <app-custom-select [name]="campo.id" [(ngModel)]="responderRespuestas[campo.id]" [options]="campoSelectOptions(campo)" placeholder="Seleccionar..."></app-custom-select>
                       } @else if (campo.tipo === 'radio' || campo.tipo === 'yes_no') {
                         <div class="yesno-group">
                           @for (op of campo.opciones ?? []; track op) {
@@ -616,52 +605,23 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                 </div>
                 <div class="md:col-span-1 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Sexo</label>
-                  <select [(ngModel)]="miembroForm.sexo" name="mSexo"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
-                    <option value="">— Sin especificar —</option>
-                    <option value="M">Masculino</option>
-                    <option value="F">Femenino</option>
-                  </select>
+                  <app-custom-select [(ngModel)]="miembroForm.sexo" name="mSexo" [options]="sexoOptions" placeholder="— Sin especificar —"></app-custom-select>
                 </div>
                 <div class="md:col-span-1 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Parentesco</label>
-                  <select [(ngModel)]="miembroForm.parentesco" name="mParentesco"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
-                    <option value="">— Seleccionar —</option>
-                    @for (p of parentescos(); track p.id) {
-                      <option [value]="p.nombre">{{ p.nombre }}</option>
-                    }
-                  </select>
+                  <app-custom-select [(ngModel)]="miembroForm.parentesco" name="mParentesco" [options]="parentescoOptions" placeholder="— Seleccionar —"></app-custom-select>
                 </div>
                 <div class="md:col-span-1 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Estado civil</label>
-                  <select [(ngModel)]="miembroForm.estadoCivil" name="mEstadoCivil"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
-                    <option value="">— Seleccionar —</option>
-                    @for (e of estadosCiviles(); track e.id) {
-                      <option [value]="e.nombre">{{ e.nombre }}</option>
-                    }
-                  </select>
+                  <app-custom-select [(ngModel)]="miembroForm.estadoCivil" name="mEstadoCivil" [options]="estadoCivilOptions" placeholder="— Seleccionar —"></app-custom-select>
                 </div>
                 <div class="md:col-span-1 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Nivel educativo</label>
-                  <select [(ngModel)]="miembroForm.nivelEducativo" name="mNivelEducativo"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
-                    <option value="">— Seleccionar —</option>
-                    @for (n of nivelesEducativos(); track n.id) {
-                      <option [value]="n.nombre">{{ n.nombre }}</option>
-                    }
-                  </select>
+                  <app-custom-select [(ngModel)]="miembroForm.nivelEducativo" name="mNivelEducativo" [options]="nivelEducativoOptions" placeholder="— Seleccionar —"></app-custom-select>
                 </div>
                 <div class="md:col-span-2 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Ocupación</label>
-                  <select [(ngModel)]="miembroForm.ocupacion" name="mOcupacion"
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
-                    <option value="">— Seleccionar —</option>
-                    @for (o of ocupaciones(); track o.id) {
-                      <option [value]="o.nombre">{{ o.nombre }}</option>
-                    }
-                  </select>
+                  <app-custom-select [(ngModel)]="miembroForm.ocupacion" name="mOcupacion" [options]="ocupacionOptions" placeholder="— Seleccionar —"></app-custom-select>
                 </div>
                 <div class="md:col-span-2 space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Teléfono</label>
@@ -746,6 +706,35 @@ export class FamiliaListComponent implements OnInit {
   responderMiembroId = signal<number | null>(null);
   responderRespuestas: Record<string, unknown> = {};
   responderError = signal('');
+
+  sexoOptions: { value: string; label: string }[] = [
+    { value: 'M', label: 'Masculino' },
+    { value: 'F', label: 'Femenino' },
+  ];
+
+  get consejoOptions(): { value: number; label: string }[] {
+    return this.consejos().map((c) => ({ value: c.id, label: c.nombre }));
+  }
+
+  get parentescoOptions(): { value: string; label: string }[] {
+    return this.parentescos().map((p) => ({ value: p.nombre, label: p.nombre }));
+  }
+
+  get estadoCivilOptions(): { value: string; label: string }[] {
+    return this.estadosCiviles().map((e) => ({ value: e.nombre, label: e.nombre }));
+  }
+
+  get nivelEducativoOptions(): { value: string; label: string }[] {
+    return this.nivelesEducativos().map((n) => ({ value: n.nombre, label: n.nombre }));
+  }
+
+  get ocupacionOptions(): { value: string; label: string }[] {
+    return this.ocupaciones().map((o) => ({ value: o.nombre, label: o.nombre }));
+  }
+
+  campoSelectOptions(campo: CampoFormulario): { value: string; label: string }[] {
+    return (campo.opciones ?? []).map((op) => ({ value: op, label: op }));
+  }
   responderMiembros = signal<Miembro[]>([]);
 
   searchQuery = '';

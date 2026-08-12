@@ -28,22 +28,38 @@ const authMiddleware = async (req, res, next) => {
   );
 
   if (sessionResult.rows.length === 0) {
-    // Verificar si fue revocada por sesión única
+    // Verificar si fue revocada y por qué motivo
     const revokedResult = await db.query(
-      `SELECT revocada FROM sesiones_usuario WHERE jti = $1`,
+      `SELECT revocada, ultima_actividad, usuario_id FROM sesiones_usuario WHERE jti = $1`,
       [payload.jti]
     );
     if (revokedResult.rows.length > 0 && revokedResult.rows[0].revocada) {
+      const fuePorInactividad = revokedResult.rows[0].ultima_actividad < new Date(Date.now() - 5 * 60 * 1000);
+
+      if (fuePorInactividad) {
+        await registrarAuditoria({
+          accion: 'SESIÓN REVOCADA POR INACTIVIDAD',
+          entidad: 'AUTENTICACIÓN',
+          entidadId: revokedResult.rows[0].usuario_id,
+          req
+        });
+        return res.status(401).json({
+          success: false,
+          code: 'SESSION_INACTIVE',
+          message: 'Tu sesión terminó por inactividad. Vuelve a iniciar sesión.'
+        });
+      }
+
       await registrarAuditoria({
         accion: 'SESIÓN REVOCADA',
         entidad: 'AUTENTICACIÓN',
         entidadId: revokedResult.rows[0].usuario_id,
         req
       });
-      return res.status(401).json({ 
-        success: false, 
-        code: 'SESSION_REVOKED', 
-        message: 'Tu sesión fue cerrada porque iniciaste sesión en otro dispositivo' 
+      return res.status(401).json({
+        success: false,
+        code: 'SESSION_REVOKED',
+        message: 'Tu sesión fue cerrada porque se inició sesión nuevamente con tu cuenta.'
       });
     }
     return res.status(401).json({ success: false, message: 'Sesión inválida o expirada' });

@@ -1,0 +1,21 @@
+mira la permisologia debe tener lo siguiente:
+
+admision tiene ver, crear, editar y eliminar
+aps tiene ver, crear, editar, y eliminar
+aseguradora tiene ver, crear, editar, y eliminar
+atencion medica solo tiene ver 
+especialidades tiene ver, editar, crear, y eliminar
+imagenes tiene ver
+y laboratorio tiene ver 
+
+entonces debe hacer lo siguiente, por lo menos el rol administrador porque para asignar
+los demas roles ya lo hace:
+
+hagamos un ejemplo:
+
+si yo desmarco ver no se deber ver ese modulo y no se debe aparecer en el sidebar
+sy vuelvo a marcar ver se tiene que mostrar en el sidebar otra vez, ahora si yo desmarco ver 
+no se deven mostrar marcadas las otras opciones porque si no vez no puedes hacer las otras cosas,
+ahora si yo marco ver sin marcar crear, editar, y eliminar solo me deja ver pero no puedo
+crear, editar y eliminar, si yo desmarco eliminar pero tengo ver, crear, y editar marcados,
+pues obiamente puedo hacer eso menos eliminar porque ese permiso no lo tengo ya entendiste.

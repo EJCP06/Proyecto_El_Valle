@@ -8,6 +8,7 @@ const env = require('../config/env');
 const db = require('../config/db');
 const { pool } = require('../config/db');
 const { registrarAuditoria } = require('../services/auditoria.service');
+const { validarPassword } = require('../middleware/validarPassword');
 
 function hashToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex');
@@ -189,7 +190,7 @@ exports.updateProfile = async (req, res, next) => {
 
 exports.register = async (req, res, next) => {
   try {
-    const { nombre, email, password, rol, preguntasSeguridad } = req.body;
+    const { nombre, email, password, rol, activo, preguntasSeguridad } = req.body;
     if (!nombre || !email || !password) {
       return res.status(400).json({ success: false, message: 'Todos los campos son requeridos' });
     }
@@ -204,7 +205,8 @@ exports.register = async (req, res, next) => {
       nombre,
       email,
       password: passwordHash,
-      rol: rol || 'vocero'
+      rol: rol || 'vocero',
+      activo
     });
 
     if (Array.isArray(preguntasSeguridad) && preguntasSeguridad.length > 0) {
@@ -216,7 +218,7 @@ exports.register = async (req, res, next) => {
       accion: 'REGISTRAR',
       entidad: 'USUARIO',
       entidadId: newUsuario.id,
-      detalle: { nombre, email, rol: rol || 'vocero' },
+      detalle: { nombre, email, rol: rol || 'vocero', activo },
       req
     });
 
@@ -283,7 +285,20 @@ exports.getUserById = async (req, res, next) => {
 exports.updateUser = async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
-    const { nombre, email, rol, activo, preguntasSeguridad } = req.body;
+    const { nombre, email, rol, activo, password, preguntasSeguridad } = req.body;
+
+    if (password) {
+      const erroresPass = validarPassword(password);
+      if (erroresPass.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `La contraseña no cumple los requisitos de seguridad: ${erroresPass.join(', ')}`,
+          errors: erroresPass
+        });
+      }
+      const passwordHash = await bcrypt.hash(password, 10);
+      await usuarioRepo.updatePassword(id, passwordHash);
+    }
 
     const updated = await usuarioRepo.update(id, { nombre, email, rol, activo });
     if (!updated) {
@@ -300,7 +315,7 @@ exports.updateUser = async (req, res, next) => {
       accion: 'MODIFICAR',
       entidad: 'USUARIO',
       entidadId: id,
-      detalle: { nombre, email, rol, activo },
+      detalle: { nombre, email, rol, activo, password: password ? 'actualizada' : undefined },
       req
     });
 

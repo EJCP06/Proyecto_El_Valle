@@ -1,0 +1,466 @@
+================================================================================
+  MANUAL DE INSTALACION Y PRUEBAS - SISTEMA EL VALLE
+  Consejo Comunal El Valle - Sistema de Gestion Comunitaria
+================================================================================
+
+
+1. QUE ES EL SISTEMA
+--------------------------------------------------------------------------------
+
+El Valle es un sistema web para la gestion de Consejos Comunales. Permite
+administracion de usuarios y seguridad, registro de familias y miembros,
+formularios comunitarios, reportes, auditoria, seguridad de red, respaldo
+y restauracion de la base de datos.
+
+El sistema consta de dos partes:
+  - Backend (servidor): una API REST en Node.js/Express que se ejecuta en el
+    puerto 3000.
+  - Frontend (aplicacion): una interfaz web en Angular que se ejecuta en el
+    puerto 4200 y se comunica con el backend.
+
+Ambos deben estar encendidos al mismo tiempo para que el sistema funcione.
+
+
+2. REQUISITOS MINIMOS
+--------------------------------------------------------------------------------
+
+Software necesario en el computador del profesor:
+
+  Programa          Version minima        Verificar con
+  ----------------  --------------------  -----------------
+  Node.js           v22 LTS o v24         node -v
+  npm               v10+                  npm -v
+  PostgreSQL        15 o superior         psql --version
+  Navegador web     Chrome, Edge o Fox    (cualquiera)
+  Git (opcional)    2.x+                  git --version
+
+Nota: Si el computador del profesor ya tiene estos programas instalados,
+solo debe verificar las versiones con los comandos indicados. Si alguno
+no esta instalado, siga los pasos de la seccion 3.
+
+
+3. COMO INSTALAR LOS PROGRAMAS
+--------------------------------------------------------------------------------
+
+3.1 Node.js
+  1. Ir a https://nodejs.org
+  2. Descargar la version LTS (recomendada: v22.x o v24.x).
+  3. Ejecutar el instalador. Aceptar todos los pasos por defecto.
+  4. Al terminar, abrir una terminal (PowerShell o Símbolo del sistema).
+  5. Ejecutar:
+       node -v
+       npm -v
+  6. Debe mostrar la version instalada. Si aparece "no se reconoce el
+     comando", cierre y vuelva a abrir la terminal.
+
+3.2 PostgreSQL
+  1. Ir a https://www.enterprisedb.com/downloads/postgres-postgresql-downloads
+  2. Descargar la version 16 o 17 para Windows.
+  3. Ejecutar el instalador.
+  4. IMPORTANTE: durante la instalacion le pedira definir una contrasena
+     para el usuario "postgres". ANOTE ESA CONTRASENA. La necesitara.
+     Ejemplo comun: "postgres" o "1234" o la que usted elija.
+  5. En "Select Components", marque la casilla "Command Line Tools" o
+     "pgAdmin 4" (ambos son utiles).
+  6. El puerto por defecto es 5432. Dejelo asi.
+  7. Aceptar y finalizar la instalacion.
+  8. Verificar en una terminal:
+       psql --version
+  9. Si aparece la version (ej: "psql (PostgreSQL) 16.3"), esta listo.
+     Si no se reconoce, debe agregar PostgreSQL al PATH:
+       - Buscar la carpeta "bin" de PostgreSQL, por ejemplo:
+         C:\Program Files\PostgreSQL\16\bin
+       - Copiar esa ruta.
+       - Ir a Panel de control > Sistema > Variables de entorno.
+       - En "Path", agregar la ruta copiada.
+       - Cerrar y volver a abrir la terminal.
+  10. Verificar tambien:
+        pg_dump --version
+        pg_restore --version
+      Estos dos comandos son necesarios para los respaldos y
+      restauraciones.
+
+
+4. DESCOMPRIMIR EL PROYECTO
+--------------------------------------------------------------------------------
+
+  1. Copiar el archivo ZIP a una ubicacion facil de encontrar, por ejemplo:
+     C:\Users\su_usuario\Desktop\Proyecto_El_Valle
+  2. Hacer clic derecho > "Extraer todo" > Seleccionar destino > Extraer.
+  3. Abrir la carpeta extraida. Debe contener:
+       backend/        <- servidor (Express, Node.js)
+       frontend/       <- interfaz web (Angular)
+       MANUAL_DE_INSTALACION_Y_PRUEBAS.txt  <- este manual
+
+  Estructura interna de backend/:
+    backend/
+      src/            <- codigo fuente del servidor
+      db/             <- scripts SQL (esquema, migraciones, datos)
+      scripts/        <- scripts de respaldo/restauracion
+      backups/        <- carpeta donde se guardan los respaldos
+      node_modules/   <- dependencias (ya instaladas)
+      package.json    <- configuracion y comandos
+      .env            <- variables de entorno (contrasena BD, etc.)
+      .env.example    <- plantilla de referencia
+      migrate.js      <- crea las tablas en la base de datos
+      seed.js         <- inserta datos de prueba
+
+  Estructura interna de frontend/:
+    frontend/
+      src/            <- codigo fuente de la aplicacion web
+      node_modules/   <- dependencias (ya instaladas)
+      package.json    <- configuracion y comandos
+      proxy.conf.js   <- redirige /api al backend
+
+
+5. CONFIGURAR LAS VARIABLES DE ENTORNO
+--------------------------------------------------------------------------------
+
+El archivo backend/.env contiene la configuracion del servidor.
+DEBE EDITARLO para que funcione en su computador.
+
+  1. Abrir backend/.env con el Bloc de notas.
+  2. Buscar esta linea:
+       DATABASE_URL=postgresql://postgres:password@localhost:5432/el_valle
+  3. CAMBIAR "password" por la contrasena real que definio al instalar
+     PostgreSQL. Por ejemplo, si puso "1234":
+       DATABASE_URL=postgresql://postgres:1234@localhost:5432/el_valle
+  4. Si cambio el puerto de PostgreSQL (no es 5432), cambiarlo tambien.
+  5. Guardar el archivo.
+
+El resto de las variables no necesita cambiar. Quedan asi:
+
+  PORT=3000                            <- puerto del backend
+  JWT_SECRET=supersecretkeyforelvalle12345  <- clave JWT (no cambiar)
+  NODE_ENV=development                 <- modo de ejecucion
+  EMAIL_HOST=smtp.gmail.com            <- servidor de correo
+  EMAIL_PORT=587                       <- puerto de correo
+  EMAIL_USER=elvalleconsejocomunal6@gmail.com  <- correo remitente
+  EMAIL_PASS=uukz mdsi rylb btzy      <- contrasena de app Gmail
+  TELEGRAM_BOT_TOKEN=...               <- token del bot de Telegram
+  TELEGRAM_ENABLED=true                <- Telegram activado
+
+Nota: Las credenciales de correo y Telegram estan configuradas para que
+las funciones de recuperacion de contrasena funcionen sin cambios.
+Si el profesor prefiere no usar esas funciones, puede ignorar esas lineas.
+
+
+6. CREAR LA BASE DE DATOS
+--------------------------------------------------------------------------------
+
+El backend NO puede crear la base de datos automaticamente; solo crea
+las tablas dentro de ella. Usted debe crear la BD antes de arrancar.
+
+OPCION A: Usando la linea de comandos (recomendada)
+
+  1. Abrir una terminal (PowerShell).
+  2. Ejecutar:
+       psql -U postgres
+  3. Pedira la contrasena del usuario postgres. Digitarla y presionar Enter.
+  4. Se mostrara algo como:
+       postgres=#
+  5. Ejecutar:
+       CREATE DATABASE el_valle;
+  6. Debe responder:
+       CREATE DATABASE
+  7. Salir con:
+       \q
+
+OPCION B: Usando pgAdmin (interfaz grafica)
+
+  1. Abrir pgAdmin desde el menu de Windows.
+  2. Ingresar la contrasena del usuario postgres.
+  3. En el arbol lateral, hacer clic derecho sobre "Databases".
+  4. Seleccionar "Create" > "Database...".
+  5. En "Database name" escribir: el_valle
+  6. Hacer clic en "Save".
+  7. La base de datos aparecera en la lista.
+
+Verificar:
+  psql -U postgres -d el_valle -c "SELECT 1;"
+  Debe responder:
+    ?column?
+    -----------
+           1
+
+
+7. INSTALAR DEPENDENCIAS (SOLO SI FALTAN)
+--------------------------------------------------------------------------------
+
+NOTA: El proyecto ya incluye las carpetas node_modules tanto en backend/
+como en frontend/. Normalmente NO es necesario instalar nada.
+
+Solo ejecute npm install si al arrancar el sistema aparece un error tipo
+"Cannot find module" o "MODULE_NOT_FOUND". En ese caso:
+
+  1. Abrir una terminal en la carpeta backend:
+       cd C:\Users\...\Proyecto_El_Valle\backend
+       npm install
+
+  2. Abrir una terminal en la carpeta frontend:
+       cd C:\Users\...\Proyecto_El_Valle\frontend
+       npm install
+
+
+8. ARRANCAR EL BACKEND (SERVIDOR)
+--------------------------------------------------------------------------------
+
+  1. Abrir una terminal.
+  2. Navegar a la carpeta backend:
+       cd C:\Users\...\Proyecto_El_Valle\backend
+  3. Ejecutar:
+       npm start
+  4. Esperar unos segundos. Debera aparecer un mensaje como:
+       Servidor corriendo en http://localhost:3000
+       Conexion a PostgreSQL establecida.
+       Migracion completada exitosamente.
+       CORS actualizado: http://localhost:4200, ...
+
+  5. VERIFICAR que el backend funciona:
+     - Abrir el navegador e ir a:
+         http://localhost:3000/health
+     - Debe mostrar algo como:
+         {"status":"ok","env":"development","timestamp":"..."}
+     - Si aparece este JSON, el backend esta funcionando.
+
+  6. DOCUMENTACION DE LA API (opcional):
+     - Ir a: http://localhost:3000/api-docs
+     - Se muestra la documentacion interactiva de todos los endpoints.
+
+  Que hace al arrancar:
+  - Se conecta a la base de datos "el_valle".
+  - Ejecuta la migracion automatica: crea todas las tablas si no existen,
+    inserta usuarios iniciales (admin y vocero) y catalogos base.
+  - Activa la limpieza periodica de sesiones (cada 60 segundos).
+  - Activa la limpieza periodica de respaldos (cada 6 horas).
+  - Inicia el bot de Telegram (para recuperacion por Telegram).
+
+  IMPORTANTE: Deje esta terminal ABIERTA mientras pruebe el sistema.
+  Si la cierra, el backend se apaga.
+
+
+9. CARGAR DATOS DE DEMOSTRACION (OPCIONAL)
+--------------------------------------------------------------------------------
+
+Si quiere tener familias, formularios, respuestas y otros datos de
+prueba en el sistema (ademas de los usuarios basicos), ejecute:
+
+  1. En otra terminal, dentro de backend/:
+       cd C:\Users\...\Proyecto_El_Valle\backend
+       npm run seed
+
+  2. Esto inserta:
+     - 9 consejos comunales
+     - 15 familias
+     - 40+ miembros
+     - 4 formularios con preguntas
+     - Asignaciones y respuestas de ejemplo
+     - Registros de auditoria
+
+  NOTA: Este paso es OPCIONAL. Si solo quiere probar las funciones de
+  seguridad, usuarios y respaldos, no es necesario. El seed incluye un
+  TRUNCATE que borra datos previos de formularios y familias.
+
+
+10. ARRANCAR EL FRONTEND (APLICACION WEB)
+--------------------------------------------------------------------------------
+
+  1. Abrir UNA NUEVA terminal (deje el backend corriendo en la otra).
+  2. Navegar a la carpeta frontend:
+       cd C:\Users\...\Proyecto_El_Valle\frontend
+  3. Ejecutar:
+       npm start
+  4. Esperar unos segundos. Debera aparecer un mensaje como:
+       ** Angular Live Development Server is listening on
+          localhost:4200 **
+       Compiled successfully.
+
+  5. Abrir el navegador e ir a:
+       http://localhost:4200
+
+  6. Se mostrara la pantalla de login del sistema.
+
+  IMPORTANTE: Deje esta terminal ABIERTA tambien. Necesita ambas
+  (backend y frontend) corriendo simultaneamente.
+
+
+11. INICIAR SESION
+--------------------------------------------------------------------------------
+
+En la pantalla de login, use cualquiera de estos usuarios:
+
+  Usuario                Correo                    Contrasena   Rol
+  ---------------------  ------------------------  ----------   ----------
+  Administrador          admin@elvalle.com          test123      admin
+  Vocero General         vocero@elvalle.com         test123      vocero
+  Maria Rodriguez        maria@elvalle.com          test123      vocero
+  Carlos Perez           carlos@elvalle.com         test123      vocero
+  Ana Martinez           ana@elvalle.com            test123      vocero
+  Jose Hernandez         jose@elvalle.com           test123      vocero
+  Diana Torres           diana@elvalle.com          test123      vocero
+  Super Admin            super@elvalle.com          test123      admin
+
+  Para una prueba completa, inicie sesion con:
+    Correo: admin@elvalle.com
+    Contrasena: test123
+
+
+12. MAPA DEL MENU
+--------------------------------------------------------------------------------
+
+Una vez dentro del sistema, el menu lateral muestra las siguientes
+secciones (algunas solo son visibles para el administrador):
+
+  Seccion              Descripcion                          Rol requerido
+  -------------------  -----------------------------------  -------------
+  Dashboard            Resumen general del sistema          Todos
+  Consejos             Gestion de consejos comunales        Todos
+  Familias             Gestion de familias y miembros       Todos
+  Formularios          Formularios comunitarios             Todos
+  Reportes             Estadisticas y reportes              Todos
+  Catalogos            Catalogos del sistema                Todos
+    - Parentescos          Tipos de parentesco
+    - Estados Civiles      Estados civiles
+    - Niveles Educativos   Niveles de educacion
+    - Ocupaciones          Tipos de ocupacion
+    - Tipos de Vivienda    Tipos de vivienda
+    - Tipos de Discapacidad Tipos de discapacidad
+    - Preguntas de Seguridad Preguntas de recuperacion
+  Seguridad            Administracion de seguridad
+    - Perfil               Datos y contrasena del usuario    Todos
+    - Usuarios             Gestion de usuarios               admin
+    - Auditoria            Registro de actividad             admin
+    - Seguridad de Red     CORS, Firewall, IPs               admin
+    - Backup y Restauracion Respaldo y recuperacion de BD    admin
+
+  Para probar la funcion de BACKUP, haga clic en "Backup y Restauracion".
+
+
+13. COMO HACER LAS PRUEBAS DE LA LISTA DE VERIFICACION
+--------------------------------------------------------------------------------
+
+El archivo CHECKLIST_CASOS_DE_USO.md contiene todos los casos de uso
+organizados por proceso. Para hacer cada prueba:
+
+  1. Abrir CHECKLIST_CASOS_DE_USO.md (o el documento .docx llenado).
+  2. Buscar el caso de uso que quiere probar.
+  3. Seguir los pasos de verificacion indicados en la columna CONTROL.
+  4. Marcar como verificado.
+
+ADVERTENCIAS IMPORTANTES PARA LAS PRUEBAS:
+
+  a) INTENTOS DE LOGIN: El sistema bloquea la IP despues de 3 intentos
+     fallidos de login. Si se bloquea, debe esperar 15 minutos o
+     desbloquear desde Seguridad de Red > Firewall.
+
+     Para desbloquear sin esperar (si tiene acceso de admin):
+       - Iniciar sesion como admin
+       - Ir a Seguridad > Seguridad de Red > Firewall
+       - Buscar la IP bloqueada
+       - Hacer clic en "Desbloquear"
+
+     Tambien puede desbloquear desde la base de datos:
+       psql -U postgres -d el_valle -c "DELETE FROM ip_intentos;"
+
+  b) SESION POR INACTIVIDAD: La sesion se cierra automaticamente despues
+     de 5 minutos sin actividad. Si esta leyendo el manual o explicando
+     algo, mueva el mouse o haga clic en algun menu para que no expire.
+
+  c) RECUPERAR CONTRASENA: Para probar la recuperacion por preguntas,
+     primero debe configurar preguntas de seguridad en el Perfil de un
+     usuario. La recuperacion por correo envia un OTP real a la cuenta
+     Gmail configurada. La recuperacion por Telegram envia un OTP al bot.
+
+  d) RESPALDOS: Las funciones de backup y restauracion requieren que
+     pg_dump, pg_restore y psql esten en la PATH del sistema. Verificar
+     con:
+       pg_dump --version
+       pg_restore --version
+       psql --version
+
+  e) NAVEGADOR: Use Chrome o Edge. Si usa Firefox y tiene problemas con
+     el CORS, intente con Chrome.
+
+
+14. RESPALDOS Y RESTAURACION
+--------------------------------------------------------------------------------
+
+El sistema permite crear respaldos de la base de datos desde la pantalla
+"Backup y Restauracion" o desde la linea de comandos.
+
+CREAR RESPALDO:
+  cd backend
+  npm run backup
+  # Crea un archivo .dump en backend/backups/
+
+CREAR RESPALDO SQL PLANO:
+  cd backend
+  npm run backup -- --sql
+  # Crea un archivo .sql en backend/backups/
+
+LISTAR RESPALDOS:
+  cd backend
+  npm run restore
+  # Muestra los respaldos disponibles
+
+RESTAURAR:
+  cd backend
+  npm run restore -- elvalle_20260810_143000.dump
+  # Restaura la base de datos (pide confirmacion)
+
+RESTAURAR SIN CONFIRMACION:
+  cd backend
+  npm run restore -- elvalle_20260810_143000.dump --yes
+
+REQUISITO: Los comandos pg_dump, pg_restore y psql deben estar en la
+PATH del sistema (ver paso 3.2 paso 8-10).
+
+
+15. SOLUCION DE PROBLEMAS
+--------------------------------------------------------------------------------
+
+  ERROR                               CAUSA                    SOLUCION
+  -----------------------------------  -----------------------  ---------------------------------
+  "node no se reconoce"               Node.js no instalado     Instalar Node.js (paso 3.1)
+  "psql no se reconoce"               PostgreSQL no en PATH    Agregar bin de PostgreSQL al PATH
+  "pg_dump no se reconoce"            PostgreSQL incompleto    Reinstalar PG con Command Line Tools
+  "ECONNREFUSED localhost:5432"       PostgreSQL apagado       Iniciar servicio PostgreSQL
+  "password authentication failed"    Contrasena incorrecta    Verificar DATABASE_URL en .env
+  "database el_valle does not exist"  BD no existe            Crear la BD (paso 6)
+  "puerto 3000 en uso"                Otro programa usa 3000  Cerrar ese programa o cambiar PORT
+  "puerto 4200 en uso"                Otro programa usa 4200  Cerrar ese programa
+  "Cannot find module ..."            Falta node_modules      Ejecutar npm install (paso 7)
+  "CORS error"                        Origen no permitido     Verificar ORIGENES_PERMITIDOS en BD
+  "IP bloqueada"                      3+ intentos fallidos    Esperar 15 min o desbloquear
+  "Sesion expirada"                   5 min inactividad       Volver a iniciar sesion
+  "ng no se reconoce"                 Angular CLI no global   npm install -g @angular/cli
+  "Application bundle error"          Node incompatible       Usar Node 22+ o 24+
+
+  Para iniciar el servicio de PostgreSQL si esta apagado:
+    - En Windows: buscar "Servicios" en el menu de Windows
+    - Buscar "postgresql-x64-16" (el numero varia)
+    - Hacer clic derecho > Iniciar
+
+
+16. NOTA DE SEGURIDAD
+--------------------------------------------------------------------------------
+
+El archivo backend/.env contiene credenciales reales:
+  - Contrasena de la base de datos PostgreSQL
+  - Clave secreta JWT
+  - Contrasena de aplicacion de Gmail (para envio de correos)
+  - Token del bot de Telegram (para recuperacion por Telegram)
+
+Este archivo NO debe compartirse publicamente ni subirse a repositorios
+publicos. Para esta entrega al profesor, se incluye para que todas las
+funciones funcionen sin configuracion adicional.
+
+Si el profesor desea cambiar las credenciales, puede editar backend/.env
+y reiniciar el backend (paso 8).
+
+
+================================================================================
+  FIN DEL MANUAL
+  Para pruebas, consulte CHECKLIST_CASOS_DE_USO.md o el documento
+  LISTA_VERIFICACION_CASOS_DE_USO_LLENADO.docx
+================================================================================

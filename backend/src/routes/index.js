@@ -11,6 +11,7 @@ const configuracionRoutes = require('./configuracion.routes');
 const catalogoRoutes = require('./catalogo.routes');
 const preguntaSeguridadRoutes = require('./preguntaSeguridad.routes');
 const auditoriaRoutes = require('./auditoria.routes');
+const backupRoutes = require('./backup.routes');
 
 router.use(registrarActividadMiddleware);
 router.use('/auth/recuperacion', recuperacionRoutes);
@@ -24,5 +25,6 @@ router.use('/configuracion', configuracionRoutes);
 router.use('/catalogos', catalogoRoutes);
 router.use('/preguntas-seguridad', preguntaSeguridadRoutes);
 router.use('/auditoria', auditoriaRoutes);
+router.use('/backup', backupRoutes);
 
 module.exports = router;

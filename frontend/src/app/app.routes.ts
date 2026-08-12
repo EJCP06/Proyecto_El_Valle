@@ -149,6 +149,24 @@ export const routes: Routes = [
             (m) => m.AuditoriaComponent
           ),
       },
+      {
+        path: 'seguridad-red',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () =>
+          import('./features/seguridad-red/seguridad-red.component').then(
+            (m) => m.SeguridadRedComponent
+          ),
+      },
+      {
+        path: 'backup',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () =>
+          import('./features/backup/backup.component').then(
+            (m) => m.BackupComponent
+          ),
+      },
     ],
   },
 

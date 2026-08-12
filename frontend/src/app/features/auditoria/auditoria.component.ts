@@ -4,13 +4,12 @@ import { DatePipe, JsonPipe } from '@angular/common';
 import { AuditoriaService } from '../../core/services/auditoria.service';
 import { Auditoria } from '../../core/models/auditoria.model';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
-import { FillersPipe } from '../../shared/pipes/fillers.pipe';
 import { LucideAngularModule, Search, RefreshCw, ChevronDown, CheckCircle2, ClipboardList, Eye, FilterX } from 'lucide-angular';
 
 @Component({
   selector: 'app-auditoria',
   standalone: true,
-  imports: [FormsModule, DatePipe, JsonPipe, PaginationComponent, FillersPipe, LucideAngularModule],
+  imports: [FormsModule, DatePipe, JsonPipe, PaginationComponent, LucideAngularModule],
   template: `
     <div class="space-y-4 animate-in fade-in duration-300 flex flex-col flex-1 min-h-0">
 
@@ -20,7 +19,7 @@ import { LucideAngularModule, Search, RefreshCw, ChevronDown, CheckCircle2, Clip
         <p class="text-sm text-slate-500 dark:text-slate-400 font-normal">Registro de actividad del sistema: quién hizo qué y cuándo.</p>
       </header>
 
-      @if (loading()) {
+      @if (loading() && registros().length === 0) {
         <div class="flex flex-col items-center justify-center py-16 bg-white dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl">
           <div class="w-8 h-8 border-[3px] border-blue-600/30 border-t-blue-600 rounded-full animate-spin"></div>
           <span class="text-sm text-slate-500 dark:text-slate-400 mt-4 font-semibold animate-pulse">Cargando auditoría...</span>
@@ -32,7 +31,7 @@ import { LucideAngularModule, Search, RefreshCw, ChevronDown, CheckCircle2, Clip
           <div class="flex flex-col lg:flex-row lg:items-center gap-2.5 px-4 md:px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-wrap">
             <div class="flex-1 relative search-filter-container min-w-[240px]">
               <div class="flex items-center w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl group focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500 transition-all duration-300 overflow-hidden">
-                <button type="button" (click)="toggleSearchFilterDropdown()" class="bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 focus:outline-none cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center gap-2 shrink-0">
+                <button type="button" (click)="toggleSearchFilterDropdown()" class="bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 px-4 self-stretch text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 focus:outline-none cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center gap-2 shrink-0">
                   <span>{{ getSearchFilterLabel() }}</span>
                   <lucide-icon [name]="ChevronDown" class="w-3.5 h-3.5 transition-transform duration-200" [class.rotate-180]="showSearchFilterDropdown"></lucide-icon>
                 </button>
@@ -57,27 +56,67 @@ import { LucideAngularModule, Search, RefreshCw, ChevronDown, CheckCircle2, Clip
               }
             </div>
 
-            <select
-              [(ngModel)]="filtros.entidad"
-              (ngModelChange)="aplicarFiltro()"
-              class="px-4 py-2.5 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-normal"
-            >
-              <option value="">Todas las entidades</option>
-              @for (e of entidades(); track e) {
-                <option [value]="e">{{ e }}</option>
+            <div class="relative entidad-filter-container">
+              <button
+                type="button"
+                (click)="toggleEntidadDropdown()"
+                class="w-full min-w-[200px] max-w-[360px] flex items-center justify-between gap-2 px-4 min-h-[42px] text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all cursor-pointer"
+              >
+                <span class="truncate">{{ getEntidadLabel() }}</span>
+                <lucide-icon [name]="ChevronDown" class="w-3.5 h-3.5 shrink-0 transition-transform duration-200" [class.rotate-180]="showEntidadDropdown"></lucide-icon>
+              </button>
+              @if (showEntidadDropdown) {
+                <div class="absolute z-[110] w-full top-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 border-t-4 border-t-blue-600 left-0">
+                  <div class="p-1.5 max-h-48 overflow-y-auto">
+                    <div (click)="selectEntidad('')" class="px-4 py-2.5 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors rounded-xl flex items-center justify-between gap-2" [class.bg-blue-50]="!filtros.entidad" [class.text-blue-600]="!filtros.entidad">
+                      <span class="truncate">TODAS LAS ENTIDADES</span>
+                      @if (!filtros.entidad) {
+                        <lucide-icon [name]="CheckCircle2" class="w-3.5 h-3.5 shrink-0"></lucide-icon>
+                      }
+                    </div>
+                    @for (e of entidades(); track e) {
+                      <div (click)="selectEntidad(e)" class="px-4 py-2.5 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors rounded-xl flex items-center justify-between gap-2" [class.bg-blue-50]="filtros.entidad === e" [class.text-blue-600]="filtros.entidad === e">
+                        <span class="truncate">{{ e }}</span>
+                        @if (filtros.entidad === e) {
+                          <lucide-icon [name]="CheckCircle2" class="w-3.5 h-3.5 shrink-0"></lucide-icon>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
               }
-            </select>
+            </div>
 
-            <select
-              [(ngModel)]="filtros.accion"
-              (ngModelChange)="aplicarFiltro()"
-              class="px-4 py-2.5 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-normal"
-            >
-              <option value="">Todas las acciones</option>
-              @for (a of acciones(); track a) {
-                <option [value]="a">{{ a }}</option>
+            <div class="relative accion-filter-container">
+              <button
+                type="button"
+                (click)="toggleAccionDropdown()"
+                class="w-full min-w-[200px] max-w-[360px] flex items-center justify-between gap-2 px-4 min-h-[42px] text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all cursor-pointer"
+              >
+                <span class="truncate">{{ getAccionLabel() }}</span>
+                <lucide-icon [name]="ChevronDown" class="w-3.5 h-3.5 shrink-0 transition-transform duration-200" [class.rotate-180]="showAccionDropdown"></lucide-icon>
+              </button>
+              @if (showAccionDropdown) {
+                <div class="absolute z-[110] w-full top-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 border-t-4 border-t-blue-600 left-0">
+                  <div class="p-1.5 max-h-48 overflow-y-auto">
+                    <div (click)="selectAccion('')" class="px-4 py-2.5 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors rounded-xl flex items-center justify-between gap-2" [class.bg-blue-50]="!filtros.accion" [class.text-blue-600]="!filtros.accion">
+                      <span class="truncate">TODAS LAS ACCIONES</span>
+                      @if (!filtros.accion) {
+                        <lucide-icon [name]="CheckCircle2" class="w-3.5 h-3.5 shrink-0"></lucide-icon>
+                      }
+                    </div>
+                    @for (a of acciones(); track a) {
+                      <div (click)="selectAccion(a)" class="px-4 py-2.5 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors rounded-xl flex items-center justify-between gap-2" [class.bg-blue-50]="filtros.accion === a" [class.text-blue-600]="filtros.accion === a">
+                        <span class="truncate">{{ a }}</span>
+                        @if (filtros.accion === a) {
+                          <lucide-icon [name]="CheckCircle2" class="w-3.5 h-3.5 shrink-0"></lucide-icon>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
               }
-            </select>
+            </div>
 
             <div class="flex items-center gap-2">
               <input
@@ -116,7 +155,7 @@ import { LucideAngularModule, Search, RefreshCw, ChevronDown, CheckCircle2, Clip
           </div>
           <!--/ Toolbar -->
 
-          <div class="relative flex-1 min-h-0 overflow-x-auto">
+          <div class="relative flex-1 min-h-0 overflow-x-auto overflow-y-auto">
             <table class="w-full min-w-[800px] border-collapse h-full">
               <thead>
                 <tr class="bg-slate-50/75 dark:bg-slate-800/40 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider" [class.border-b]="filtrados.length > 0" [class.border-slate-200]="filtrados.length > 0" [class.dark:border-slate-800]="filtrados.length > 0">
@@ -163,13 +202,18 @@ import { LucideAngularModule, Search, RefreshCw, ChevronDown, CheckCircle2, Clip
                     </td>
                   </tr>
                 } @empty {}
-                @for (_ of filtrados | fillers:page:pageSize; track $index) {
+                @for (_ of fillerRows; track $index) {
                   <tr class="hover:bg-transparent">
                     <td colspan="7" class="px-6 py-3"></td>
                   </tr>
                 }
               </tbody>
             </table>
+            @if (loading()) {
+              <div class="absolute inset-0 z-10 flex items-center justify-center bg-white/70 dark:bg-slate-900/70 backdrop-blur-[2px] animate-in fade-in duration-200">
+                <div class="w-8 h-8 border-[3px] border-blue-600/30 border-t-blue-600 rounded-full animate-spin"></div>
+              </div>
+            }
             @if (filtrados.length === 0) {
               <div class="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
                 <lucide-icon [name]="ClipboardList" class="text-5xl text-slate-300 dark:text-slate-600"></lucide-icon>
@@ -259,6 +303,8 @@ export class AuditoriaComponent implements OnInit {
   searchQuery = '';
   searchFilter = 'todo';
   showSearchFilterDropdown = false;
+  showEntidadDropdown = false;
+  showAccionDropdown = false;
   searchFilterOptions = [
     { value: 'todo', label: 'TODO' },
     { value: 'usuario', label: 'USUARIO' },
@@ -275,14 +321,19 @@ export class AuditoriaComponent implements OnInit {
   };
 
   private buscarTimer: ReturnType<typeof setTimeout> | null = null;
+  private lastRequestId = 0;
 
   @HostListener('document:click', ['$event'])
   onClick(event: MouseEvent) {
     if (!this.el.nativeElement.contains(event.target)) {
       this.showSearchFilterDropdown = false;
+      this.showEntidadDropdown = false;
+      this.showAccionDropdown = false;
     } else {
       const target = event.target as HTMLElement;
       if (!target.closest('.search-filter-container')) this.showSearchFilterDropdown = false;
+      if (!target.closest('.entidad-filter-container')) this.showEntidadDropdown = false;
+      if (!target.closest('.accion-filter-container')) this.showAccionDropdown = false;
     }
   }
 
@@ -300,6 +351,16 @@ export class AuditoriaComponent implements OnInit {
     });
   }
 
+  /**
+   * Filas de relleno para mantener el alto de la tabla estable entre páginas.
+   * La paginación aquí es server-side (registros() ya contiene solo la página
+   * actual), por eso el relleno se calcula con los items de la página actual
+   * y no con el pipe fillers (diseñado para paginación client-side).
+   */
+  get fillerRows(): number[] {
+    return Array(Math.max(0, this.pageSize - this.filtrados.length)).fill(0);
+  }
+
   ngOnInit() {
     this.load();
   }
@@ -311,6 +372,36 @@ export class AuditoriaComponent implements OnInit {
   selectSearchFilter(filter: string) {
     this.searchFilter = filter;
     this.showSearchFilterDropdown = false;
+  }
+
+  toggleEntidadDropdown() {
+    this.showEntidadDropdown = !this.showEntidadDropdown;
+    if (this.showEntidadDropdown) this.showAccionDropdown = false;
+  }
+
+  toggleAccionDropdown() {
+    this.showAccionDropdown = !this.showAccionDropdown;
+    if (this.showAccionDropdown) this.showEntidadDropdown = false;
+  }
+
+  selectEntidad(v: string) {
+    this.filtros.entidad = v;
+    this.showEntidadDropdown = false;
+    this.aplicarFiltro();
+  }
+
+  selectAccion(v: string) {
+    this.filtros.accion = v;
+    this.showAccionDropdown = false;
+    this.aplicarFiltro();
+  }
+
+  getEntidadLabel(): string {
+    return this.filtros.entidad ? this.filtros.entidad : 'TODAS LAS ENTIDADES';
+  }
+
+  getAccionLabel(): string {
+    return this.filtros.accion ? this.filtros.accion : 'TODAS LAS ACCIONES';
   }
 
   getSearchFilterLabel(): string {
@@ -359,6 +450,7 @@ export class AuditoriaComponent implements OnInit {
   }
 
   load() {
+    const requestId = ++this.lastRequestId;
     this.loading.set(true);
     this.svc.getAll({
       page: this.page,
@@ -370,12 +462,16 @@ export class AuditoriaComponent implements OnInit {
       hasta: this.filtros.hasta ? `${this.normalizarFecha(this.filtros.hasta)} 23:59:59` : undefined,
     }).subscribe({
       next: (r) => {
+        if (requestId !== this.lastRequestId) return;
         this.registros.set(r.data);
         this.total = r.pagination?.total ?? 0;
         this.coleccionarOpciones(r.data);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        if (requestId !== this.lastRequestId) return;
+        this.loading.set(false);
+      },
     });
   }
 

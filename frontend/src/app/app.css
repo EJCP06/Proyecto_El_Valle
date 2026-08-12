@@ -70,9 +70,10 @@ div.fixed.inset-0.z-50 div.relative.z-10.w-full {
   }
 }
 
-/* Ensure all form inputs, selects, textareas, and read-only text divs inside modals have the exact same text size, padding, height, and no bolding */
+/* Ensure all form inputs, textareas, and read-only text divs inside modals have the exact same text size, padding, height, and no bolding.
+   NOTE: selects quedan excluidos a proposito para que conserven el estilo global
+   (fondo gris, texto 10px en mayusculas y negrita) igual que el filtro de Auditoria. */
 div.fixed.inset-0.z-50 input:not([type="checkbox"]):not([type="radio"]),
-div.fixed.inset-0.z-50 select,
 div.fixed.inset-0.z-50 textarea,
 div.fixed.inset-0.z-50 div.bg-slate-50.border {
   font-size: 0.875rem !important; /* text-sm */

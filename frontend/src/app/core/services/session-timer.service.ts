@@ -78,30 +78,37 @@ export class SessionTimerService {
   };
 
   private checkSessionNow(): void {
-    this.auth.checkSession().subscribe({ error: () => {} });
+    // Mientras el aviso de inactividad está visible, enviar el chequeo con
+    // x-session-check=0 para que el backend SÍ renueve ultima_actividad y no
+    // revoque la sesión mientras el usuario decide si pulsar "Continuar".
+    const opts = this.swalVisible
+      ? { headers: { 'x-session-check': '0' } }
+      : {};
+    this.auth.checkSession(opts).subscribe({ error: () => {} });
   }
 
   private onActivity = (): void => {
     this.lastActivity = Date.now();
-    this.resetTimers();
+    // Si el SweetAlert de aviso está visible, NO cerrarlo:
+    // dejar que el usuario decida si dar "Continuar".
+    if (!this.swalVisible) {
+      this.resetTimers();
+    }
   };
 
   private scheduleCheck(): void {
     this.clearTimers();
     const timeSinceActivity = Date.now() - this.lastActivity;
-    const remaining = this.INACTIVITY_MS - timeSinceActivity;
 
-    if (remaining <= 0) {
-      this.showWarning();
+    // Mostrar el aviso 60 s ANTES del límite de inactividad (5 min), para que el
+    // usuario tenga tiempo de pulsar "Continuar" antes de que el backend revoque.
+    if (timeSinceActivity >= this.INACTIVITY_MS - this.WARNING_MS) {
+      const remaining = this.INACTIVITY_MS - timeSinceActivity;
+      this.showWarning(Math.max(remaining, 0));
       return;
     }
 
-    if (remaining <= this.WARNING_MS) {
-      this.warningTimeoutId = setTimeout(() => this.showWarning(), remaining);
-    } else {
-      this.warningTimeoutId = setTimeout(() => this.scheduleCheck(), remaining - this.WARNING_MS);
-      this.timeoutId = setTimeout(() => this.showWarning(), remaining);
-    }
+    this.warningTimeoutId = setTimeout(() => this.scheduleCheck(), this.WARNING_MS);
   }
 
   private resetTimers(): void {
@@ -116,10 +123,10 @@ export class SessionTimerService {
     this.timeoutId = this.warningTimeoutId = null;
   }
 
-  private showWarning(): void {
+  private showWarning(msRestantes: number = this.WARNING_MS): void {
     this.closeSwal();
 
-    let countdown = Math.ceil(this.WARNING_MS / 1000);
+    let countdown = Math.ceil(msRestantes / 1000);
     this.swalVisible = true;
 
     Swal.fire({
@@ -130,7 +137,7 @@ export class SessionTimerService {
       confirmButtonText: 'Continuar',
       allowOutsideClick: false,
       allowEscapeKey: false,
-      timer: this.WARNING_MS,
+      timer: msRestantes,
       timerProgressBar: true,
       didOpen: () => {
         const timerInterval = setInterval(() => {
@@ -152,6 +159,9 @@ export class SessionTimerService {
       this.swalVisible = false;
       if (result.isConfirmed) {
         this.lastActivity = Date.now();
+        // Renovar la actividad en el backend para que la sesión siga válida
+        // (x-session-check=0 hace que el middleware actualice ultima_actividad).
+        this.auth.checkSession({ headers: { 'x-session-check': '0' } }).subscribe({ error: () => {} });
         this.scheduleCheck();
       } else {
         this.logout();

@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { CatalogoService, CatalogoItem } from '../../core/services/catalogo.service';
+import { CustomSelectComponent } from '../../shared/components/custom-select/custom-select.component';
 import {
   LucideAngularModule,
   KeyRound,
@@ -28,7 +29,7 @@ interface PreguntaRow {
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [FormsModule, LucideAngularModule],
+  imports: [FormsModule, LucideAngularModule, CustomSelectComponent],
   template: `
     <div class="flex flex-col flex-1 min-h-0 space-y-4 animate-in fade-in duration-300">
       <!-- Page Header -->
@@ -205,13 +206,7 @@ interface PreguntaRow {
                   </button>
                   <div class="space-y-2">
                     <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Pregunta {{ i + 1 }}</label>
-                    <select [(ngModel)]="row.preguntaId" [name]="'pq' + i"
-                      class="w-full px-5 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm pr-10">
-                      <option [ngValue]="null">— Seleccionar —</option>
-                      @for (q of preguntasDisponibles(i); track q.id) {
-                        <option [ngValue]="q.id">{{ q.nombre }}</option>
-                      }
-                    </select>
+                    <app-custom-select [(ngModel)]="row.preguntaId" [name]="'pq' + i" [options]="preguntaOptions(i)" placeholder="— Seleccionar —"></app-custom-select>
                   </div>
                   <div class="space-y-2 mb-3">
                     <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Respuesta</label>
@@ -374,6 +369,10 @@ export class PerfilComponent implements OnInit {
         this.qError.set('No se pudieron cargar tus preguntas de seguridad.');
       },
     });
+  }
+
+  preguntaOptions(index: number): { value: number | null; label: string }[] {
+    return this.preguntasDisponibles(index).map((q) => ({ value: q.id, label: q.nombre }));
   }
 
   preguntasDisponibles(index: number): CatalogoItem[] {

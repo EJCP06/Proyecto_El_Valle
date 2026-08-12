@@ -4,11 +4,12 @@ import { JsonPipe } from '@angular/common';
 import { ReportesService } from '../../core/services/reportes.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ReporteParams } from '../../core/models/usuario.model';
+import { CustomSelectComponent } from '../../shared/components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-reportes',
   standalone: true,
-  imports: [FormsModule, JsonPipe],
+  imports: [FormsModule, JsonPipe, CustomSelectComponent],
   template: `
     <div class="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300">
       
@@ -25,29 +26,13 @@ import { ReporteParams } from '../../core/models/usuario.model';
           <!-- Report Type -->
           <div class="space-y-2">
             <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Tipo de reporte <span class="text-red-500">*</span></label>
-            <select 
-              [(ngModel)]="params.tipo" 
-              name="tipo"
-              class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"
-            >
-              <option value="familias">Familias</option>
-              <option value="miembros">Miembros</option>
-              <option value="formularios">Formularios</option>
-            </select>
+            <app-custom-select [(ngModel)]="params.tipo" [options]="tipoOptions" placeholder="SELECCIONAR TIPO"></app-custom-select>
           </div>
 
           <!-- Format -->
           <div class="space-y-2">
             <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Formato de salida</label>
-            <select 
-              [(ngModel)]="params.formato" 
-              name="formato"
-              class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"
-            >
-              <option value="json">JSON</option>
-              <option value="csv">CSV</option>
-              <option value="pdf">PDF (Descargable)</option>
-            </select>
+            <app-custom-select [(ngModel)]="params.formato" [options]="formatoOptions" placeholder="SELECCIONAR FORMATO"></app-custom-select>
           </div>
 
           <!-- Since -->
@@ -115,6 +100,18 @@ export class ReportesComponent {
   params: ReporteParams = { tipo: 'familias', formato: 'json' };
   result  = signal<unknown>(null);
   loading = signal(false);
+
+  tipoOptions = [
+    { value: 'familias', label: 'FAMILIAS' },
+    { value: 'miembros', label: 'MIEMBROS' },
+    { value: 'formularios', label: 'FORMULARIOS' },
+  ];
+
+  formatoOptions = [
+    { value: 'json', label: 'JSON' },
+    { value: 'csv', label: 'CSV' },
+    { value: 'pdf', label: 'PDF (DESCARGABLE)' },
+  ];
 
   generate() {
     this.loading.set(true);

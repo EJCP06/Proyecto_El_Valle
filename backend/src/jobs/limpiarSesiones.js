@@ -45,7 +45,8 @@ async function limpiarSesiones() {
 /** Inicia el ciclo de limpieza periódica. */
 function iniciarLimpiezaSesiones() {
   logger.info(`Limpieza de sesiones activa (cada ${INTERVALO_MS / 1000}s, inactividad > ${INACTIVIDAD_MIN} min)`);
-  limpiarSesiones();
+  // No se ejecuta inmediatamente al arrancar para evitar revocar sesiones
+  // válidas de usuarios conectados antes del reinicio del servidor.
   return setInterval(limpiarSesiones, INTERVALO_MS);
 }
 

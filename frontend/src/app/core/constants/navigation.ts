@@ -10,6 +10,8 @@ import {
   BookOpen,
   User,
   ShieldCheck,
+  Network,
+  Database,
 } from 'lucide-angular';
 
 export interface NavItem {
@@ -46,6 +48,8 @@ export const NAV_ITEMS: NavItem[] = [
       { label: 'Perfil', icon: User, route: '/app/perfil' },
       { label: 'Usuarios', icon: Users, route: '/app/usuarios', roles: ['admin'] },
       { label: 'Auditoría', icon: ShieldCheck, route: '/app/auditoria', roles: ['admin'] },
+      { label: 'Seguridad de Red', icon: Network, route: '/app/seguridad-red', roles: ['admin'] },
+      { label: 'Backup y Restauración', icon: Database, route: '/app/backup', roles: ['admin'] },
     ],
   },
 ];

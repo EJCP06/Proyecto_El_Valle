@@ -12,6 +12,7 @@ const errorHandler = require('./middleware/error');
 const migrate = require('../migrate');
 const { startBot } = require('./config/telegramBot');
 const { iniciarLimpiezaSesiones } = require('./jobs/limpiarSesiones');
+const { iniciarLimpiezaBackups } = require('./jobs/limpiarBackups');
 const validarIP = require('./middleware/validarIP');
 const configuracionRepo = require('./repositories/configuracion.repository');
 
@@ -38,9 +39,6 @@ async function cargarCORS() {
     logger.warn('No se pudo cargar ORIGENES_PERMITIDOS, usando defaults');
   }
 }
-
-await cargarCORS();
-setInterval(cargarCORS, 60 * 1000);
 
 app.use(cors({
   origin: (origin, cb) => {
@@ -105,8 +103,11 @@ async function start() {
     await pool.query('SELECT 1');
     logger.info('Conexión a PostgreSQL establecida.');
     await migrate();
+    await cargarCORS();
+    setInterval(cargarCORS, 60 * 1000);
     startBot();
     iniciarLimpiezaSesiones();
+    iniciarLimpiezaBackups();
     const server = app.listen(env.PORT, () => {
       logger.info(`Servidor corriendo en http://localhost:${env.PORT}`);
     });

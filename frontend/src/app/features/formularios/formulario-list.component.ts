@@ -8,11 +8,12 @@ import { Formulario, Familia, CampoFormulario, TipoCampo } from '../../core/mode
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { PaginatePipe } from '../../shared/pipes/paginate.pipe';
 import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Users, Trash2, ClipboardList } from 'lucide-angular';
+import { CustomSelectComponent } from '../../shared/components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-formulario-list',
   standalone: true,
-  imports: [FormsModule, PaginationComponent, PaginatePipe, LucideAngularModule],
+  imports: [FormsModule, PaginationComponent, PaginatePipe, LucideAngularModule, CustomSelectComponent],
   template: `
     <div class="space-y-6 animate-in fade-in duration-300 flex flex-col flex-1 min-h-0">
 
@@ -34,7 +35,7 @@ import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Use
           <div class="flex flex-col lg:flex-row lg:items-center gap-3 px-4 md:px-6 py-6 border-b border-slate-100 dark:border-slate-800">
             <div class="flex-1 relative search-filter-container">
               <div class="flex items-center w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl group focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500 transition-all duration-300 overflow-hidden">
-                <button type="button" (click)="toggleSearchFilterDropdown()" class="bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 focus:outline-none cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center gap-2 shrink-0">
+                <button type="button" (click)="toggleSearchFilterDropdown()" class="bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 px-4 self-stretch text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 focus:outline-none cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center gap-2 shrink-0">
                   <span>{{ getSearchFilterLabel() }}</span>
                   <lucide-icon [name]="ChevronDown" class="w-3.5 h-3.5 transition-transform duration-200" [class.rotate-180]="showSearchFilterDropdown"></lucide-icon>
                 </button>
@@ -176,11 +177,7 @@ import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Use
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div class="space-y-2">
                     <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Alcance</label>
-                    <select [(ngModel)]="builderAlcance" name="bAlcance"
-                      class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
-                      <option value="familiar">Familiar</option>
-                      <option value="individual">Individual</option>
-                    </select>
+                    <app-custom-select [(ngModel)]="builderAlcance" name="bAlcance" [options]="alcanceOptions" placeholder="— Seleccionar —"></app-custom-select>
                   </div>
                   <div class="flex flex-col">
                     <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1 mb-2">Estado</label>
@@ -224,12 +221,7 @@ import { LucideAngularModule, Search, ChevronDown, CheckCircle2, Eye, Edit2, Use
                           class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"/>
                       </div>
                       <div>
-                        <select [(ngModel)]="campo.tipo" [name]="'tipo'+i"
-                          class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
-                          @for (t of tipos; track t) {
-                            <option [value]="t">{{ getTipoLabel(t) }}</option>
-                          }
-                        </select>
+                        <app-custom-select [(ngModel)]="campo.tipo" [name]="'tipo'+i" [options]="tipoOptions" placeholder="— Seleccionar —"></app-custom-select>
                       </div>
                       <div>
                         <label class="flex items-center gap-2 text-sm font-normal text-slate-600 dark:text-slate-400 cursor-pointer pt-2">
@@ -458,6 +450,15 @@ readonly CheckCircle2 = CheckCircle2;
   }
 
   tipos: TipoCampo[] = ['text', 'textarea', 'number', 'date', 'time', 'select', 'radio', 'checkbox', 'file', 'yes_no'];
+
+  alcanceOptions: { value: string; label: string }[] = [
+    { value: 'familiar', label: 'Familiar' },
+    { value: 'individual', label: 'Individual' },
+  ];
+
+  get tipoOptions(): { value: TipoCampo; label: string }[] {
+    return this.tipos.map((t) => ({ value: t, label: this.getTipoLabel(t) }));
+  }
 
   getTipoLabel(t: TipoCampo): string {
     const labels: Record<TipoCampo, string> = {

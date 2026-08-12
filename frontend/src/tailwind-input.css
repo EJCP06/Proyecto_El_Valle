@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Fuentes de contenido explícitas: Tailwind v4 no detecta automáticamente
+   las clases dentro de los templates inline de los componentes .ts */
+@source "./app/**/*.ts";
+@source "./src/app/**/*.ts";
+@source "./app/**/*.html";
+@source "./src/app/**/*.html";
+@source "./index.html";
+@source "./src/index.html";
+
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
@@ -447,7 +456,25 @@ select:not([class*="swal2"]) {
   background-repeat: no-repeat;
   background-position: right 18px center;
   padding-right: 44px;
-  min-height: 52px;
+  min-height: 42px !important;
   line-height: 1.5;
-  font-size: 0.875rem;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: #475569 !important;
+  background-color: #f1f5f9 !important;
+}
+
+select:not([class*="swal2"]):hover {
+  background-color: #e2e8f0 !important;
+}
+
+.dark select:not([class*="swal2"]) {
+  color: #cbd5e1 !important;
+  background-color: #1e293b !important;
+}
+
+.dark select:not([class*="swal2"]):hover {
+  background-color: #334155 !important;
 }

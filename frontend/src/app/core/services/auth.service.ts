@@ -90,9 +90,10 @@ export class AuthService {
    * La cabecera x-session-check evita que esta consulta renueve la actividad (no interfiere
    * con la revocación por inactividad del servidor).
    */
-  checkSession(): Observable<ApiResponse<AuthUser>> {
+  checkSession(extra?: { headers?: Record<string, string> }): Observable<ApiResponse<AuthUser>> {
+    const defaultHeaders = { 'x-session-check': '1' };
     return this.http.get<ApiResponse<AuthUser>>(`${this.api}/auth/me`, {
-      headers: { 'x-session-check': '1' },
+      headers: { ...defaultHeaders, ...extra?.headers },
     });
   }
 

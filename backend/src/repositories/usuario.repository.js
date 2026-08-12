@@ -36,10 +36,10 @@ class UsuarioRepository {
     return res.rows[0].total;
   }
 
-  async create({ nombre, email, password, rol }) {
+  async create({ nombre, email, password, rol, activo }) {
     const res = await db.query(
-      'INSERT INTO usuarios (nombre, email, password, rol) VALUES ($1, $2, $3, $4) RETURNING id, nombre, email, rol, activo, created_at',
-      [nombre, email, password, rol || 'viewer']
+      'INSERT INTO usuarios (nombre, email, password, rol, activo) VALUES ($1, $2, $3, $4, $5) RETURNING id, nombre, email, rol, activo, created_at',
+      [nombre, email, password, rol || 'viewer', activo !== undefined ? activo : true]
     );
     return res.rows[0];
   }

@@ -9,11 +9,12 @@ import { PaginationComponent } from '../../shared/components/pagination/paginati
 import { PaginatePipe } from '../../shared/pipes/paginate.pipe';
 import { FillersPipe } from '../../shared/pipes/fillers.pipe';
 import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, CheckCircle2, ClipboardList, Send, Link2 } from 'lucide-angular';
+import { CustomSelectComponent } from '../../shared/components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-usuario-list',
   standalone: true,
-  imports: [FormsModule, PaginationComponent, PaginatePipe, FillersPipe, LucideAngularModule],
+  imports: [FormsModule, PaginationComponent, PaginatePipe, FillersPipe, LucideAngularModule, CustomSelectComponent],
   template: `
     <div class="space-y-6 animate-in fade-in duration-300 flex flex-col flex-1 min-h-0">
       
@@ -36,7 +37,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
           <div class="flex flex-col lg:flex-row lg:items-center gap-3 px-4 md:px-6 py-6 border-b border-slate-100 dark:border-slate-800">
             <div class="flex-1 relative search-filter-container">
               <div class="flex items-center w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl group focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500 transition-all duration-300 overflow-hidden">
-                <button type="button" (click)="toggleSearchFilterDropdown()" class="bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 focus:outline-none cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center gap-2 shrink-0">
+                <button type="button" (click)="toggleSearchFilterDropdown()" class="bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 px-4 self-stretch text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 focus:outline-none cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center gap-2 shrink-0">
                   <span>{{ getSearchFilterLabel() }}</span>
                   <lucide-icon [name]="ChevronDown" class="w-3.5 h-3.5 transition-transform duration-200" [class.rotate-180]="showSearchFilterDropdown"></lucide-icon>
                 </button>
@@ -146,7 +147,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
     @if (showModal()) {
       <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" (click)="closeModal()">
         <div class="absolute inset-0 bg-black/50 "></div>
-        <div class="relative z-10 w-full sm:max-w-2xl h-[95vh] sm:h-auto sm:max-h-[calc(100vh-2rem)] flex flex-col bg-white dark:bg-slate-900 sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
+        <div class="relative z-10 w-full sm:max-w-3xl h-[95vh] sm:h-auto sm:max-h-[calc(100vh-2rem)] flex flex-col bg-white dark:bg-slate-900 sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
 
           <div class="flex items-center justify-between p-4 sm:p-6 bg-blue-600 dark:bg-blue-700 shrink-0">
             <div class="min-w-0">
@@ -171,32 +172,43 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
             }
 
             <form (ngSubmit)="save()" class="space-y-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div class="md:col-span-2 space-y-2">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Nombre completo <span class="text-red-500">*</span></label>
                   <input [(ngModel)]="form.nombre" name="nombre" required placeholder="Ej: Edward Pérez"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"/>
                 </div>
-                <div class="md:col-span-2 space-y-2">
+                <div class="space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Email <span class="text-red-500">*</span></label>
                   <input [(ngModel)]="form.email" name="email" type="email" required placeholder="correo@elvalle.com"
                     class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"/>
                 </div>
-                @if (!editingId()) {
-                  <div class="md:col-span-1 space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Contraseña <span class="text-red-500">*</span></label>
-                    <input [(ngModel)]="password" name="password" type="password" required placeholder="••••••••"
-                      class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"/>
-                    <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5">Mínimo 8 caracteres, mayúscula, minúscula, número y símbolo.</p>
-                  </div>
-                }
-                <div class="space-y-2" [class.md:col-span-1]="!editingId()" [class.md:col-span-2]="editingId()">
+                <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Contraseña @if (!editingId()) { <span class="text-red-500">*</span> }</label>
+                  <input [(ngModel)]="password" name="password" type="password" [required]="!editingId()" [placeholder]="editingId() ? 'Dejar en blanco para no cambiar' : '••••••••'"
+                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal"/>
+                </div>
+                <div class="space-y-2">
                   <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Rol del sistema <span class="text-red-500">*</span></label>
-                  <select [(ngModel)]="form.rol" name="rol" required
-                    class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal">
-                    <option value="vocero">Vocero</option>
-                    <option value="admin">Administrador</option>
-                  </select>
+                  <app-custom-select [(ngModel)]="form.rol" name="rol" [options]="rolOptions"></app-custom-select>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Estado de la cuenta</label>
+                  <div class="flex items-center gap-2 bg-white dark:bg-transparent border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 w-fit">
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" [(ngModel)]="form.activo" (ngModelChange)="onActivoChange($event)" name="activo" class="sr-only peer" />
+                      <div
+                        class="relative w-9 h-5 rounded-full transition-all duration-300 shadow-inner cursor-pointer"
+                        [style.background]="form.activo ? '#10b981' : '#cbd5e1'"
+                      >
+                        <div
+                          class="absolute top-[2px] left-[2px] w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300"
+                          [style.transform]="form.activo ? 'translateX(16px)' : 'translateX(0)'"
+                        ></div>
+                      </div>
+                    </label>
+                    <span class="text-[10px] font-bold uppercase tracking-wider" [class.text-emerald-600]="form.activo" [class.text-slate-400]="!form.activo">{{ form.activo ? 'Activo' : 'Inactivo' }}</span>
+                  </div>
                 </div>
               </div>
 
@@ -211,13 +223,7 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                   @for (pq of preguntasForm; track $index; let i = $index) {
                     <div class="md:col-span-1 space-y-2">
                       <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Pregunta {{ i + 1 }} <span class="text-red-500">*</span></label>
-                      <select [(ngModel)]="preguntasForm[i].preguntaId" [name]="'pq' + i" required
-                        class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all font-normal text-sm">
-                        <option [ngValue]="null">— Seleccionar —</option>
-                        @for (q of preguntasCatalogo(); track q.id) {
-                          <option [ngValue]="q.id">{{ q.nombre }}</option>
-                        }
-                      </select>
+                      <app-custom-select [(ngModel)]="preguntasForm[i].preguntaId" [name]="'pq' + i" [options]="preguntaOptions" placeholder="— Seleccionar —"></app-custom-select>
                     </div>
                     <div class="md:col-span-1 space-y-2">
                       <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Respuesta {{ i + 1 }} <span class="text-red-500">*</span></label>
@@ -452,6 +458,15 @@ readonly Eye = Eye;
   form: Partial<Usuario> = { nombre: '', email: '', rol: 'vocero' };
 
   preguntasCatalogo = signal<CatalogoItem[]>([]);
+
+  rolOptions: { value: string; label: string }[] = [
+    { value: 'vocero', label: 'Vocero' },
+    { value: 'admin', label: 'Administrador' },
+  ];
+
+  get preguntaOptions(): { value: number; label: string }[] {
+    return this.preguntasCatalogo().map((q) => ({ value: q.id, label: q.nombre }));
+  }
   preguntasForm: { preguntaId: number | null; respuesta: string }[] = [
     { preguntaId: null, respuesta: '' },
     { preguntaId: null, respuesta: '' },
@@ -499,7 +514,7 @@ readonly Eye = Eye;
   }
 
   openModal() {
-    this.form = { nombre: '', email: '', rol: 'vocero' };
+    this.form = { nombre: '', email: '', rol: 'vocero', activo: true };
     this.password = '';
     this.editingId.set(null);
     this.modalError.set('');
@@ -515,6 +530,17 @@ readonly Eye = Eye;
     this.resetPreguntasForm();
     this.loadPreguntasUsuario(u.id!);
     this.showModal.set(true);
+  }
+
+  onActivoChange(checked: boolean) {
+    const selfId = this.authSvc.currentUser()?.id;
+    if (this.editingId() === selfId && !checked) {
+      this.modalError.set('No puedes desactivar tu propia cuenta.');
+      this.form.activo = true;
+      return;
+    }
+    this.form.activo = checked;
+    this.modalError.set('');
   }
 
   private resetPreguntasForm() {
@@ -620,10 +646,17 @@ readonly Eye = Eye;
         this.modalError.set(`La contraseña no cumple los requisitos: ${erroresPass.join(', ')}.`);
         return;
       }
+    } else if (this.password) {
+      const erroresPass = this.validarPassword(this.password);
+      if (erroresPass.length > 0) {
+        this.modalError.set(`La contraseña no cumple los requisitos: ${erroresPass.join(', ')}.`);
+        return;
+      }
     }
 
     this.saving.set(true);
-    const basePayload = id ? { ...this.form } : { ...this.form, password: this.password };
+    const basePayload: any = { ...this.form };
+    if (this.password) basePayload.password = this.password;
     const payload: any = preguntas ? { ...basePayload, preguntasSeguridad: preguntas } : basePayload;
     const obs = id ? this.svc.update(id, payload) : this.svc.create(payload);
     obs.subscribe({
