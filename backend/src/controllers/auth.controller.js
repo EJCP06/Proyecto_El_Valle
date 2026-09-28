@@ -282,6 +282,214 @@ exports.getUserById = async (req, res, next) => {
   }
 };
 
+exports.getUserConsejos = async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID de usuario inválido'
+      });
+    }
+
+    const usuario = await usuarioRepo.findById(id);
+
+    if (!usuario) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado'
+      });
+    }
+
+    const consejos = await usuarioRepo.findConsejos(id);
+
+    return res.json({
+      success: true,
+      data: consejos
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.setUserConsejos = async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { consejoIds } = req.body;
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID de usuario inválido'
+      });
+    }
+
+    if (!Array.isArray(consejoIds)) {
+      return res.status(400).json({
+        success: false,
+        message: 'consejoIds debe ser un arreglo'
+      });
+    }
+
+    const usuario = await usuarioRepo.findById(id);
+
+    if (!usuario) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado'
+      });
+    }
+
+    const consejos = await usuarioRepo.setConsejos(
+      id,
+      consejoIds
+    );
+
+    await registrarAuditoria({
+      accion: 'ASIGNAR CONSEJOS',
+      entidad: 'USUARIO',
+      entidadId: id,
+      detalle: {
+        consejoIds
+      },
+      req
+    });
+
+    return res.json({
+      success: true,
+      data: consejos
+    });
+  } catch (error) {
+    if (error.code === 'INVALID_COUNCIL_IDS') {
+      return res.status(400).json({
+        success: false,
+        code: 'INVALID_COUNCIL_IDS',
+        message: error.message
+      });
+    }
+
+    next(error);
+  }
+};
+
+exports.getUserPermisos = async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID de usuario inválido'
+      });
+    }
+
+    const usuario = await usuarioRepo.findById(id);
+
+    if (!usuario) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado'
+      });
+    }
+
+    const permisos = await usuarioRepo.findPermisos(id);
+
+    return res.json({
+      success: true,
+      data: permisos
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.setUserPermisos = async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { permisoIds } = req.body;
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID de usuario inválido'
+      });
+    }
+
+    if (!Array.isArray(permisoIds)) {
+      return res.status(400).json({
+        success: false,
+        message: 'permisoIds debe ser un arreglo'
+      });
+    }
+
+    const usuario = await usuarioRepo.findById(id);
+
+    if (!usuario) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado'
+      });
+    }
+
+    const permisos = await usuarioRepo.setPermisos(
+      id,
+      permisoIds
+    );
+
+    await registrarAuditoria({
+      accion: 'ASIGNAR PERMISOS',
+      entidad: 'USUARIO',
+      entidadId: id,
+      detalle: {
+        permisoIds
+      },
+      req
+    });
+
+    return res.json({
+      success: true,
+      data: permisos
+    });
+  } catch (error) {
+    if (error.code === 'INVALID_PERMISSION_IDS') {
+      return res.status(400).json({
+        success: false,
+        code: 'INVALID_PERMISSION_IDS',
+        message: error.message
+      });
+    }
+
+    next(error);
+  }
+};
+
+exports.getPermisosCatalogo = async (req, res, next) => {
+  try {
+    const permisos = await usuarioRepo.findPermisosCatalogo();
+
+    return res.json({
+      success: true,
+      data: permisos
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getMyAccess = async (req, res, next) => {
+  try {
+    const acceso = await usuarioRepo.findAcceso(req.user.id);
+
+    return res.json({
+      success: true,
+      data: acceso
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.updateUser = async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);

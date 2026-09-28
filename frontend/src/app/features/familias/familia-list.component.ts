@@ -6,6 +6,7 @@ import { MiembrosService } from '../../core/services/miembros.service';
 import { CatalogoService, CatalogoItem } from '../../core/services/catalogo.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { FormulariosService } from '../../core/services/formularios.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Familia, Miembro, ConsejoComunal, FormularioAsignacionFamilia, CampoFormulario } from '../../core/models/usuario.model';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { PaginatePipe } from '../../shared/pipes/paginate.pipe';
@@ -62,13 +63,15 @@ import { CustomSelectComponent } from '../../shared/components/custom-select/cus
                 </div>
               }
             </div>
-            <button 
-              (click)="openModal()" 
-              class="order-first lg:order-none inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-blue-600/10 hover:shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 text-sm cursor-pointer shrink-0"
-            >
-              <span class="text-lg leading-none">+</span>
-              <span>Nueva familia</span>
-            </button>
+              @if (canCreateFamily()) {
+              <button
+                (click)="openModal()"
+                class="order-first lg:order-none inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-blue-600/10 hover:shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 text-sm cursor-pointer shrink-0"
+              >
+                <span class="text-lg leading-none">+</span>
+                <span>Nueva familia</span>
+              </button>
+            }
           </div>
           <!--/ Toolbar -->
 
@@ -104,12 +107,16 @@ import { CustomSelectComponent } from '../../shared/components/custom-select/cus
                         <button (click)="openFormularios(f)" aria-label="Formularios asignados" class="p-2 text-slate-400 hover:text-violet-600 hover:bg-violet-100 hover:shadow-[0_2px_10px_-3px_rgba(139,92,246,0.4)] dark:hover:bg-violet-900/30 rounded-xl transition-all cursor-pointer">
                           <lucide-icon [name]="ClipboardList" class="w-4 h-4"></lucide-icon>
                         </button>
-                        <button (click)="openEdit(f)" aria-label="Editar familia" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 hover:shadow-[0_2px_10px_-3px_rgba(59,130,246,0.4)] dark:hover:bg-blue-900/30 rounded-xl transition-all cursor-pointer">
-                          <lucide-icon [name]="Edit2" class="w-4 h-4"></lucide-icon>
-                        </button>
-                        <button (click)="deleteFamilia(f)" aria-label="Eliminar familia" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-100 hover:shadow-[0_2px_10px_-3px_rgba(244,63,94,0.4)] dark:hover:bg-rose-900/30 rounded-xl transition-all cursor-pointer">
-                          <lucide-icon [name]="Trash2" class="w-4 h-4"></lucide-icon>
-                        </button>
+                        @if (canEditFamily()) {
+                          <button (click)="openEdit(f)" aria-label="Editar familia" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 hover:shadow-[0_2px_10px_-3px_rgba(59,130,246,0.4)] dark:hover:bg-blue-900/30 rounded-xl transition-all cursor-pointer">
+                            <lucide-icon [name]="Edit2" class="w-4 h-4"></lucide-icon>
+                          </button>
+                        }
+                        @if (canDeleteFamily()) {
+                          <button (click)="deleteFamilia(f)" aria-label="Eliminar familia" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-100 hover:shadow-[0_2px_10px_-3px_rgba(244,63,94,0.4)] dark:hover:bg-rose-900/30 rounded-xl transition-all cursor-pointer">
+                            <lucide-icon [name]="Trash2" class="w-4 h-4"></lucide-icon>
+                          </button>
+                        }
                       </div>
                     </td>
                   </tr>
@@ -215,12 +222,16 @@ import { CustomSelectComponent } from '../../shared/components/custom-select/cus
                             </td>
                             <td class="px-4 py-3">
                               <div class="flex justify-center gap-1">
-                                <button type="button" (click)="openMiembroModal(editingId()!, m)" aria-label="Editar miembro" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-all cursor-pointer">
-                                  <lucide-icon [name]="Edit2" class="w-3.5 h-3.5"></lucide-icon>
-                                </button>
-                                <button type="button" (click)="deleteMiembro(editingId()!, m)" aria-label="Eliminar miembro" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-100 rounded-lg transition-all cursor-pointer">
-                                  <lucide-icon [name]="Trash2" class="w-3.5 h-3.5"></lucide-icon>
-                                </button>
+                                @if (canEditMember()) {
+                                  <button type="button" (click)="openMiembroModal(editingId()!, m)" aria-label="Editar miembro" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-all cursor-pointer">
+                                    <lucide-icon [name]="Edit2" class="w-3.5 h-3.5"></lucide-icon>
+                                  </button>
+                                }
+                                @if (canDeleteMember()) {
+                                  <button type="button" (click)="deleteMiembro(editingId()!, m)" aria-label="Eliminar miembro" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-100 rounded-lg transition-all cursor-pointer">
+                                    <lucide-icon [name]="Trash2" class="w-3.5 h-3.5"></lucide-icon>
+                                  </button>
+                                }
                               </div>
                             </td>
                           </tr>
@@ -243,12 +254,16 @@ import { CustomSelectComponent } from '../../shared/components/custom-select/cus
                             </td>
                             <td class="px-4 py-3">
                               <div class="flex justify-center gap-1">
-                                <button type="button" (click)="openMiembroModal(undefined, m, $index)" aria-label="Editar miembro" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-all cursor-pointer">
-                                  <lucide-icon [name]="Edit2" class="w-3.5 h-3.5"></lucide-icon>
-                                </button>
-                                <button type="button" (click)="removePendingMiembro($index)" aria-label="Eliminar miembro" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-100 rounded-lg transition-all cursor-pointer">
-                                  <lucide-icon [name]="Trash2" class="w-3.5 h-3.5"></lucide-icon>
-                                </button>
+                                @if (canEditMember()) {
+                                  <button type="button" (click)="openMiembroModal(undefined, m, $index)" aria-label="Editar miembro" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-all cursor-pointer">
+                                    <lucide-icon [name]="Edit2" class="w-3.5 h-3.5"></lucide-icon>
+                                  </button>
+                                }
+                                @if (canDeleteMember()) {
+                                  <button type="button" (click)="removePendingMiembro($index)" aria-label="Eliminar miembro" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-100 rounded-lg transition-all cursor-pointer">
+                                    <lucide-icon [name]="Trash2" class="w-3.5 h-3.5"></lucide-icon>
+                                  </button>
+                                }
                               </div>
                             </td>
                           </tr>
@@ -684,6 +699,7 @@ export class FamiliaListComponent implements OnInit {
   private catSvc  = inject(CatalogoService);
   private notify = inject(NotificationService);
   private formulariosSvc = inject(FormulariosService);
+  private auth = inject(AuthService);
   private el = inject(ElementRef);
 
   pageSize = 8;
@@ -812,6 +828,30 @@ export class FamiliaListComponent implements OnInit {
   onSearchChange(value: string | undefined) {
     this.searchQuery = value || '';
     this.currentPage = 1;
+  }
+
+    canCreateFamily(): boolean {
+    return this.auth.hasPermission('familias', 'crear');
+  }
+
+  canEditFamily(): boolean {
+    return this.auth.hasPermission('familias', 'editar');
+  }
+
+  canDeleteFamily(): boolean {
+    return this.auth.hasPermission('familias', 'eliminar');
+  }
+
+  canCreateMember(): boolean {
+    return this.auth.hasPermission('miembros', 'crear');
+  }
+
+  canEditMember(): boolean {
+    return this.auth.hasPermission('miembros', 'editar');
+  }
+
+  canDeleteMember(): boolean {
+    return this.auth.hasPermission('miembros', 'eliminar');
   }
 
   ngOnInit() {
@@ -1154,5 +1194,6 @@ export class FamiliaListComponent implements OnInit {
       error: (e) => this.notify.error('Error', e?.error?.message ?? 'Error al eliminar.'),
     });
   }
+
 }
 

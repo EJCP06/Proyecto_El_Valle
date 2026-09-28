@@ -148,7 +148,7 @@ export class SidebarComponent implements OnInit {
 
   isDesktop = signal(true);
   logoutLoading = signal(false);
-  openSections = signal<Set<string>>(new Set(['Seguridad']));
+  openSections = signal<Set<string>>(new Set());
 
   readonly LogOut = LogOut;
   readonly Building2 = Building2;
@@ -203,15 +203,45 @@ export class SidebarComponent implements OnInit {
 
   visibleItems() {
     const user = this.auth.currentUser();
-    return NAV_ITEMS
-      .filter((item) => !item.roles || (user && item.roles.includes(user.rol)))
-      .map((item) => {
-        if (!item.children) return item;
-        const children = item.children.filter(
-          (child) => !child.roles || (user && child.roles.includes(user.rol)),
+
+    const canSee = (item: NavItem): boolean => {
+      if (!user) return false;
+
+      if (item.roles && !item.roles.includes(user.rol)) {
+        return false;
+      }
+
+      if (item.module) {
+        return this.auth.hasPermission(
+          item.module,
+          item.action ?? 'ver',
         );
-        return { ...item, children };
-      });
+      }
+
+      return true;
+    };
+
+    return NAV_ITEMS
+      .filter((item) => {
+        if (item.children) {
+          return canSee(item) || item.children.some((child) => canSee(child));
+        }
+
+        return canSee(item);
+      })
+      .map((item) => {
+        if (!item.children) {
+          return item;
+        }
+
+        const children = item.children.filter((child) => canSee(child));
+
+        return {
+          ...item,
+          children,
+        };
+      })
+      .filter((item) => !item.children || item.children.length > 0);
   }
 
   initials(): string {

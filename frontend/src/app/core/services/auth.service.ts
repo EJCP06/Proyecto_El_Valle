@@ -1,21 +1,45 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { tap, catchError } from 'rxjs/operators';
+import { tap, catchError, switchMap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { LoginRequest, LoginResponse, AuthUser } from '../interfaces/auth.interface';
+import {
+  LoginRequest,
+  LoginResponse,
+  AuthUser,
+  UserPermission,
+  UserCouncil,
+} from '../interfaces/auth.interface';
 import { ApiResponse } from '../interfaces/api-response.interface';
 
 const TOKEN_KEY = 'ev_token';
-const USER_KEY  = 'ev_user';
+const USER_KEY = 'ev_user';
+const PERMISSIONS_KEY = 'ev_permissions';
+const COUNCILS_KEY = 'ev_councils';
+
+interface AccessResponse {
+  permisos: UserPermission[];
+  consejos: UserCouncil[];
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly api = environment.apiUrl;
 
-  private _token = signal<string | null>(sessionStorage.getItem(TOKEN_KEY));
-  private _user  = signal<AuthUser | null>(
+  private _token = signal<string | null>(
+    sessionStorage.getItem(TOKEN_KEY)
+  );
+
+  private _user = signal<AuthUser | null>(
     JSON.parse(sessionStorage.getItem(USER_KEY) ?? 'null')
+  );
+
+  private _permissions = signal<UserPermission[]>(
+    JSON.parse(sessionStorage.getItem(PERMISSIONS_KEY) ?? '[]')
+  );
+
+  private _councils = signal<UserCouncil[]>(
+    JSON.parse(sessionStorage.getItem(COUNCILS_KEY) ?? '[]')
   );
 
   /**
@@ -34,6 +58,9 @@ export class AuthService {
 
   /** Publicly readable signals */
   readonly currentUser = this._user.asReadonly();
+  readonly permissions = this._permissions.asReadonly();
+  readonly councils = this._councils.asReadonly();
+
   readonly isAdmin = computed(() => this._user()?.rol === 'admin');
   readonly isVocero = computed(() => this._user()?.rol === 'vocero');
 
@@ -41,36 +68,115 @@ export class AuthService {
 
   login(credentials: LoginRequest): Observable<ApiResponse<LoginResponse>> {
     return this.http
-      .post<ApiResponse<LoginResponse>>(`${this.api}/auth/login`, credentials)
+      .post<ApiResponse<LoginResponse>>(
+        `${this.api}/auth/login`,
+        credentials
+      )
+      .pipe(
+        switchMap((res) => {
+          if (!res.success) {
+            return of(res);
+          }
+
+          this._sessionAlertShown = false;
+          this._token.set(res.data.token);
+          this._user.set(res.data.user);
+
+          sessionStorage.setItem(TOKEN_KEY, res.data.token);
+          sessionStorage.setItem(USER_KEY, JSON.stringify(res.data.user));
+
+          return this.loadAccess().pipe(
+            switchMap(() => of(res))
+          );
+        })
+      );
+  }
+
+  loadAccess(): Observable<ApiResponse<AccessResponse>> {
+    return this.http
+      .get<ApiResponse<AccessResponse>>(
+        `${this.api}/auth/me/acceso`
+      )
       .pipe(
         tap((res) => {
-          if (res.success) {
-            this._sessionAlertShown = false;
-            this._token.set(res.data.token);
-            this._user.set(res.data.user);
-            sessionStorage.setItem(TOKEN_KEY, res.data.token);
-            sessionStorage.setItem(USER_KEY, JSON.stringify(res.data.user));
+          if (res.success && res.data) {
+            this._permissions.set(res.data.permisos ?? []);
+            this._councils.set(res.data.consejos ?? []);
+
+            sessionStorage.setItem(
+              PERMISSIONS_KEY,
+              JSON.stringify(res.data.permisos ?? [])
+            );
+
+            sessionStorage.setItem(
+              COUNCILS_KEY,
+              JSON.stringify(res.data.consejos ?? [])
+            );
           }
         })
       );
   }
 
+  hasPermission(modulo: string, accion: string): boolean {
+    if (this.isAdmin()) {
+      return true;
+    }
+
+    return this._permissions().some(
+      (permission) =>
+        permission.modulo === modulo &&
+        permission.accion === accion
+    );
+  }
+
+  hasModulePermission(modulo: string): boolean {
+    if (this.isAdmin()) {
+      return true;
+    }
+
+    return this._permissions().some(
+      (permission) =>
+        permission.modulo === modulo &&
+        permission.accion === 'ver'
+    );
+  }
+
+  hasCouncil(councilId: number): boolean {
+    if (this.isAdmin()) {
+      return true;
+    }
+
+    return this._councils().some(
+      (council) =>
+        council.id === councilId &&
+        council.activo !== false
+    );
+  }
+
   logout(): void {
     const token = this._token();
+
     if (token) {
       this.http
         .post<ApiResponse<any>>(`${this.api}/auth/logout`, {})
         .pipe(catchError(() => of(null)))
         .subscribe();
     }
+
     this._token.set(null);
     this._user.set(null);
+    this._permissions.set([]);
+    this._councils.set([]);
+
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(USER_KEY);
+    sessionStorage.removeItem(PERMISSIONS_KEY);
+    sessionStorage.removeItem(COUNCILS_KEY);
   }
 
   isAuthenticated(): boolean {
     const token = this._token();
+
     if (!token) return false;
 
     try {
@@ -86,62 +192,169 @@ export class AuthService {
   }
 
   /**
-   * Consulta liviana de sesión: el backend responde 401 SESSION_REVOKED si fue revocada.
-   * La cabecera x-session-check evita que esta consulta renueve la actividad (no interfiere
-   * con la revocación por inactividad del servidor).
+   * Consulta liviana de sesión: el backend responde 401 SESSION_REVOKED
+   * si fue revocada.
    */
-  checkSession(extra?: { headers?: Record<string, string> }): Observable<ApiResponse<AuthUser>> {
+  checkSession(
+    extra?: { headers?: Record<string, string> }
+  ): Observable<ApiResponse<AuthUser>> {
     const defaultHeaders = { 'x-session-check': '1' };
-    return this.http.get<ApiResponse<AuthUser>>(`${this.api}/auth/me`, {
-      headers: { ...defaultHeaders, ...extra?.headers },
-    });
-  }
 
-  changePassword(currentPassword: string, newPassword: string): Observable<ApiResponse<any>> {
-    return this.http.patch<ApiResponse<any>>(`${this.api}/auth/password`, { currentPassword, newPassword });
-  }
-
-  updateProfile(nombre: string, email: string): Observable<ApiResponse<AuthUser>> {
-    return this.http.patch<ApiResponse<AuthUser>>(`${this.api}/auth/me`, { nombre, email }).pipe(
-      tap((res) => {
-        if (res.success && res.data) {
-          const updated = { ...this._user(), ...res.data };
-          this._user.set(updated);
-          sessionStorage.setItem(USER_KEY, JSON.stringify(updated));
-        }
-      })
+    return this.http.get<ApiResponse<AuthUser>>(
+      `${this.api}/auth/me`,
+      {
+        headers: {
+          ...defaultHeaders,
+          ...extra?.headers,
+        },
+      }
     );
   }
 
-  solicitarRecuperacion(email: string, canal: 'email' | 'telegram' = 'email'): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.api}/auth/recuperacion/solicitar`, { email, canal });
+  changePassword(
+    currentPassword: string,
+    newPassword: string
+  ): Observable<ApiResponse<any>> {
+    return this.http.patch<ApiResponse<any>>(
+      `${this.api}/auth/password`,
+      {
+        currentPassword,
+        newPassword,
+      }
+    );
   }
 
-  verificarOTP(email: string, codigo: string): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.api}/auth/recuperacion/verificar`, { email, codigo });
+  updateProfile(
+    nombre: string,
+    email: string
+  ): Observable<ApiResponse<AuthUser>> {
+    return this.http
+      .patch<ApiResponse<AuthUser>>(
+        `${this.api}/auth/me`,
+        {
+          nombre,
+          email,
+        }
+      )
+      .pipe(
+        tap((res) => {
+          if (res.success && res.data) {
+            const updated = {
+              ...this._user(),
+              ...res.data,
+            };
+
+            this._user.set(updated);
+            sessionStorage.setItem(
+              USER_KEY,
+              JSON.stringify(updated)
+            );
+          }
+        })
+      );
   }
 
-  restablecerPassword(email: string, codigo: string, newPassword: string): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.api}/auth/recuperacion/restablecer`, { email, codigo, newPassword });
+  solicitarRecuperacion(
+    email: string,
+    canal: 'email' | 'telegram' = 'email'
+  ): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(
+      `${this.api}/auth/recuperacion/solicitar`,
+      {
+        email,
+        canal,
+      }
+    );
   }
 
-  verificarPreguntas(email: string, respuestas: { preguntaId: number; respuesta: string }[]): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.api}/preguntas-seguridad/verify`, { email, respuestas });
+  verificarOTP(
+    email: string,
+    codigo: string
+  ): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(
+      `${this.api}/auth/recuperacion/verificar`,
+      {
+        email,
+        codigo,
+      }
+    );
   }
 
-  resetPorPreguntas(email: string, respuestas: { preguntaId: number; respuesta: string }[], newPassword: string): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.api}/preguntas-seguridad/reset-password`, { email, respuestas, newPassword });
+  restablecerPassword(
+    email: string,
+    codigo: string,
+    newPassword: string
+  ): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(
+      `${this.api}/auth/recuperacion/restablecer`,
+      {
+        email,
+        codigo,
+        newPassword,
+      }
+    );
   }
 
-  getPreguntasByUsuario(usuarioId: number): Observable<ApiResponse<any>> {
-    return this.http.get<ApiResponse<any>>(`${this.api}/preguntas-seguridad/usuario/${usuarioId}`);
+  verificarPreguntas(
+    email: string,
+    respuestas: {
+      preguntaId: number;
+      respuesta: string;
+    }[]
+  ): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(
+      `${this.api}/preguntas-seguridad/verify`,
+      {
+        email,
+        respuestas,
+      }
+    );
+  }
+
+  resetPorPreguntas(
+    email: string,
+    respuestas: {
+      preguntaId: number;
+      respuesta: string;
+    }[],
+    newPassword: string
+  ): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(
+      `${this.api}/preguntas-seguridad/reset-password`,
+      {
+        email,
+        respuestas,
+        newPassword,
+      }
+    );
+  }
+
+  getPreguntasByUsuario(
+    usuarioId: number
+  ): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(
+      `${this.api}/preguntas-seguridad/usuario/${usuarioId}`
+    );
   }
 
   getMisPreguntas(): Observable<ApiResponse<any>> {
-    return this.http.get<ApiResponse<any>>(`${this.api}/preguntas-seguridad/mias`);
+    return this.http.get<ApiResponse<any>>(
+      `${this.api}/preguntas-seguridad/mias`
+    );
   }
 
-  updateMisPreguntas(preguntas: { id?: number | null; preguntaId: number; respuesta: string }[]): Observable<ApiResponse<any>> {
-    return this.http.put<ApiResponse<any>>(`${this.api}/preguntas-seguridad/mias`, { preguntas });
+  updateMisPreguntas(
+    preguntas: {
+      id?: number | null;
+      preguntaId: number;
+      respuesta: string;
+    }[]
+  ): Observable<ApiResponse<any>> {
+    return this.http.put<ApiResponse<any>>(
+      `${this.api}/preguntas-seguridad/mias`,
+      {
+        preguntas,
+      }
+    );
   }
 }

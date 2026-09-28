@@ -10,7 +10,7 @@ export class SessionTimerService {
 
   private readonly INACTIVITY_MS = 5 * 60 * 1000;
   private readonly WARNING_MS = 60 * 1000;
-  private readonly SESSION_CHECK_MS = 20 * 1000;
+  private readonly SESSION_CHECK_MS = 60 * 1000;
 
   private timeoutId: ReturnType<typeof setTimeout> | null = null;
   private warningTimeoutId: ReturnType<typeof setTimeout> | null = null;

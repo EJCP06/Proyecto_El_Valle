@@ -35,7 +35,7 @@ exports.downloadPdf = async (req, res, next) => {
 
 exports.getStats = async (req, res, next) => {
   try {
-    const data = await reporteRepo.getDashboardStats();
+    const data = await reporteRepo.getDashboardStats(req.user.id, req.user.rol);
     return res.json({
       success: true,
       data

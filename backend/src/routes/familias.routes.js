@@ -1,14 +1,43 @@
 const router = require('express').Router();
+
 const familiasController = require('../controllers/familias.controller');
 const authMiddleware = require('../middleware/auth');
-const rolesMiddleware = require('../middleware/roles');
+const permission = require('../middleware/permisos');
 
 router.use(authMiddleware);
 
-router.get('/', familiasController.getAll);
-router.get('/:id', familiasController.getById);
-router.post('/', rolesMiddleware('admin', 'editor'), familiasController.create);
-router.patch('/:id', rolesMiddleware('admin', 'editor'), familiasController.update);
-router.delete('/:id', rolesMiddleware('admin'), familiasController.delete);
+// Consultar
+router.get(
+  '/',
+  permission('familias', 'ver'),
+  familiasController.getAll
+);
+
+router.get(
+  '/:id',
+  permission('familias', 'ver'),
+  familiasController.getById
+);
+
+// Crear
+router.post(
+  '/',
+  permission('familias', 'crear'),
+  familiasController.create
+);
+
+// Editar
+router.patch(
+  '/:id',
+  permission('familias', 'editar'),
+  familiasController.update
+);
+
+// Eliminar
+router.delete(
+  '/:id',
+  permission('familias', 'eliminar'),
+  familiasController.delete
+);
 
 module.exports = router;

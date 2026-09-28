@@ -60,6 +60,112 @@ class UsuarioRepository {
     return res.rows[0];
   }
 
+    async findConsejos(id) {
+    const res = await db.query(
+      `SELECT
+         c.id,
+         c.nombre,
+         c.rif,
+         uc.activo,
+         uc.created_at as "createdAt"
+       FROM usuarios_consejos uc
+       INNER JOIN consejos_comunales c
+         ON c.id = uc.consejo_id
+       WHERE uc.usuario_id = $1
+         AND uc.activo = TRUE
+       ORDER BY c.id`,
+      [id]
+    );
+
+    return res.rows;
+  }
+
+  async setConsejos(id, consejoIds = []) {
+    const client = await db.pool.connect();
+
+    try {
+      await client.query('BEGIN');
+
+      const usuario = await client.query(
+        `SELECT id
+         FROM usuarios
+         WHERE id = $1`,
+        [id]
+      );
+
+      if (usuario.rows.length === 0) {
+        return null;
+      }
+
+      const ids = [
+        ...new Set(
+          consejoIds
+            .map(Number)
+            .filter(
+              (consejoId) =>
+                Number.isInteger(consejoId) && consejoId > 0
+            )
+        )
+      ];
+
+      if (ids.length > 0) {
+        const consejos = await client.query(
+          `SELECT id
+           FROM consejos_comunales
+           WHERE id = ANY($1::int[])`,
+          [ids]
+        );
+
+        const existentes = new Set(
+          consejos.rows.map(row => row.id)
+        );
+
+        const invalidos = ids.filter(
+          consejoId => !existentes.has(consejoId)
+        );
+
+        if (invalidos.length > 0) {
+          const error = new Error(
+            `Consejos comunales inválidos: ${invalidos.join(', ')}`
+          );
+          error.code = 'INVALID_COUNCIL_IDS';
+          throw error;
+        }
+      }
+
+      await client.query(
+        `UPDATE usuarios_consejos
+         SET activo = FALSE
+         WHERE usuario_id = $1`,
+        [id]
+      );
+
+      for (const consejoId of ids) {
+        await client.query(
+          `INSERT INTO usuarios_consejos (
+             usuario_id,
+             consejo_id,
+             activo
+           )
+           VALUES ($1, $2, TRUE)
+           ON CONFLICT (usuario_id, consejo_id)
+           DO UPDATE SET
+             activo = TRUE`,
+          [id, consejoId]
+        );
+      }
+
+      await client.query('COMMIT');
+
+      return this.findConsejos(id);
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
   async updatePassword(id, passwordHash) {
     await db.query(
       'UPDATE usuarios SET password = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
@@ -69,6 +175,134 @@ class UsuarioRepository {
 
   async deactivate(id) {
     await db.query('UPDATE usuarios SET activo = false, updated_at = CURRENT_TIMESTAMP WHERE id = $1', [id]);
+  }
+
+    async findPermisos(id) {
+    const res = await db.query(
+      `SELECT
+         p.id,
+         p.modulo,
+         p.accion,
+         up.created_at as "createdAt"
+       FROM usuarios_permisos up
+       INNER JOIN permisos p
+         ON p.id = up.permiso_id
+       WHERE up.usuario_id = $1
+       ORDER BY p.modulo, p.accion`,
+      [id]
+    );
+
+    return res.rows;
+  }
+
+  async setPermisos(id, permisoIds = []) {
+    const client = await db.pool.connect();
+
+    try {
+      await client.query('BEGIN');
+
+      const usuario = await client.query(
+        `SELECT id
+         FROM usuarios
+         WHERE id = $1`,
+        [id]
+      );
+
+      if (usuario.rows.length === 0) {
+        return null;
+      }
+
+      const ids = [
+        ...new Set(
+          permisoIds
+            .map(Number)
+            .filter(
+              permisoId =>
+                Number.isInteger(permisoId) && permisoId > 0
+            )
+        )
+      ];
+
+      if (ids.length > 0) {
+        const permisos = await client.query(
+          `SELECT id
+           FROM permisos
+           WHERE id = ANY($1::int[])`,
+          [ids]
+        );
+
+        const existentes = new Set(
+          permisos.rows.map(row => row.id)
+        );
+
+        const invalidos = ids.filter(
+          permisoId => !existentes.has(permisoId)
+        );
+
+        if (invalidos.length > 0) {
+          const error = new Error(
+            `Permisos inválidos: ${invalidos.join(', ')}`
+          );
+
+          error.code = 'INVALID_PERMISSION_IDS';
+
+          throw error;
+        }
+      }
+
+      await client.query(
+        `DELETE FROM usuarios_permisos
+         WHERE usuario_id = $1`,
+        [id]
+      );
+
+      for (const permisoId of ids) {
+        await client.query(
+          `INSERT INTO usuarios_permisos (
+             usuario_id,
+             permiso_id
+           )
+           VALUES ($1, $2)
+           ON CONFLICT (usuario_id, permiso_id)
+           DO NOTHING`,
+          [id, permisoId]
+        );
+      }
+
+      await client.query('COMMIT');
+
+      return this.findPermisos(id);
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  async findPermisosCatalogo() {
+    const res = await db.query(
+      `SELECT
+         id,
+         modulo,
+         accion
+       FROM permisos
+       ORDER BY modulo, accion`
+    );
+
+    return res.rows;
+  }
+
+    async findAcceso(id) {
+    const [permisos, consejos] = await Promise.all([
+      this.findPermisos(id),
+      this.findConsejos(id)
+    ]);
+
+    return {
+      permisos,
+      consejos
+    };
   }
 }
 

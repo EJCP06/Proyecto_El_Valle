@@ -59,7 +59,7 @@ import { CustomSelectComponent } from '../../shared/components/custom-select/cus
                 </div>
               }
             </div>
-            @if (isAdmin()) {
+            @if (canCreateForm()) {
               <button 
                 (click)="openBuilderModal()" 
                 class="order-first lg:order-none inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-blue-600/10 hover:shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 text-sm cursor-pointer shrink-0"
@@ -80,7 +80,7 @@ import { CustomSelectComponent } from '../../shared/components/custom-select/cus
                     <div class="w-11 h-11 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
                       📋
                     </div>
-                    @if (isAdmin()) {
+                    @if (canEditForm()) {
                       <button (click)="toggleActivo(f)" class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition-all hover:scale-105"
                         [class]="f.activo ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400'">
                         {{ f.activo ? 'Activo' : 'Inactivo' }}
@@ -108,17 +108,20 @@ import { CustomSelectComponent } from '../../shared/components/custom-select/cus
                       <button (click)="openView(f)" aria-label="Ver formulario" class="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-100 hover:shadow-[0_2px_10px_-3px_rgba(16,185,129,0.4)] rounded-xl transition-all cursor-pointer">
                         <lucide-icon [name]="Eye" class="w-4 h-4"></lucide-icon>
                       </button>
-                      @if (isAdmin()) {
+                      @if (canEditForm()) {
                         <button (click)="openBuilderModal(f)" aria-label="Editar formulario" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 hover:shadow-[0_2px_10px_-3px_rgba(59,130,246,0.4)] rounded-xl transition-all cursor-pointer">
                           <lucide-icon [name]="Edit2" class="w-4 h-4"></lucide-icon>
                         </button>
                         <button (click)="openAsignarModal(f)" aria-label="Asignar formulario" class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-100 hover:shadow-[0_2px_10px_-3px_rgba(245,158,11,0.4)] rounded-xl transition-all cursor-pointer">
                           <lucide-icon [name]="Users" class="w-4 h-4"></lucide-icon>
                         </button>
+                      }
+                      @if (canDeleteForm()) {
                         <button (click)="deleteFormulario(f)" aria-label="Eliminar formulario" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-100 hover:shadow-[0_2px_10px_-3px_rgba(244,63,94,0.4)] rounded-xl transition-all cursor-pointer">
                           <lucide-icon [name]="Trash2" class="w-4 h-4"></lucide-icon>
                         </button>
                       }
+                     
                     </div>
                   </div>
                 </div>
@@ -416,11 +419,23 @@ readonly CheckCircle2 = CheckCircle2;
 
   private svc     = inject(FormulariosService);
   private famSvc  = inject(FamiliasService);
-  private auth    = inject(AuthService);
   private notify  = inject(NotificationService);
   private el = inject(ElementRef);
+  private auth    = inject(AuthService);
 
   readonly isAdmin = this.auth.isAdmin;
+
+  canCreateForm(): boolean {
+    return this.auth.hasPermission('formularios', 'crear');
+  }
+
+  canEditForm(): boolean {
+    return this.auth.hasPermission('formularios', 'editar');
+  }
+
+  canDeleteForm(): boolean {
+    return this.auth.hasPermission('formularios', 'eliminar');
+  }
 
   pageSize = 6;
   currentPage = 1;

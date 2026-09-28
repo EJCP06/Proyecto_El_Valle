@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ConsejosService } from '../../core/services/consejos.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { AuthService } from '../../core/services/auth.service';
 import { ConsejoComunal } from '../../core/models/usuario.model';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { PaginatePipe } from '../../shared/pipes/paginate.pipe';
@@ -59,13 +60,15 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                 </div>
               }
             </div>
-            <button 
-              (click)="openModal()" 
-              class="order-first lg:order-none inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-blue-600/10 hover:shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 text-sm cursor-pointer shrink-0"
-            >
-              <span class="text-lg leading-none">+</span>
-              <span>Nuevo consejo</span>
-            </button>
+            @if (canCreateCouncil()) {
+              <button
+                (click)="openModal()"
+                class="order-first lg:order-none inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-blue-600/10 hover:shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 text-sm cursor-pointer shrink-0"
+              >
+                <span class="text-lg leading-none">+</span>
+                <span>Nuevo consejo</span>
+              </button>
+            }
           </div>
           <!--/ Toolbar -->
 
@@ -103,12 +106,16 @@ import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, Che
                         <button (click)="openView(c)" aria-label="Ver consejo" class="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-100 hover:shadow-[0_2px_10px_-3px_rgba(16,185,129,0.4)] dark:hover:bg-emerald-900/30 rounded-xl transition-all cursor-pointer">
                           <lucide-icon [name]="Eye" class="w-4 h-4"></lucide-icon>
                         </button>
-                        <button (click)="openEdit(c)" aria-label="Editar consejo" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 hover:shadow-[0_2px_10px_-3px_rgba(59,130,246,0.4)] dark:hover:bg-blue-900/30 rounded-xl transition-all cursor-pointer">
-                          <lucide-icon [name]="Edit2" class="w-4 h-4"></lucide-icon>
-                        </button>
-                        <button (click)="deleteConsejo(c)" aria-label="Eliminar consejo" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-100 hover:shadow-[0_2px_10px_-3px_rgba(244,63,94,0.4)] dark:hover:bg-rose-900/30 rounded-xl transition-all cursor-pointer">
-                          <lucide-icon [name]="Trash2" class="w-4 h-4"></lucide-icon>
-                        </button>
+                        @if (canEditCouncil()) {
+                          <button (click)="openEdit(c)" aria-label="Editar consejo" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 hover:shadow-[0_2px_10px_-3px_rgba(59,130,246,0.4)] dark:hover:bg-blue-900/30 rounded-xl transition-all cursor-pointer">
+                            <lucide-icon [name]="Edit2" class="w-4 h-4"></lucide-icon>
+                          </button>
+                        }
+                        @if (canDeleteCouncil()) {
+                          <button (click)="deleteConsejo(c)" aria-label="Eliminar consejo" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-100 hover:shadow-[0_2px_10px_-3px_rgba(244,63,94,0.4)] dark:hover:bg-rose-900/30 rounded-xl transition-all cursor-pointer">
+                            <lucide-icon [name]="Trash2" class="w-4 h-4"></lucide-icon>
+                          </button>
+                        }
                       </div>
                     </td>
                   </tr>
@@ -376,6 +383,19 @@ export class ConsejoListComponent implements OnInit {
   private svc    = inject(ConsejosService);
   private notify = inject(NotificationService);
   private el = inject(ElementRef);
+  private auth = inject(AuthService);
+
+  canCreateCouncil(): boolean {
+    return this.auth.hasPermission('consejos', 'crear');
+  }
+
+  canEditCouncil(): boolean {
+    return this.auth.hasPermission('consejos', 'editar');
+  }
+
+  canDeleteCouncil(): boolean {
+    return this.auth.hasPermission('consejos', 'eliminar');
+  }
 
   pageSize = 8;
   currentPage = 1;
@@ -448,17 +468,22 @@ export class ConsejoListComponent implements OnInit {
     this.currentPage = 1;
   }
 
-  ngOnInit() {
-    this.load();
-  }
+ngOnInit() {
+  this.load();
+}
 
-  private load() {
-    this.loading.set(true);
-    this.svc.getAll().subscribe({
-      next: (r) => { this.consejos.set(r.data); this.currentPage = 1; this.loading.set(false); },
-      error: ()  => this.loading.set(false),
-    });
-  }
+private load() {
+  this.loading.set(true);
+
+  this.svc.getAll().subscribe({
+    next: (r) => {
+      this.consejos.set(r.data);
+      this.currentPage = 1;
+      this.loading.set(false);
+    },
+    error: () => this.loading.set(false),
+  });
+}
 
   openModal() {
     this.form = { nombre: '', rif: '', direccion: '', parroquia: '', municipio: '', estado: '', telefono: '', email: '', activo: true };

@@ -97,7 +97,7 @@ export class ReportesComponent {
   private svc = inject(ReportesService);
   private notify = inject(NotificationService);
 
-  params: ReporteParams = { tipo: 'familias', formato: 'json' };
+  params: ReporteParams = { tipo: 'familias', formato: 'pdf' };
   result  = signal<unknown>(null);
   loading = signal(false);
 
@@ -108,9 +108,7 @@ export class ReportesComponent {
   ];
 
   formatoOptions = [
-    { value: 'json', label: 'JSON' },
-    { value: 'csv', label: 'CSV' },
-    { value: 'pdf', label: 'PDF (DESCARGABLE)' },
+    { value: 'pdf', label: 'PDF' },
   ];
 
   generate() {

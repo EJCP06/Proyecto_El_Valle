@@ -11,6 +11,20 @@ import { FillersPipe } from '../../shared/pipes/fillers.pipe';
 import { LucideAngularModule, Eye, Edit2, Trash2, Plus, Search, ChevronDown, CheckCircle2, ClipboardList, Send, Link2 } from 'lucide-angular';
 import { CustomSelectComponent } from '../../shared/components/custom-select/custom-select.component';
 
+interface UsuarioConsejo {
+  id: number;
+  nombre: string;
+  rif?: string | null;
+  activo?: boolean;
+  createdAt?: string;
+}
+
+interface UsuarioPermiso {
+  id: number;
+  modulo: string;
+  accion: 'ver' | 'crear' | 'editar' | 'eliminar';
+}
+
 @Component({
   selector: 'app-usuario-list',
   standalone: true,
@@ -106,6 +120,15 @@ import { CustomSelectComponent } from '../../shared/components/custom-select/cus
                       <div class="flex justify-center gap-1">
                         <button (click)="openView(u)" aria-label="Ver usuario" class="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-100 hover:shadow-[0_2px_10px_-3px_rgba(16,185,129,0.4)] dark:hover:bg-emerald-900/30 rounded-xl transition-all cursor-pointer">
                           <lucide-icon [name]="Eye" class="w-4 h-4"></lucide-icon>
+                        </button>
+                        <button
+                          type="button"
+                          (click)="openAccess(u)"
+                          aria-label="Gestionar acceso"
+                          title="Gestionar acceso"
+                          class="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-100 hover:shadow-[0_2px_10px_-3px_rgba(168,85,247,0.4)] dark:hover:bg-purple-900/30 rounded-xl transition-all cursor-pointer"
+                        >
+                          <lucide-icon [name]="Link2" class="w-4 h-4"></lucide-icon>
                         </button>
                         <button (click)="openEdit(u)" aria-label="Editar usuario" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 hover:shadow-[0_2px_10px_-3px_rgba(59,130,246,0.4)] dark:hover:bg-blue-900/30 rounded-xl transition-all cursor-pointer">
                           <lucide-icon [name]="Edit2" class="w-4 h-4"></lucide-icon>
@@ -305,8 +328,54 @@ import { CustomSelectComponent } from '../../shared/components/custom-select/cus
 
         </div>
       </div>
+      <div class="mt-4">
+        <p><strong>Consejos asignados:</strong> {{ usuarioConsejos().length }}</p>
+        <p><strong>Permisos asignados:</strong> {{ usuarioPermisos().length }}</p>
+      </div>
+  
     }
 
+    @if (showAccessModal()) {
+      <div
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+        (click)="showAccessModal.set(false)"
+      >
+        <div
+          class="w-full max-w-3xl rounded-2xl bg-white shadow-2xl dark:bg-slate-900"
+          (click)="$event.stopPropagation()"
+        >
+          <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-700">
+            <div>
+              <h2 class="text-lg font-semibold text-slate-800 dark:text-white">
+                Gestionar acceso
+              </h2>
+
+              @if (accessUsuario(); as u) {
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  {{ u.nombre }} · {{ u.email }}
+                </p>
+              }
+            </div>
+
+            <button
+              type="button"
+              (click)="showAccessModal.set(false)"
+              class="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
+              aria-label="Cerrar"
+              title="Cerrar"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div class="p-6">
+            <p class="text-sm text-slate-500 dark:text-slate-400">
+              Aquí administraremos los consejos comunales y permisos de este usuario.
+            </p>
+          </div>
+        </div>
+      </div>
+    }
     <!-- Telegram Link Modal -->
     @if (showTelegramLinkModal()) {
       <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" (click)="closeTelegramLinkModal()">
@@ -414,6 +483,12 @@ readonly Eye = Eye;
   usuarios = signal<Usuario[]>([]);
   loading  = signal(true);
 
+  usuarioConsejos = signal<UsuarioConsejo[]>([]);
+  usuarioPermisos = signal<UsuarioPermiso[]>([]);
+  permisosCatalogo = signal<UsuarioPermiso[]>([]);
+
+  usuarioAccesoId = signal<number | null>(null);
+
   searchQuery = '';
   searchFilter = 'todo';
   showSearchFilterDropdown = false;
@@ -447,6 +522,8 @@ readonly Eye = Eye;
   // View modal
   showViewModal = signal(false);
   viewUsuario   = signal<Usuario | null>(null);
+  showAccessModal = signal(false);
+  accessUsuario = signal<Usuario | null>(null);
 
   // Telegram link modal
   showTelegramLinkModal = signal(false);
@@ -503,6 +580,7 @@ readonly Eye = Eye;
 
   ngOnInit() {
     this.load();
+    this.loadPermisosCatalogo();
     this.catSvc.getActive('preguntas-seguridad').subscribe((r) => this.preguntasCatalogo.set(r.data));
   }
 
@@ -510,6 +588,55 @@ readonly Eye = Eye;
     this.svc.getAll().subscribe({
       next: (r) => { this.usuarios.set(r.data); this.loading.set(false); },
       error: ()  => this.loading.set(false),
+    });
+  }
+
+  loadUserConsejos(id: number) {
+    this.svc.getUserConsejos(id).subscribe({
+      next: (r) => {
+        this.usuarioConsejos.set(r.data ?? []);
+        this.usuarioAccesoId.set(id);
+      },
+      error: (e) => {
+        this.usuarioConsejos.set([]);
+        this.usuarioAccesoId.set(id);
+        this.notify.error(
+          'Error',
+          e?.error?.message ?? 'No se pudieron cargar los consejos del usuario.'
+        );
+      },
+    });
+  }
+
+  loadUserPermisos(id: number) {
+    this.svc.getUserPermisos(id).subscribe({
+      next: (r) => {
+        this.usuarioPermisos.set(r.data ?? []);
+        this.usuarioAccesoId.set(id);
+      },
+      error: (e) => {
+        this.usuarioPermisos.set([]);
+        this.usuarioAccesoId.set(id);
+        this.notify.error(
+          'Error',
+          e?.error?.message ?? 'No se pudieron cargar los permisos del usuario.'
+        );
+      },
+    });
+  }
+
+  loadPermisosCatalogo() {
+    this.svc.getPermisosCatalogo().subscribe({
+      next: (r) => {
+        this.permisosCatalogo.set(r.data ?? []);
+      },
+      error: (e) => {
+        this.permisosCatalogo.set([]);
+        this.notify.error(
+          'Error',
+          e?.error?.message ?? 'No se pudo cargar el catálogo de permisos.'
+        );
+      },
     });
   }
 
@@ -586,6 +713,20 @@ readonly Eye = Eye;
   openView(u: Usuario) {
     this.viewUsuario.set(u);
     this.showViewModal.set(true);
+  }
+
+  openAccess(u: Usuario) {
+    console.log('OPEN ACCESS', u);
+
+    this.accessUsuario.set(u);
+    this.usuarioAccesoId.set(u.id);
+    this.usuarioConsejos.set([]);
+    this.usuarioPermisos.set([]);
+
+    this.loadUserConsejos(u.id);
+    this.loadUserPermisos(u.id);
+
+    this.showAccessModal.set(true);
   }
 
   closeViewModal() {

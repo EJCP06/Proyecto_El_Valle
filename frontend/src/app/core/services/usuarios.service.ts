@@ -34,4 +34,25 @@ export class UsuariosService {
   vincularTelegram(email: string, codigo: string): Observable<ApiResponse<any>> {
     return this.http.post<ApiResponse<any>>(`${environment.apiUrl}/auth/recuperacion/vincular-telegram`, { email, codigo });
   }
+
+    getUserConsejos(id: number): Observable<ApiResponse<any[]>> {
+    return this.http.get<ApiResponse<any[]>>(`${this.url}/${id}/consejos`);
+  }
+
+  setUserConsejos(id: number, consejoIds: number[]): Observable<ApiResponse<any[]>> {
+    return this.http.put<ApiResponse<any[]>>(`${this.url}/${id}/consejos`, { consejoIds });
+  }
+
+  getUserPermisos(id: number): Observable<ApiResponse<any[]>> {
+    return this.http.get<ApiResponse<any[]>>(`${this.url}/${id}/permisos`);
+  }
+
+  setUserPermisos(id: number, permisoIds: number[]): Observable<ApiResponse<any[]>> {
+    return this.http.put<ApiResponse<any[]>>(`${this.url}/${id}/permisos`, { permisoIds });
+  }
+
+  getPermisosCatalogo(): Observable<ApiResponse<any[]>> {
+    return this.http.get<ApiResponse<any[]>>(`${environment.apiUrl}/auth/permisos`);
+  }
+  
 }

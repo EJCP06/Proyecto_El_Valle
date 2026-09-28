@@ -19,15 +19,17 @@ export interface NavItem {
   icon: any;
   route?: string;
   roles?: string[];
+  module?: string;
+  action?: 'ver' | 'crear' | 'editar' | 'eliminar';
   children?: NavItem[];
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', icon: LayoutDashboard, route: '/app/dashboard' },
-  { label: 'Consejos', icon: Building2, route: '/app/consejos' },
-  { label: 'Familias', icon: Users, route: '/app/familias' },
-  { label: 'Formularios', icon: ClipboardList, route: '/app/formularios' },
-  { label: 'Reportes', icon: BarChart3, route: '/app/reportes' },
+  { label: 'Dashboard', icon: LayoutDashboard, route: '/app/dashboard', module: 'dashboard', action: 'ver' },
+  { label: 'Consejos', icon: Building2, route: '/app/consejos', module: 'consejos', action: 'ver' },
+  { label: 'Familias', icon: Users, route: '/app/familias', module: 'familias', action: 'ver' },
+  { label: 'Formularios', icon: ClipboardList, route: '/app/formularios', module: 'formularios', action: 'ver' },
+  { label: 'Reportes', icon: BarChart3, route: '/app/reportes', module: 'reportes', action: 'ver' },
   {
     label: 'Catálogos',
     icon: BookOpen,

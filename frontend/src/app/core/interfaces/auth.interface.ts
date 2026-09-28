@@ -3,6 +3,20 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface UserPermission {
+  id: number;
+  modulo: string;
+  accion: 'ver' | 'crear' | 'editar' | 'eliminar';
+}
+
+export interface UserCouncil {
+  id: number;
+  nombre: string;
+  rif?: string | null;
+  activo?: boolean;
+  createdAt?: string;
+}
+
 export interface LoginResponse {
   token: string;
   user: AuthUser;
@@ -13,6 +27,8 @@ export interface AuthUser {
   nombre: string;
   email: string;
   rol: 'admin' | 'vocero';
+  permisos?: UserPermission[];
+  consejos?: UserCouncil[];
 }
 
 export interface JwtPayload {

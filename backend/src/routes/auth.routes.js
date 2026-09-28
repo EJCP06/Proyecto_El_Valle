@@ -64,12 +64,48 @@ const validarPassword = require('../middleware/validarPassword');
 router.post('/login', authController.login);
 router.post('/logout', authMiddleware, authController.logout);
 router.get('/me', authMiddleware, authController.profile);
+router.get('/me/acceso', authMiddleware, authController.getMyAccess);
 router.patch('/me', authMiddleware, authController.updateProfile);
 router.patch('/password', authMiddleware, validarPassword, authController.changePassword);
 
 // Admin users CRUD routes
 router.get('/usuarios', authMiddleware, rolesMiddleware('admin'), authController.getAllUsers);
 router.get('/usuarios/:id', authMiddleware, rolesMiddleware('admin'), authController.getUserById);
+router.get(
+  '/usuarios/:id/consejos',
+  authMiddleware,
+  rolesMiddleware('admin'),
+  authController.getUserConsejos
+);
+
+router.put(
+  '/usuarios/:id/consejos',
+  authMiddleware,
+  rolesMiddleware('admin'),
+  authController.setUserConsejos
+);
+
+router.get(
+  '/usuarios/:id/permisos',
+  authMiddleware,
+  rolesMiddleware('admin'),
+  authController.getUserPermisos
+);
+
+router.put(
+  '/usuarios/:id/permisos',
+  authMiddleware,
+  rolesMiddleware('admin'),
+  authController.setUserPermisos
+);
+
+router.get(
+  '/permisos',
+  authMiddleware,
+  rolesMiddleware('admin'),
+  authController.getPermisosCatalogo
+);
+
 router.post('/usuarios', authMiddleware, rolesMiddleware('admin'), validarPassword, authController.register);
 router.patch('/usuarios/:id', authMiddleware, rolesMiddleware('admin'), authController.updateUser);
 router.delete('/usuarios/:id', authMiddleware, rolesMiddleware('admin'), authController.deactivateUser);

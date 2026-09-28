@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
+import { permissionGuard } from './core/guards/permission.guard';
 
 export const routes: Routes = [
   // Public
@@ -33,6 +34,8 @@ export const routes: Routes = [
       },
       {
         path: 'dashboard',
+        canActivate: [permissionGuard],
+        data: { module: 'dashboard', action: 'ver' },
         loadComponent: () =>
           import('./features/dashboard/dashboard.component').then(
             (m) => m.DashboardComponent
@@ -40,6 +43,8 @@ export const routes: Routes = [
       },
       {
         path: 'consejos',
+        canActivate: [permissionGuard],
+        data: { module: 'consejos', action: 'ver' },
         children: [
           {
             path: '',
@@ -59,6 +64,8 @@ export const routes: Routes = [
       },
       {
         path: 'familias',
+        canActivate: [permissionGuard],
+        data: { module: 'familias', action: 'ver' },
         children: [
           {
             path: '',
@@ -78,6 +85,8 @@ export const routes: Routes = [
       },
       {
         path: 'formularios',
+        canActivate: [permissionGuard],
+        data: { module: 'formularios', action: 'ver' },
         children: [
           {
             path: '',
@@ -97,6 +106,8 @@ export const routes: Routes = [
       },
       {
         path: 'reportes',
+        canActivate: [permissionGuard],
+        data: { module: 'reportes', action: 'ver' },
         loadComponent: () =>
           import('./features/reportes/reportes.component').then(
             (m) => m.ReportesComponent

@@ -7,8 +7,19 @@ exports.getAll = async (req, res, next) => {
     const offset = (page - 1) * limit;
     const consejoId = req.query.consejoId ? parseInt(req.query.consejoId) : null;
 
-    const data = await familiaRepo.findAll(limit, offset, consejoId);
-    const total = await familiaRepo.count(consejoId);
+    const data = await familiaRepo.findAll(
+      limit,
+      offset,
+      consejoId,
+      req.user.id,
+      req.user.rol
+    );
+
+    const total = await familiaRepo.count(
+      consejoId,
+      req.user.id,
+      req.user.rol
+    );
 
     return res.json({
       success: true,
@@ -23,7 +34,11 @@ exports.getAll = async (req, res, next) => {
 exports.getById = async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
-    const data = await familiaRepo.findById(id);
+    const data = await familiaRepo.findById(
+      id,
+      req.user.id,
+      req.user.rol
+    );
     if (!data) {
       return res.status(404).json({ success: false, message: 'Familia no encontrada' });
     }
@@ -43,13 +58,29 @@ exports.create = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Nombre y dirección son obligatorios' });
     }
 
-    const data = await familiaRepo.create({ nombre, direccion, consejoId: consejoId ? parseInt(consejoId) : null });
+    const data = await familiaRepo.create(
+      {
+        nombre,
+        direccion,
+        consejoId: consejoId ? parseInt(consejoId) : null
+      },
+      req.user.id,
+      req.user.rol
+    );
 
     return res.status(201).json({
       success: true,
       data
     });
   } catch (error) {
+    if (error.code === 'COUNCIL_ACCESS_DENIED') {
+      return res.status(403).json({
+        success: false,
+        code: 'COUNCIL_ACCESS_DENIED',
+        message: error.message
+      });
+    }
+
     next(error);
   }
 };
@@ -59,11 +90,17 @@ exports.update = async (req, res, next) => {
     const id = parseInt(req.params.id);
     const { nombre, direccion, consejoId } = req.body;
 
-    const data = await familiaRepo.update(id, { 
-      nombre, 
-      direccion, 
-      consejoId: consejoId ? parseInt(consejoId) : null 
-    });
+    const data = await familiaRepo.update(
+      id,
+      {
+        nombre,
+        direccion,
+        consejoId: consejoId ? parseInt(consejoId) : null
+      },
+      req.user.id,
+      req.user.rol
+    );
+
     if (!data) {
       return res.status(404).json({ success: false, message: 'Familia no encontrada' });
     }
@@ -73,14 +110,33 @@ exports.update = async (req, res, next) => {
       data
     });
   } catch (error) {
+    if (error.code === 'COUNCIL_ACCESS_DENIED') {
+      return res.status(403).json({
+        success: false,
+        code: 'COUNCIL_ACCESS_DENIED',
+        message: error.message
+      });
+    }
+
     next(error);
   }
-};
+}
 
 exports.delete = async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
-    await familiaRepo.delete(id);
+    const eliminado = await familiaRepo.delete(
+      id,
+      req.user.id,
+      req.user.rol
+    );
+
+    if (!eliminado) {
+      return res.status(404).json({
+        success: false,
+        message: 'Familia no encontrada'
+      });
+    }
     return res.json({
       success: true,
       message: 'Familia eliminada'

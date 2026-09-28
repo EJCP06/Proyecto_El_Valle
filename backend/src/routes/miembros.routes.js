@@ -1,14 +1,39 @@
 const router = require('express').Router();
+
 const miembrosController = require('../controllers/miembros.controller');
 const authMiddleware = require('../middleware/auth');
-const rolesMiddleware = require('../middleware/roles');
+const permission = require('../middleware/permisos');
 
 router.use(authMiddleware);
 
-router.get('/', miembrosController.getAll);
-router.get('/:id', miembrosController.getById);
-router.post('/', rolesMiddleware('admin', 'editor'), miembrosController.create);
-router.patch('/:id', rolesMiddleware('admin', 'editor'), miembrosController.update);
-router.delete('/:id', rolesMiddleware('admin'), miembrosController.delete);
+router.get(
+  '/',
+  permission('miembros', 'ver'),
+  miembrosController.getAll
+);
+
+router.get(
+  '/:id',
+  permission('miembros', 'ver'),
+  miembrosController.getById
+);
+
+router.post(
+  '/',
+  permission('miembros', 'crear'),
+  miembrosController.create
+);
+
+router.patch(
+  '/:id',
+  permission('miembros', 'editar'),
+  miembrosController.update
+);
+
+router.delete(
+  '/:id',
+  permission('miembros', 'eliminar'),
+  miembrosController.delete
+);
 
 module.exports = router;
