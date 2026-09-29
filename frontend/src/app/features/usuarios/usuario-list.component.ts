@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, signal, ElementRef, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { UsuariosService } from '../../core/services/usuarios.service';
+import { ConsejosService } from '../../core/services/consejos.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { AuthService } from '../../core/services/auth.service';
 import { CatalogoService, CatalogoItem } from '../../core/services/catalogo.service';
@@ -271,17 +272,77 @@ interface UsuarioPermiso {
     }
 
     <!-- View Modal -->
-    @if (showViewModal()) {
-      <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" (click)="closeViewModal()">
-        <div class="absolute inset-0 bg-black/50 "></div>
-        <div class="relative z-10 w-full sm:max-w-2xl h-[95vh] sm:h-auto sm:max-h-[calc(100vh-2rem)] flex flex-col bg-white dark:bg-slate-900 sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
+        @if (showViewModal()) {
+          <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" (click)="closeViewModal()">
+            <div class="absolute inset-0 bg-black/50 "></div>
+            <div class="relative z-10 w-full sm:max-w-2xl h-[95vh] sm:h-auto sm:max-h-[calc(100vh-2rem)] flex flex-col bg-white dark:bg-slate-900 sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
 
-          <div class="flex items-center justify-between p-4 sm:p-6 bg-emerald-600 dark:bg-emerald-700 shrink-0">
-            <div class="min-w-0">
-              <h3 class="text-base sm:text-lg font-black text-white tracking-tight truncate">Usuario</h3>
-              <p class="text-[10px] sm:text-xs text-emerald-100 font-normal mt-0.5 truncate">Información registrada del usuario.</p>
+              <div class="flex items-center justify-between p-4 sm:p-6 bg-emerald-600 dark:bg-emerald-700 shrink-0">
+                <div class="min-w-0">
+                  <h3 class="text-base sm:text-lg font-black text-white tracking-tight truncate">Usuario</h3>
+                  <p class="text-[10px] sm:text-xs text-emerald-100 font-normal mt-0.5 truncate">Información registrada del usuario.</p>
+                </div>
+                <button (click)="closeViewModal()" class="w-8 h-8 flex items-center justify-center rounded-xl text-emerald-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div class="p-4 sm:p-6 overflow-y-auto flex-1">
+                @if (viewUsuario()) {
+                  <div class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div class="md:col-span-2 space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Nombre completo</label>
+                        <div class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white font-normal">{{ viewUsuario()!.nombre }}</div>
+                      </div>
+                      <div class="md:col-span-2 space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Correo electrónico</label>
+                        <div class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white font-normal">{{ viewUsuario()!.email }}</div>
+                      </div>
+                      <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Rol del sistema</label>
+                        <div class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white font-normal capitalize">{{ viewUsuario()!.rol === 'admin' ? 'Administrador' : 'Vocero' }}</div>
+                      </div>
+                      <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Estado</label>
+                        <div class="flex items-center justify-center">
+                          <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2.5 w-fit">
+                            <div class="relative w-9 h-5 rounded-full transition-all duration-300 shadow-inner"
+                                [style.background]="viewUsuario()!.activo ? '#10b981' : '#cbd5e1'">
+                              <div class="absolute top-[2px] left-[2px] w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300"
+                                  [style.transform]="viewUsuario()!.activo ? 'translateX(16px)' : 'translateX(0)'"></div>
+                            </div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider"
+                                  [class.text-emerald-600]="viewUsuario()!.activo"
+                                  [class.text-slate-400]="!viewUsuario()!.activo">
+                              {{ viewUsuario()!.activo ? 'Activo' : 'Inactivo' }}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+}
             </div>
-            <button (click)="closeViewModal()" class="w-8 h-8 flex items-center justify-center rounded-xl text-emerald-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
+          </div>
+        </div>
+    }
+
+    @if (showAccessModal()) {
+      <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" (click)="showAccessModal.set(false)">
+        <div class="absolute inset-0 bg-black/50 "></div>
+        <div class="relative z-10 w-full sm:max-w-3xl h-[95vh] sm:h-auto sm:max-h-[calc(100vh-2rem)] flex flex-col bg-white dark:bg-slate-900 sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" (click)="$event.stopPropagation()">
+
+          <div class="flex items-center justify-between p-4 sm:p-6 bg-blue-600 dark:bg-blue-700 shrink-0">
+            <div class="min-w-0">
+              <h3 class="text-base sm:text-lg font-black text-white tracking-tight truncate">Gestionar acceso</h3>
+              @if (accessUsuario(); as u) {
+                <p class="text-[10px] sm:text-xs text-blue-100 font-normal mt-0.5 truncate">{{ u.nombre }} · {{ u.email }}</p>
+              }
+            </div>
+            <button (click)="showAccessModal.set(false)" class="w-8 h-8 flex items-center justify-center rounded-xl text-blue-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -289,89 +350,130 @@ interface UsuarioPermiso {
           </div>
 
           <div class="p-4 sm:p-6 overflow-y-auto flex-1">
-            @if (viewUsuario()) {
-              <div class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div class="md:col-span-2 space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Nombre completo</label>
-                    <div class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white font-normal">{{ viewUsuario()!.nombre }}</div>
+            <div class="mb-6">
+              <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                Consejos comunales
+              </h3>
+
+              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                Consejos a los que este usuario tiene acceso.
+              </p>
+
+              <div class="mt-3 space-y-2">
+                @if (todosLosConsejos().length === 0) {
+                  <div
+                    class="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400"
+                  >
+                    No hay consejos comunales disponibles.
                   </div>
-                  <div class="md:col-span-2 space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Correo electrónico</label>
-                    <div class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white font-normal">{{ viewUsuario()!.email }}</div>
-                  </div>
-                  <div class="space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Rol del sistema</label>
-                    <div class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white font-normal capitalize">{{ viewUsuario()!.rol === 'admin' ? 'Administrador' : 'Vocero' }}</div>
-                  </div>
-                  <div class="space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] ml-1">Estado</label>
-                    <div class="flex items-center justify-center">
-                      <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2.5 w-fit">
-                        <div class="relative w-9 h-5 rounded-full transition-all duration-300 shadow-inner"
-                             [style.background]="viewUsuario()!.activo ? '#10b981' : '#cbd5e1'">
-                          <div class="absolute top-[2px] left-[2px] w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300"
-                               [style.transform]="viewUsuario()!.activo ? 'translateX(16px)' : 'translateX(0)'"></div>
+                } @else {
+                  @for (consejo of todosLosConsejos(); track consejo.id) {
+                    <label
+                      class="flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 px-4 py-3 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800/50"
+                    >
+                      <div class="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          [checked]="consejosSeleccionados().includes(consejo.id)"
+                          (change)="toggleConsejo(consejo.id)"
+                          class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        />
+
+                        <div>
+                          <p class="text-sm font-medium text-slate-700 dark:text-slate-200">
+                            {{ consejo.nombre }}
+                          </p>
+
+                          @if (consejo.rif) {
+                            <p class="text-xs text-slate-500 dark:text-slate-400">
+                              {{ consejo.rif }}
+                            </p>
+                          }
                         </div>
-                        <span class="text-[10px] font-bold uppercase tracking-wider"
-                              [class.text-emerald-600]="viewUsuario()!.activo"
-                              [class.text-slate-400]="!viewUsuario()!.activo">
-                          {{ viewUsuario()!.activo ? 'Activo' : 'Inactivo' }}
-                        </span>
                       </div>
+
+                      @if (consejosSeleccionados().includes(consejo.id)) {
+                        <span
+                          class="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                        >
+                          Seleccionado
+                        </span>
+                      }
+                    </label>
+                  }
+                }
+              </div>
+            </div>
+            <div>
+                <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  Permisos
+                </h3>
+
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  Permisos funcionales asignados a este usuario.
+                </p>
+
+                <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  @if (permisosCatalogo().length === 0) {
+                    <div
+                      class="col-span-full rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400"
+                    >
+                      No hay permisos disponibles.
                     </div>
-                  </div>
+                  } @else {
+                    @for (permiso of permisosCatalogo(); track permiso.id) {
+                      <label
+                        class="flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 px-4 py-3 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800/50"
+                      >
+                        <div class="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            [checked]="permisosSeleccionados().includes(permiso.id)"
+                            (change)="togglePermiso(permiso.id)"
+                            class="h-4 w-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                          />
+
+                          <div>
+                            <p class="text-sm font-medium text-slate-700 dark:text-slate-200">
+                              {{ permiso.modulo }}
+                            </p>
+
+                            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                              {{ permiso.accion }}
+                            </p>
+                          </div>
+                        </div>
+
+                        @if (permisosSeleccionados().includes(permiso.id)) {
+                          <span
+                            class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                          >
+                            Seleccionado
+                          </span>
+                        }
+                      </label>
+                    }
+                  }
                 </div>
               </div>
-            }
           </div>
 
-        </div>
-      </div>
-      <div class="mt-4">
-        <p><strong>Consejos asignados:</strong> {{ usuarioConsejos().length }}</p>
-        <p><strong>Permisos asignados:</strong> {{ usuarioPermisos().length }}</p>
-      </div>
-  
-    }
-
-    @if (showAccessModal()) {
-      <div
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-        (click)="showAccessModal.set(false)"
-      >
-        <div
-          class="w-full max-w-3xl rounded-2xl bg-white shadow-2xl dark:bg-slate-900"
-          (click)="$event.stopPropagation()"
-        >
-          <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-700">
-            <div>
-              <h2 class="text-lg font-semibold text-slate-800 dark:text-white">
-                Gestionar acceso
-              </h2>
-
-              @if (accessUsuario(); as u) {
-                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  {{ u.nombre }} · {{ u.email }}
-                </p>
-              }
-            </div>
-
+          <div class="flex items-center justify-end gap-3 p-4 sm:p-6 border-t border-slate-100 dark:border-slate-800/60">
             <button
               type="button"
               (click)="showAccessModal.set(false)"
-              class="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
-              aria-label="Cerrar"
-              title="Cerrar"
+              class="px-5 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-2xl transition-all text-sm cursor-pointer"
             >
-              ✕
+              Cancelar
             </button>
-          </div>
 
-          <div class="p-6">
-            <p class="text-sm text-slate-500 dark:text-slate-400">
-              Aquí administraremos los consejos comunales y permisos de este usuario.
-            </p>
+            <button
+              type="button"
+              (click)="saveConsejos()"
+              class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/10 hover:shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer text-sm"
+            >
+              Guardar consejos
+            </button>
           </div>
         </div>
       </div>
@@ -472,6 +574,7 @@ readonly Eye = Eye;
   readonly Link2 = Link2;
 
   private svc    = inject(UsuariosService);
+  private consejosSvc = inject(ConsejosService);
   private notify = inject(NotificationService);
   private catSvc = inject(CatalogoService);
   private authSvc = inject(AuthService);
@@ -485,7 +588,100 @@ readonly Eye = Eye;
 
   usuarioConsejos = signal<UsuarioConsejo[]>([]);
   usuarioPermisos = signal<UsuarioPermiso[]>([]);
+  todosLosConsejos = signal<UsuarioConsejo[]>([]);
+  consejosSeleccionados = signal<number[]>([]);
+
+  toggleConsejo(consejoId: number) {
+  const actuales = this.consejosSeleccionados();
+
+    if (actuales.includes(consejoId)) {
+      this.consejosSeleccionados.set(
+        actuales.filter((id) => id !== consejoId)
+      );
+      return;
+    }
+
+    this.consejosSeleccionados.set([
+      ...actuales,
+      consejoId,
+    ]);
+  }
+
+  togglePermiso(permisoId: number) {
+  const actuales = this.permisosSeleccionados();
+
+    if (actuales.includes(permisoId)) {
+      this.permisosSeleccionados.set(
+        actuales.filter((id) => id !== permisoId)
+      );
+      return;
+    }
+
+    this.permisosSeleccionados.set([
+      ...actuales,
+      permisoId,
+    ]);
+  }
+
+  saveConsejos() {
+  const usuario = this.accessUsuario();
+
+    if (!usuario) {
+      return;
+    }
+
+    this.svc.setUserConsejos(
+      usuario.id,
+      this.consejosSeleccionados()
+    ).subscribe({
+      next: (r) => {
+        this.usuarioConsejos.set(r.data ?? []);
+
+        this.notify.success(
+          'Acceso actualizado',
+          'Los consejos comunales fueron actualizados correctamente.'
+        );
+        this.showAccessModal.set(false);
+      },
+      error: (e) => {
+        this.notify.error(
+          'Error',
+          e?.error?.message ?? 'No se pudieron actualizar los consejos comunales.'
+        );
+      },
+    });
+  }
+
+  savePermisos() {
+  const usuario = this.accessUsuario();
+
+    if (!usuario) {
+      return;
+    }
+
+    this.svc.setUserPermisos(
+      usuario.id,
+      this.permisosSeleccionados()
+    ).subscribe({
+      next: (r) => {
+        this.usuarioPermisos.set(r.data ?? []);
+
+        this.notify.success(
+          'Permisos actualizados',
+          'Los permisos del usuario fueron actualizados correctamente.'
+        );
+      },
+      error: (e) => {
+        this.notify.error(
+          'Error',
+          e?.error?.message ?? 'No se pudieron actualizar los permisos del usuario.'
+        );
+      },
+    });
+  }
+
   permisosCatalogo = signal<UsuarioPermiso[]>([]);
+  permisosSeleccionados = signal<number[]>([]);
 
   usuarioAccesoId = signal<number | null>(null);
 
@@ -595,6 +791,9 @@ readonly Eye = Eye;
     this.svc.getUserConsejos(id).subscribe({
       next: (r) => {
         this.usuarioConsejos.set(r.data ?? []);
+        this.consejosSeleccionados.set(
+          (r.data ?? []).map((consejo) => consejo.id)
+        );
         this.usuarioAccesoId.set(id);
       },
       error: (e) => {
@@ -608,10 +807,30 @@ readonly Eye = Eye;
     });
   }
 
+  loadTodosLosConsejos() {
+    this.consejosSvc.getAll(1, 100).subscribe({
+      next: (r) => {
+        this.todosLosConsejos.set(r.data ?? []);
+      },
+      error: (e) => {
+        this.todosLosConsejos.set([]);
+        this.notify.error(
+          'Error',
+          e?.error?.message ?? 'No se pudieron cargar los consejos comunales.'
+        );
+      },
+    });
+  }
+
   loadUserPermisos(id: number) {
     this.svc.getUserPermisos(id).subscribe({
       next: (r) => {
         this.usuarioPermisos.set(r.data ?? []);
+
+        this.permisosSeleccionados.set(
+          (r.data ?? []).map((permiso) => permiso.id)
+        );
+
         this.usuarioAccesoId.set(id);
       },
       error: (e) => {
@@ -722,7 +941,10 @@ readonly Eye = Eye;
     this.usuarioAccesoId.set(u.id);
     this.usuarioConsejos.set([]);
     this.usuarioPermisos.set([]);
+    this.consejosSeleccionados.set([]);
+    this.permisosSeleccionados.set([]);
 
+    this.loadTodosLosConsejos();
     this.loadUserConsejos(u.id);
     this.loadUserPermisos(u.id);
 
