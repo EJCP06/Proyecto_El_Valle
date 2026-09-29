@@ -469,7 +469,7 @@ interface UsuarioPermiso {
 
             <button
               type="button"
-              (click)="saveConsejos()"
+              (click)="saveConsejos(); savePermisos()"
               class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/10 hover:shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer text-sm"
             >
               Guardar consejos
