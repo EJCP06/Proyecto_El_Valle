@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { CatalogoService, CatalogoItem, CatalogoNombre } from '../../core/services/catalogo.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { AuthService } from '../../core/services/auth.service';
 import { LucideAngularModule, Plus, Trash2, ClipboardList, Search, ChevronDown, CheckCircle2, Pencil } from 'lucide-angular';
 import { Subscription } from 'rxjs';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
@@ -52,10 +53,12 @@ import { FillersPipe } from '../../shared/pipes/fillers.pipe';
                 </div>
               }
             </div>
-            <button (click)="addItem()" class="order-first sm:order-none inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-blue-600/10 hover:shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 text-sm cursor-pointer shrink-0">
-              <lucide-icon [name]="Plus" class="w-4 h-4"></lucide-icon>
-              Agregar
-            </button>
+            @if (canManageCatalogos()) {
+              <button (click)="addItem()" class="order-first sm:order-none inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-blue-600/10 hover:shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 text-sm cursor-pointer shrink-0">
+                <lucide-icon [name]="Plus" class="w-4 h-4"></lucide-icon>
+                Agregar
+              </button>
+            }
           </div>
         </div>
         @if (loadingCatalogo()) {
@@ -85,9 +88,11 @@ import { FillersPipe } from '../../shared/pipes/fillers.pipe';
                     </td>
                     <td class="px-4 py-4 text-center" [class.ps-shift-acciones]="seccion() === 'preguntas-seguridad'">
                       <div class="flex items-center justify-center gap-3">
-                        <button (click)="openEdit(item)" aria-label="Editar elemento" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 hover:shadow-[0_2px_10px_-3px_rgba(59,130,246,0.4)] dark:hover:bg-blue-900/30 rounded-xl transition-all cursor-pointer">
-                          <lucide-icon [name]="Pencil" class="w-4 h-4"></lucide-icon>
-                        </button>
+                        @if (canManageCatalogos()) {
+                          <button (click)="openEdit(item)" aria-label="Editar elemento" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 hover:shadow-[0_2px_10px_-3px_rgba(59,130,246,0.4)] dark:hover:bg-blue-900/30 rounded-xl transition-all cursor-pointer">
+                            <lucide-icon [name]="Pencil" class="w-4 h-4"></lucide-icon>
+                          </button>
+                        }
                         <label class="relative inline-flex items-center cursor-pointer" [title]="item.activo ? 'Desactivar' : 'Activar'">
                           <input type="checkbox" [checked]="item.activo" (change)="toggleActivo(item)" class="sr-only peer" />
                           <div class="relative w-9 h-5 rounded-full transition-all duration-300 shadow-inner cursor-pointer"
@@ -96,9 +101,11 @@ import { FillersPipe } from '../../shared/pipes/fillers.pipe';
                                  [style.transform]="item.activo ? 'translateX(16px)' : 'translateX(0)'"></div>
                           </div>
                         </label>
-                        <button (click)="deleteItem(item)" aria-label="Eliminar elemento" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-100 hover:shadow-[0_2px_10px_-3px_rgba(244,63,94,0.4)] dark:hover:bg-rose-900/30 rounded-xl transition-all cursor-pointer">
-                          <lucide-icon [name]="Trash2" class="w-4 h-4"></lucide-icon>
-                        </button>
+                        @if (canManageCatalogos()) {
+                          <button (click)="deleteItem(item)" aria-label="Eliminar elemento" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-100 hover:shadow-[0_2px_10px_-3px_rgba(244,63,94,0.4)] dark:hover:bg-rose-900/30 rounded-xl transition-all cursor-pointer">
+                            <lucide-icon [name]="Trash2" class="w-4 h-4"></lucide-icon>
+                          </button>
+                        }
                       </div>
                     </td>
                   </tr>
@@ -162,6 +169,7 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
   private catSvc = inject(CatalogoService);
   private notify = inject(NotificationService);
   private route = inject(ActivatedRoute);
+  private readonly auth = inject(AuthService);
 
   private sub?: Subscription;
 
@@ -285,6 +293,10 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
     this.showForm.set(false);
     this.editingId.set(null);
     this.newNombre = '';
+  }
+
+  canManageCatalogos(): boolean {
+    return this.auth.isAdmin();
   }
 
   saveNew() {

@@ -25,6 +25,11 @@ async function compararRespuesta(input, stored) {
 exports.getAllByUser = async (req, res, next) => {
   try {
     const usuarioId = parseInt(req.params.usuarioId);
+
+    if (usuarioId !== req.user.id && req.user.rol?.toLowerCase() !== 'admin') {
+      return res.status(403).json({ success: false, code: 'PERMISSION_DENIED', message: 'No tienes permiso para consultar las preguntas de este usuario' });
+    }
+    
     const preguntas = await preguntaRepo.findByUsuarioId(usuarioId);
     return res.json({ success: true, data: preguntas });
   } catch (error) {

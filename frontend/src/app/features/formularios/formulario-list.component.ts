@@ -112,9 +112,11 @@ import { CustomSelectComponent } from '../../shared/components/custom-select/cus
                         <button (click)="openBuilderModal(f)" aria-label="Editar formulario" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 hover:shadow-[0_2px_10px_-3px_rgba(59,130,246,0.4)] rounded-xl transition-all cursor-pointer">
                           <lucide-icon [name]="Edit2" class="w-4 h-4"></lucide-icon>
                         </button>
-                        <button (click)="openAsignarModal(f)" aria-label="Asignar formulario" class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-100 hover:shadow-[0_2px_10px_-3px_rgba(245,158,11,0.4)] rounded-xl transition-all cursor-pointer">
-                          <lucide-icon [name]="Users" class="w-4 h-4"></lucide-icon>
-                        </button>
+                        @if (canCreateForm()) {
+                          <button (click)="openAsignarModal(f)" aria-label="Asignar formulario" class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-100 hover:shadow-[0_2px_10px_-3px_rgba(245,158,11,0.4)] rounded-xl transition-all cursor-pointer">
+                            <lucide-icon [name]="Users" class="w-4 h-4"></lucide-icon>
+                          </button>
+                        }
                       }
                       @if (canDeleteForm()) {
                         <button (click)="deleteFormulario(f)" aria-label="Eliminar formulario" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-100 hover:shadow-[0_2px_10px_-3px_rgba(244,63,94,0.4)] rounded-xl transition-all cursor-pointer">
