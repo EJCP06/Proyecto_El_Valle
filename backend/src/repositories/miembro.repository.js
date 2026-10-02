@@ -1,10 +1,9 @@
 const db = require('../config/db');
-const accesoConsejoRepo = require('./accesoConsejo.repository');
 
 const COLUMNS = `id, familia_id as "familiaId", cedula, nombre, apellido,
   fecha_nacimiento as "fechaNacimiento", sexo, telefono, email,
   jefe_familia as "jefeFamilia", parentesco, estado_civil as "estadoCivil",
-  nivel_educativo as "nivelEducativo", ocupacion, created_at`;
+  nivel_educativo as "nivelEducativo", ocupacion, created_at, updated_at`;
 
 function esAdmin(rol) {
   return rol?.toLowerCase() === 'admin';
@@ -112,15 +111,25 @@ class MiembroRepository {
       throw error;
     }
 
-    if (jefeFamilia) {
-      await db.query(
-        'UPDATE miembros SET jefe_familia = false WHERE familia_id = $1',
-        [familiaId]
-      );
-    }
+    const client = await db.pool.connect();
+    try {
+      await client.query('BEGIN');
 
-    const res = await db.query(
-      `INSERT INTO miembros (
+      // Un solo jefe por familia. El índice único
+      // `uq_miembros_un_jefe_por_familia` protege la integridad, pero dos
+      // voceros editando a la vez pueden entrar en carrera: por eso el
+      // desmarque y la asignación van en la misma transacción.
+      if (jefeFamilia) {
+        await client.query(
+          `UPDATE miembros
+              SET jefe_familia = FALSE, updated_at = CURRENT_TIMESTAMP
+            WHERE familia_id = $1 AND jefe_familia = TRUE`,
+          [familiaId]
+        );
+      }
+
+      const res = await client.query(
+        `INSERT INTO miembros (
         familia_id,
         cedula,
         nombre,
@@ -140,24 +149,31 @@ class MiembroRepository {
         $8, $9, $10, $11, $12, $13
       )
       RETURNING ${COLUMNS}`,
-      [
-        familiaId,
-        cedula,
-        nombre,
-        apellido,
-        fechaNacimiento,
-        sexo,
-        telefono,
-        email,
-        jefeFamilia || false,
-        parentesco,
-        estadoCivil,
-        nivelEducativo,
-        ocupacion
-      ]
-    );
+        [
+          familiaId,
+          cedula,
+          nombre,
+          apellido,
+          fechaNacimiento,
+          sexo,
+          telefono,
+          email,
+          jefeFamilia || false,
+          parentesco,
+          estadoCivil,
+          nivelEducativo,
+          ocupacion
+        ]
+      );
 
-    return res.rows[0];
+      await client.query('COMMIT');
+      return res.rows[0];
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   async update(
@@ -204,15 +220,21 @@ class MiembroRepository {
       throw error;
     }
 
-    if (jefeFamilia) {
-      await db.query(
-        'UPDATE miembros SET jefe_familia = false WHERE familia_id = $1',
-        [famId]
-      );
-    }
+    const client = await db.pool.connect();
+    try {
+      await client.query('BEGIN');
 
-    const res = await db.query(
-      `UPDATE miembros SET
+      if (jefeFamilia) {
+        await client.query(
+          `UPDATE miembros
+              SET jefe_familia = FALSE, updated_at = CURRENT_TIMESTAMP
+            WHERE familia_id = $1 AND jefe_familia = TRUE AND id <> $2`,
+          [famId, id]
+        );
+      }
+
+      const res = await client.query(
+        `UPDATE miembros SET
         cedula = COALESCE($1, cedula),
         nombre = COALESCE($2, nombre),
         apellido = COALESCE($3, apellido),
@@ -225,28 +247,36 @@ class MiembroRepository {
         parentesco = COALESCE($10, parentesco),
         estado_civil = COALESCE($11, estado_civil),
         nivel_educativo = COALESCE($12, nivel_educativo),
-        ocupacion = COALESCE($13, ocupacion)
+        ocupacion = COALESCE($13, ocupacion),
+        updated_at = CURRENT_TIMESTAMP
        WHERE id = $14
        RETURNING ${COLUMNS}`,
-      [
-        cedula,
-        nombre,
-        apellido,
-        fechaNacimiento,
-        sexo,
-        telefono,
-        email,
-        jefeFamilia !== undefined ? jefeFamilia : null,
-        familiaId || null,
-        parentesco,
-        estadoCivil,
-        nivelEducativo,
-        ocupacion,
-        id
-      ]
-    );
+        [
+          cedula,
+          nombre,
+          apellido,
+          fechaNacimiento,
+          sexo,
+          telefono,
+          email,
+          jefeFamilia !== undefined ? jefeFamilia : null,
+          familiaId || null,
+          parentesco,
+          estadoCivil,
+          nivelEducativo,
+          ocupacion,
+          id
+        ]
+      );
 
-    return res.rows[0];
+      await client.query('COMMIT');
+      return res.rows[0];
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   async delete(id, usuarioId = null, rol = null) {

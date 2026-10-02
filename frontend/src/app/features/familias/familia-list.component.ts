@@ -96,7 +96,7 @@ import { CustomSelectComponent } from '../../shared/components/custom-select/cus
                     <td class="px-4 py-4 text-center text-sm text-slate-500 dark:text-slate-400">{{ f.consejo?.nombre ?? '—' }}</td>
                     <td class="px-4 py-4 text-center">
                       <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 text-xs font-black">
-                        {{ f.miembros?.length ?? 0 }}
+                        {{ f.miembrosCount ?? 0 }}
                       </span>
                     </td>
                     <td class="px-4 py-4">

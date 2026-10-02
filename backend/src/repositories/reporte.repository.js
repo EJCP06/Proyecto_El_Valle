@@ -1,213 +1,114 @@
 const db = require('../config/db');
 
+/**
+ * Indicadores del panel principal.
+ *
+ * El detalle de la información ya no vive aquí: se genera dinámicamente
+ * desde `services/consultaCatalog.js`, que reutiliza los mismos datos
+ * para responder cualquier solicitud de la alcaldía o del gobierno.
+ *
+ * Este repositorio solo resuelve los contadores y las tarjetas del dashboard.
+ */
 class ReporteRepository {
-  async getFamiliasData(desde, hasta) {
-    let query = `
-      SELECT f.id, f.nombre, f.direccion, c.nombre as consejo, 
-             COUNT(m.id)::int as total_miembros,
-             COALESCE(MAX(CASE WHEN m.jefe_familia = true THEN m.nombre || ' ' || m.apellido END), 'Sin jefe') as jefe_familia,
-             f.created_at as fecha_creacion
-      FROM familias f
-      LEFT JOIN consejos_comunales c ON f.consejo_id = c.id
-      LEFT JOIN miembros m ON m.familia_id = f.id
-    `;
-    const params = [];
-    if (desde && hasta) {
-      query += ` WHERE f.created_at BETWEEN $1 AND $2`;
-      params.push(desde, hasta);
-    }
-    query += ` GROUP BY f.id, c.nombre ORDER BY f.id DESC`;
-    const res = await db.query(query, params);
-    return res.rows;
-  }
+  /** Ids de consejos visibles; `null` para el administrador (ve todos). */
+  async alcanceDe(usuarioId, rol) {
+    if (String(rol || '').toLowerCase() === 'admin') return null;
 
-  async getMiembrosData(desde, hasta) {
-    let query = `
-      SELECT m.id, m.cedula, m.nombre, m.apellido, m.sexo, m.telefono, m.email,
-             m.fecha_nacimiento, m.jefe_familia, f.nombre as familia,
-             m.created_at as fecha_registro
-      FROM miembros m
-      INNER JOIN familias f ON m.familia_id = f.id
-    `;
-    const params = [];
-    if (desde && hasta) {
-      query += ` WHERE m.created_at BETWEEN $1 AND $2`;
-      params.push(desde, hasta);
-    }
-    query += ` ORDER BY m.id DESC`;
-    const res = await db.query(query, params);
-    return res.rows;
-  }
-
-  async getFormulariosData(desde, hasta) {
-    let query = `
-      SELECT f.id, f.titulo, f.descripcion, f.activo, f.created_at,
-             COUNT(DISTINCT a.id)::int as total_asignados,
-             COUNT(DISTINCT r.id)::int as total_respondidos
-      FROM formularios f
-      LEFT JOIN asignaciones a ON a.formulario_id = f.id
-      LEFT JOIN respuestas r ON r.asignacion_id = a.id
-    `;
-    const params = [];
-    if (desde && hasta) {
-      query += ` WHERE f.created_at BETWEEN $1 AND $2`;
-      params.push(desde, hasta);
-    }
-    query += ` GROUP BY f.id ORDER BY f.id DESC`;
-    const res = await db.query(query, params);
-    return res.rows;
-  }
-
-  async getDashboardStats() {
-    const resConsejos = await db.query('SELECT COUNT(*)::int as total FROM consejos_comunales');
-    const resFamilias = await db.query('SELECT COUNT(*)::int as total FROM familias');
-    const resMiembros = await db.query('SELECT COUNT(*)::int as total FROM miembros');
-    const resFormularios = await db.query('SELECT COUNT(*)::int as total FROM formularios WHERE activo = true');
-    
-    const resHombres = await db.query("SELECT COUNT(*)::int as total FROM miembros WHERE sexo = 'M'");
-    const resMujeres = await db.query("SELECT COUNT(*)::int as total FROM miembros WHERE sexo = 'F'");
-    
-    const resAdultosMayores = await db.query(
-      "SELECT COUNT(*)::int as total FROM miembros WHERE fecha_nacimiento IS NOT NULL AND EXTRACT(YEAR FROM AGE(fecha_nacimiento)) >= 60"
-    );
-    
-    const resNinos = await db.query(
-      "SELECT COUNT(*)::int as total FROM miembros WHERE fecha_nacimiento IS NOT NULL AND EXTRACT(YEAR FROM AGE(fecha_nacimiento)) < 18"
-    );
-    
-    const resFamiliasPorConsejo = await db.query(
-      `SELECT c.id, c.nombre, COUNT(f.id)::int as total
-       FROM consejos_comunales c
-       LEFT JOIN familias f ON f.consejo_id = c.id
-       GROUP BY c.id, c.nombre
-       ORDER BY c.id ASC`
-    );
-
-    return {
-      consejosCount: resConsejos.rows[0].total,
-      familiasCount: resFamilias.rows[0].total,
-      miembrosCount: resMiembros.rows[0].total,
-      formulariosCount: resFormularios.rows[0].total,
-      hombresCount: resHombres.rows[0].total,
-      mujeresCount: resMujeres.rows[0].total,
-      adultosMayoresCount: resAdultosMayores.rows[0].total,
-      ninosCount: resNinos.rows[0].total,
-      familiasPorConsejo: resFamiliasPorConsejo.rows,
-    };
-  }
-
-  async getDashboardStats(usuarioId, rol) {
-    const esAdmin = rol?.toLowerCase() === 'admin';
-
-    let consejoIds = [];
-
-    if (!esAdmin) {
-      const acceso = await db.query(
-        `SELECT consejo_id
-        FROM usuarios_consejos
+    const acceso = await db.query(
+      `SELECT consejo_id
+         FROM usuarios_consejos
         WHERE usuario_id = $1
           AND activo = TRUE
         ORDER BY consejo_id`,
-        [usuarioId]
+      [usuarioId]
+    );
+
+    const ids = acceso.rows.map((row) => row.consejo_id);
+
+    // Un vocero sin consejos asignados no debe ver nada. El centinela -1
+    // no coincide con ningún consejo real.
+    return ids.length > 0 ? ids : [-1];
+  }
+
+  async contar(sql, params) {
+    const res = await db.query(sql, params);
+    return res.rows[0].total;
+  }
+
+  async getDashboardStats(usuarioId, rol) {
+    const alcance = await this.alcanceDe(usuarioId, rol);
+
+    /** Traduce el alcance a un fragmento WHERE sobre una columna. */
+    const scope = (columna) =>
+      alcance === null
+        ? { where: '', params: [] }
+        : { where: `WHERE ${columna} = ANY($1::int[])`, params: [alcance] };
+
+    const sConsejos = scope('c.id');
+    const sFamilias = scope('f.consejo_id');
+
+    const [consejosCount, familiasCount, miembrosCount, formulariosCount] = await Promise.all([
+      this.contar(`SELECT COUNT(*)::int AS total FROM consejos_comunales c ${sConsejos.where}`, sConsejos.params),
+      this.contar(`SELECT COUNT(*)::int AS total FROM familias f ${sFamilias.where}`, sFamilias.params),
+      this.contar(
+        `SELECT COUNT(*)::int AS total FROM miembros m
+           INNER JOIN familias f ON f.id = m.familia_id ${sFamilias.where}`,
+        sFamilias.params
+      ),
+      this.contar('SELECT COUNT(*)::int AS total FROM formularios WHERE activo = TRUE', [])
+    ]);
+
+    /**
+     * Contador demográfico sobre miembros, restringido al alcance.
+     * `condicion` puede referenciar `$2` porque el alcance, cuando existe,
+     * ocupa siempre el placeholder `$1`.
+     */
+    const contarMiembros = (condicion, extra = []) => {
+      const where = sFamilias.where
+        ? `${sFamilias.where} AND ${condicion}`
+        : `WHERE ${condicion}`;
+      return this.contar(
+        `SELECT COUNT(*)::int AS total FROM miembros m
+           INNER JOIN familias f ON f.id = m.familia_id ${where}`,
+        [...sFamilias.params, ...extra]
       );
+    };
 
-      consejoIds = acceso.rows.map(row => row.consejo_id);
-    }
+    const [
+      hombresCount,
+      mujeresCount,
+      adultosMayoresCount,
+      ninosCount,
+      sinFechaNacimientoCount
+    ] = await Promise.all([
+      contarMiembros("m.sexo = $1", ['M']),
+      contarMiembros("m.sexo = $1", ['F']),
+      contarMiembros('m.fecha_nacimiento IS NOT NULL AND EXTRACT(YEAR FROM AGE(m.fecha_nacimiento)) >= 60'),
+      contarMiembros('m.fecha_nacimiento IS NOT NULL AND EXTRACT(YEAR FROM AGE(m.fecha_nacimiento)) < 18'),
+      contarMiembros('m.fecha_nacimiento IS NULL')
+    ]);
 
-    const filtroConsejos = esAdmin ? '' : ' WHERE f.consejo_id = ANY($1::int[])';
-    const filtroMiembros = esAdmin ? '' : ' WHERE f.consejo_id = ANY($1::int[])';
-    const params = esAdmin ? [] : [consejoIds];
-
-    const resConsejos = esAdmin
-      ? await db.query('SELECT COUNT(*)::int as total FROM consejos_comunales')
-      : await db.query(
-          `SELECT COUNT(*)::int as total
-          FROM consejos_comunales
-          WHERE id = ANY($1::int[])`,
-          params
-        );
-
-    const resFamilias = await db.query(
-      `SELECT COUNT(*)::int as total
-      FROM familias f${filtroConsejos}`,
-      params
+    const familiasPorConsejo = await db.query(
+      `SELECT c.id, c.nombre, COUNT(f.id)::int AS total
+         FROM consejos_comunales c
+         LEFT JOIN familias f ON f.consejo_id = c.id
+         ${sConsejos.where}
+        GROUP BY c.id, c.nombre
+        ORDER BY c.id ASC`,
+      sConsejos.params
     );
-
-    const resMiembros = await db.query(
-      `SELECT COUNT(*)::int as total
-      FROM miembros m
-      INNER JOIN familias f ON f.id = m.familia_id${filtroMiembros}`,
-      params
-    );
-
-    const resFormularios = await db.query(
-      'SELECT COUNT(*)::int as total FROM formularios WHERE activo = true'
-    );
-
-    const resHombres = await db.query(
-      `SELECT COUNT(*)::int as total
-      FROM miembros m
-      INNER JOIN familias f ON f.id = m.familia_id
-      WHERE m.sexo = 'M'${esAdmin ? '' : ' AND f.consejo_id = ANY($1::int[])'}`,
-      params
-    );
-
-    const resMujeres = await db.query(
-      `SELECT COUNT(*)::int as total
-      FROM miembros m
-      INNER JOIN familias f ON f.id = m.familia_id
-      WHERE m.sexo = 'F'${esAdmin ? '' : ' AND f.consejo_id = ANY($1::int[])'}`,
-      params
-    );
-
-    const resAdultosMayores = await db.query(
-      `SELECT COUNT(*)::int as total
-      FROM miembros m
-      INNER JOIN familias f ON f.id = m.familia_id
-      WHERE m.fecha_nacimiento IS NOT NULL
-        AND EXTRACT(YEAR FROM AGE(m.fecha_nacimiento)) >= 60
-        ${esAdmin ? '' : 'AND f.consejo_id = ANY($1::int[])'}`,
-      params
-    );
-
-    const resNinos = await db.query(
-      `SELECT COUNT(*)::int as total
-      FROM miembros m
-      INNER JOIN familias f ON f.id = m.familia_id
-      WHERE m.fecha_nacimiento IS NOT NULL
-        AND EXTRACT(YEAR FROM AGE(m.fecha_nacimiento)) < 18
-        ${esAdmin ? '' : 'AND f.consejo_id = ANY($1::int[])'}`,
-      params
-    );
-
-    const resFamiliasPorConsejo = esAdmin
-      ? await db.query(
-          `SELECT c.id, c.nombre, COUNT(f.id)::int as total
-          FROM consejos_comunales c
-          LEFT JOIN familias f ON f.consejo_id = c.id
-          GROUP BY c.id, c.nombre
-          ORDER BY c.id ASC`
-        )
-      : await db.query(
-          `SELECT c.id, c.nombre, COUNT(f.id)::int as total
-          FROM consejos_comunales c
-          LEFT JOIN familias f ON f.consejo_id = c.id
-          WHERE c.id = ANY($1::int[])
-          GROUP BY c.id, c.nombre
-          ORDER BY c.id ASC`,
-          params
-        );
 
     return {
-      consejosCount: resConsejos.rows[0].total,
-      familiasCount: resFamilias.rows[0].total,
-      miembrosCount: resMiembros.rows[0].total,
-      formulariosCount: resFormularios.rows[0].total,
-      hombresCount: resHombres.rows[0].total,
-      mujeresCount: resMujeres.rows[0].total,
-      adultosMayoresCount: resAdultosMayores.rows[0].total,
-      ninosCount: resNinos.rows[0].total,
-      familiasPorConsejo: resFamiliasPorConsejo.rows,
+      consejosCount,
+      familiasCount,
+      miembrosCount,
+      formulariosCount,
+      hombresCount,
+      mujeresCount,
+      adultosMayoresCount,
+      ninosCount,
+      sinFechaNacimientoCount,
+      familiasPorConsejo: familiasPorConsejo.rows
     };
   }
 }

@@ -6,7 +6,7 @@ export interface LoginRequest {
 export interface UserPermission {
   id: number;
   modulo: string;
-  accion: 'ver' | 'crear' | 'editar' | 'eliminar';
+  accion: 'ver' | 'crear' | 'editar' | 'eliminar' | 'exportar';
 }
 
 export interface UserCouncil {

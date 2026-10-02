@@ -156,8 +156,30 @@ exports.verifyAnswers = async (req, res, next) => {
       });
     }
 
+    if (respuestas.length !== preguntas.length) {
+      return res.status(401).json({
+        success: false,
+        message: 'Debes responder todas las preguntas de seguridad'
+      });
+    }
+
+    const idsRespondidos = respuestas.map(r => r.preguntaId);
+
+    if (new Set(idsRespondidos).size !== idsRespondidos.length) {
+      return res.status(401).json({
+        success: false,
+        message: 'No puedes responder la misma pregunta más de una vez'
+      });
+    }
+
     let allCorrect = true;
     for (const r of respuestas) {
+
+      if (!r?.preguntaId || typeof r.respuesta !== 'string' || !r.respuesta.trim()) {
+        allCorrect = false;
+        break;
+      }
+
       const preg = preguntas.find(p => p.id === r.preguntaId);
       if (!preg) {
         allCorrect = false;
@@ -200,6 +222,7 @@ exports.verifyAnswers = async (req, res, next) => {
 exports.resetBySecurityQuestions = async (req, res, next) => {
   try {
     const { email, respuestas, newPassword } = req.body;
+
     if (!email || !respuestas || !Array.isArray(respuestas) || !newPassword) {
       return res.status(400).json({ success: false, message: 'Todos los campos son requeridos' });
     }
@@ -214,8 +237,30 @@ exports.resetBySecurityQuestions = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'No hay preguntas de seguridad registradas' });
     }
 
+    if (respuestas.length !== preguntas.length) {
+      return res.status(401).json({
+        success: false,
+        message: 'Debes responder todas las preguntas de seguridad'
+      });
+    }
+
+    const idsRespondidos = respuestas.map(r => r.preguntaId);
+
+    if (new Set(idsRespondidos).size !== idsRespondidos.length) {
+      return res.status(401).json({
+        success: false,
+        message: 'No puedes responder la misma pregunta más de una vez'
+      });
+    }
+
     let allCorrect = true;
     for (const r of respuestas) {
+
+      if (!r?.preguntaId || typeof r.respuesta !== 'string' || !r.respuesta.trim()) {
+        allCorrect = false;
+        break;
+      }
+      
       const preg = preguntas.find(p => p.id === r.preguntaId);
       if (!preg) {
         allCorrect = false;

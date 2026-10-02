@@ -32,8 +32,11 @@ export interface Familia {
   direccion: string;
   consejoId: number;
   consejo?: Pick<ConsejoComunal, 'id' | 'nombre'>;
+  /** Solo viene en el detalle; en el listado se usa `miembrosCount`. */
   miembros?: Miembro[];
+  miembrosCount?: number;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 // ── Miembro ───────────────────────────────────────────────────────────────────
@@ -122,11 +125,83 @@ export interface ConfiguracionSistema {
   descripcion?: string;
 }
 
-// ── Reporte ───────────────────────────────────────────────────────────────────
-export interface ReporteParams {
-  tipo: 'familias' | 'miembros' | 'formularios';
-  desde?: string;
-  hasta?: string;
-  consejoId?: number;
-  formato?: 'json' | 'csv' | 'pdf';
+// ── Consultas demográficas ────────────────────────────────────────────────────
+/**
+ * Las consultas no se hardcodean en el frontend: el backend publica su catálogo
+ * (`GET /reportes/consultas`) y la pantalla se construye a partir de estos
+ * descriptores. Agregar una consulta nueva en el backend no requiere tocar
+ * ningún componente de Angular.
+ */
+export type TipoConsulta = 'detalle' | 'agregado';
+export type TipoFiltroConsulta = 'entero' | 'texto' | 'booleano';
+export type FormatoExportacion = 'xlsx' | 'pdf';
+
+export interface OpcionFiltro {
+  valor: string | number;
+  label: string;
+}
+
+export interface FiltroConsulta {
+  key: string;
+  label: string;
+  tipo: TipoFiltroConsulta;
+  /** Catálogo que alimenta el select (`parentescos`, `estados-civiles`, …). */
+  catalogo?: string | null;
+  /** Opciones fijas cuando el filtro no depende de un catálogo. */
+  opciones?: OpcionFiltro[] | null;
+  /** El filtro de consejo lo aplica el motor a cualquier consulta. */
+  universal?: boolean;
+}
+
+export interface ColumnaConsulta {
+  key: string;
+  label: string;
+  /** Datos personales que el administrador puede ocultar desde Configuración. */
+  sensible?: boolean;
+}
+
+export interface FranjaEtaria {
+  etiqueta: string;
+  min: number;
+  max: number;
+  columna: string;
+}
+
+export interface ConsultaInfo {
+  slug: string;
+  label: string;
+  descripcion: string;
+  tipo: TipoConsulta;
+  franjas: FranjaEtaria[] | null;
+  filtros: FiltroConsulta[];
+  columnas: ColumnaConsulta[];
+  columnasPorDefecto: string[];
+}
+
+export type FiltrosConsulta = Record<string, string | number | boolean | null>;
+
+export interface ConsultaParametros {
+  filtros?: FiltrosConsulta;
+  columnas?: string[];
+  page?: number;
+  limit?: number;
+}
+
+export interface ConsultaResultado {
+  slug: string;
+  label: string;
+  descripcion: string;
+  tipo: TipoConsulta;
+  franjas: FranjaEtaria[] | null;
+  filtros: FiltrosConsulta;
+  alcance: {
+    esAdmin: boolean;
+    consejoId: number | null;
+    consejosVisibles: number[];
+  };
+  columnas: ColumnaConsulta[];
+  filas: Record<string, unknown>[];
+  resumen: Record<string, unknown>[];
+  totales: Record<string, unknown> | null;
+  paginacion: { page: number; limit: number; offset: number } | null;
 }

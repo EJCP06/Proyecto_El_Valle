@@ -59,8 +59,9 @@ class FamiliaRepository {
       consejo: row.consejo_id
         ? { id: row.consejo_id, nombre: row.consejo_nombre }
         : null,
-      miembros: Array(row.miembros_count).fill({}),
-      created_at: row.created_at
+      miembrosCount: row.miembros_count,
+      created_at: row.created_at,
+      updated_at: row.updated_at
     }));
   }
 
@@ -204,14 +205,15 @@ class FamiliaRepository {
       }
     }
 
-    const res = await db.query(
+const res = await db.query(
       `UPDATE familias
        SET nombre = COALESCE($1, nombre),
            direccion = COALESCE($2, direccion),
-           consejo_id = COALESCE($3, consejo_id)
+           consejo_id = COALESCE($3, consejo_id),
+           updated_at = CURRENT_TIMESTAMP
        WHERE id = $4
        RETURNING id, nombre, direccion,
-                 consejo_id as "consejoId", created_at`,
+                 consejo_id as "consejoId", created_at, updated_at`,
       [nombre, direccion, consejoId, id]
     );
 
